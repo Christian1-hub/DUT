@@ -11,7 +11,7 @@ router.get('/dashboard', async (req, res) => {
   try {
     const id = req.user.id;
     const user = await pool.query(
-      `SELECT id, first_name, last_name, email, role, school, filiere, bio, phone, created_at
+      `SELECT id, first_name, last_name, email, role, school, filiere, bio, created_at
        FROM users WHERE id=$1`, [id]
     );
     // Nombre de cours inscrits
@@ -25,7 +25,7 @@ router.get('/dashboard', async (req, res) => {
        JOIN courses c ON a.course_id=c.id
        JOIN enrollments e ON e.course_id=c.id AND e.student_id=$1
        LEFT JOIN assignment_submissions sub ON sub.assignment_id=a.id AND sub.student_id=$1
-       WHERE sub.id IS NULL AND a.status='pending'`, [id]
+       WHERE sub.id IS NULL AND COALESCE(a.status,'pending')='pending'`, [id]
     );
     // Communautés rejointes
     const communities = await pool.query(
@@ -33,7 +33,7 @@ router.get('/dashboard', async (req, res) => {
     );
     // Derniers cours (3 max)
     const recentCourses = await pool.query(
-      `SELECT c.id, c.title, c.description, c.filiere, c.color, c.file_url,
+      `SELECT c.id, c.title, c.description, c.filiere, '#4ade80' AS color, NULL AS file_url,
               u.first_name||' '||u.last_name AS teacher_name,
               0 AS progress
        FROM enrollments e
@@ -72,7 +72,7 @@ router.get('/courses', async (req, res) => {
     const filiereShort = filiere ? filiere.split(' — ')[0].trim() : null;
 
     const r = await pool.query(
-      `SELECT DISTINCT c.id, c.title, c.description, c.filiere, c.color, c.file_url, c.created_at,
+      `SELECT DISTINCT c.id, c.title, c.description, c.filiere, '#4ade80' AS color, NULL AS file_url, c.created_at,
               u.first_name||' '||u.last_name AS teacher_name,
               (SELECT COUNT(*) FROM assignments a WHERE a.course_id=c.id) AS assignment_count,
               0 AS progress
@@ -118,7 +118,7 @@ router.get('/courses', async (req, res) => {
 router.get('/assignments', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT a.id, a.title, a.due_date, a.instructions, a.is_quiz, a.quiz_data, a.file_url,
+      `SELECT a.id, a.title, a.due_date, NULL AS instructions, false AS is_quiz, a.quiz_data, a.file_url,
               c.title AS course_title, c.filiere,
               u.first_name||' '||u.last_name AS teacher_name,
               sub.id AS submission_id, sub.grade, sub.feedback,
@@ -189,7 +189,7 @@ router.post('/assignments/:id/submit', async (req, res) => {
 router.get('/profile', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT id, first_name, last_name, email, role, school, filiere, bio, phone, created_at
+      `SELECT id, first_name, last_name, email, role, school, filiere, bio, created_at
        FROM users WHERE id=$1`, [req.user.id]
     );
     res.json({ success: true, user: r.rows[0] });
@@ -336,7 +336,7 @@ router.get('/classroom', async (req, res) => {
 
     // Devoirs urgents (non rendus, date limite proche)
     const urgentAssignments = await pool.query(`
-      SELECT a.id, a.title, a.due_date, a.is_quiz,
+      SELECT a.id, a.title, a.due_date, false AS is_quiz,
              c.title AS course_title,
              u.first_name||' '||u.last_name AS teacher_name
       FROM assignments a

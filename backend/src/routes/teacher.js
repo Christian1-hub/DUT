@@ -21,14 +21,14 @@ router.get('/dashboard', async (req, res) => {
     const id = req.user.id;
 
     const user = await pool.query(
-      'SELECT id, first_name, last_name, email, school, discipline, filiere, bio, phone, created_at FROM users WHERE id = $1',
+      'SELECT id, first_name, last_name, email, school, filiere, bio, created_at FROM users WHERE id = $1',
       [id]
     );
     const stats = await Promise.all([
       pool.query('SELECT COUNT(*) FROM classes WHERE teacher_id=$1', [id]),
       pool.query('SELECT COUNT(*) FROM courses WHERE teacher_id=$1', [id]),
       pool.query(`SELECT COUNT(DISTINCT cm.student_id) FROM class_members cm JOIN classes cl ON cm.class_id=cl.id WHERE cl.teacher_id=$1`, [id]),
-      pool.query(`SELECT COUNT(*) FROM assignment_submissions sub JOIN assignments a ON sub.assignment_id=a.id JOIN courses c ON a.course_id=c.id WHERE c.teacher_id=$1 AND sub.grade IS NULL`, [id]),
+      pool.query(`SELECT COUNT(*) FROM assignment_submissions sub JOIN assignments a ON sub.assignment_id=a.id JOIN courses c ON a.course_id=c.id WHERE c.teacher_id=$1 AND sub.score IS NULL`, [id]),
     ]);
 
     const recent = await pool.query(
@@ -67,7 +67,7 @@ router.get('/dashboard', async (req, res) => {
 router.get('/profile', async (req, res) => {
   try {
     const r = await pool.query(
-      'SELECT id, first_name, last_name, email, school, discipline, filiere, bio, phone, created_at FROM users WHERE id=$1',
+      'SELECT id, first_name, last_name, email, school, filiere, bio, created_at FROM users WHERE id=$1',
       [req.user.id]
     );
     res.json({ success: true, user: r.rows[0] });
@@ -173,7 +173,7 @@ router.get('/classes/:id/students', async (req, res) => {
 router.get('/courses', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT c.id, c.title, c.description, c.filiere, c.color, c.file_url, c.class_id, c.created_at,
+      `SELECT c.id, c.title, c.description, c.filiere, '#4ade80' AS color, NULL AS file_url, c.class_id, c.created_at,
               cl.name AS class_name, cl.level AS class_level,
               COUNT(DISTINCT e.student_id) AS student_count,
               COUNT(DISTINCT a.id)         AS assignment_count
@@ -276,12 +276,12 @@ router.delete('/courses/:id', async (req, res) => {
 router.get('/assignments', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT a.id, a.title, a.due_date, a.status, a.is_quiz, a.file_url, a.instructions, a.created_at,
+      `SELECT a.id, a.title, a.due_date, a.status, false AS is_quiz, a.file_url, NULL AS instructions, a.created_at,
               c.title AS course_title, c.filiere, c.class_id,
               cl.name AS class_name,
               COUNT(DISTINCT e.student_id)                                            AS total_students,
               COUNT(DISTINCT sub.id)                                                   AS submissions_count,
-              COUNT(DISTINCT CASE WHEN sub.grade IS NULL THEN sub.id END)              AS to_grade
+              COUNT(DISTINCT CASE WHEN sub.score IS NULL THEN sub.id END)              AS to_grade
        FROM assignments a
        JOIN courses c        ON a.course_id = c.id
        LEFT JOIN classes cl  ON c.class_id  = cl.id
@@ -341,7 +341,7 @@ router.get('/assignments/:id/submissions', async (req, res) => {
     const r = await pool.query(
       `SELECT sub.id, sub.submitted_at, sub.grade, sub.feedback, sub.content, sub.file_url,
               u.first_name||' '||u.last_name AS student_name, u.email AS student_email,
-              a.title AS assignment_title, a.is_quiz, a.quiz_data
+              a.title AS assignment_title, false AS is_quiz, a.quiz_data
        FROM assignment_submissions sub
        JOIN users u       ON sub.student_id    = u.id
        JOIN assignments a ON sub.assignment_id = a.id
@@ -459,7 +459,7 @@ router.get('/stats', async (req, res) => {
       `SELECT
          COUNT(DISTINCT sub.id) AS total_submissions,
          COUNT(DISTINCT CASE WHEN sub.grade IS NOT NULL THEN sub.id END) AS graded,
-         COUNT(DISTINCT CASE WHEN sub.grade IS NULL THEN sub.id END)     AS pending,
+         COUNT(DISTINCT CASE WHEN sub.score IS NULL THEN sub.id END)     AS pending,
          ROUND(AVG(sub.grade)::numeric,2) AS global_average
        FROM assignment_submissions sub
        JOIN assignments a ON sub.assignment_id=a.id

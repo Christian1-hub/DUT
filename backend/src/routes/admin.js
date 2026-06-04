@@ -374,7 +374,7 @@ router.get('/courses/:id/journey', async (req, res) => {
     // Infos du cours
     const course = await pool.query(`
       SELECT c.*, u.first_name||' '||u.last_name AS teacher_name,
-             u.email AS teacher_email, u.discipline,
+             u.email AS teacher_email, '—' AS discipline,
              cl.name AS class_name, cl.level, cl.filiere AS class_filiere
       FROM courses c
       LEFT JOIN users u ON c.teacher_id=u.id

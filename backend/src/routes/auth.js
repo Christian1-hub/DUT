@@ -80,6 +80,13 @@ router.put('/role', auth, async (req, res) => {
     if (!['etudiant','enseignant','admin'].includes(role)) {
       return res.status(400).json({ success: false, message: 'Rôle invalide.' });
     }
+    // PROTECTION: ne jamais écraser le rôle superadmin
+    const currentUser = await pool.query(
+      'SELECT role FROM users WHERE id=$1', [req.user.id]
+    );
+    if (currentUser.rows[0]?.role === 'superadmin') {
+      return res.status(403).json({ success: false, message: 'Impossible de modifier le rôle superadmin.' });
+    }
     const r = await pool.query(
       `UPDATE users SET role=$1 WHERE id=$2
        RETURNING id, first_name, last_name, email, role, school, filiere`,
@@ -174,7 +181,7 @@ async function autoEnrollStudent(studentId, school, filiere, level) {
 router.get('/me', auth, async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT id, first_name, last_name, email, role, school, filiere, discipline, bio, phone, avatar_url, created_at
+      `SELECT id, first_name, last_name, email, role, school, filiere, created_at
        FROM users WHERE id=$1`,
       [req.user.id]
     );
@@ -222,6 +229,37 @@ router.post('/contact', async (req, res) => {
     res.json({ success: true, message: 'Message reçu ! Nous vous répondrons dans les 24h.' });
   } catch(e) {
     console.error('[CONTACT]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+
+// ── POST /api/auth/fix-superadmin ──────────────────────────────
+// Correction d'urgence du rôle superadmin (protégée par JWT valide)
+router.post('/fix-superadmin', auth, async (req, res) => {
+  try {
+    // Vérifier que l'email correspond bien au compte superadmin officiel
+    const SA_EMAIL = 'superadmin@camunolearn.cm';
+    const current = await pool.query('SELECT email, role FROM users WHERE id=$1', [req.user.id]);
+    if (!current.rows.length) {
+      return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
+    }
+    const u = current.rows[0];
+    if (u.email !== SA_EMAIL) {
+      return res.status(403).json({ success: false, message: 'Seul le compte superadmin officiel peut utiliser cette route.' });
+    }
+    // Forcer le rôle superadmin
+    const r = await pool.query(
+      `UPDATE users SET role='superadmin', is_active=true WHERE id=$1
+       RETURNING id, first_name, last_name, email, role, school`,
+      [req.user.id]
+    );
+    const user = r.rows[0];
+    const token = mkToken(user);
+    console.log('[FIX-SUPERADMIN] Rôle corrigé pour', user.email);
+    res.json({ success: true, token, user });
+  } catch(e) {
+    console.error('[FIX-SUPERADMIN]', e.message);
     res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 });
