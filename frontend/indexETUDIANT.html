@@ -253,7 +253,7 @@ document.head.appendChild(spinStyle);
 const API = (function() {
   var h = window.location.hostname;
   if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
-  return '/api';
+  return 'https://camunolearn-api.onrender.com/api';
 })();
 
 // ── Upload.io ─────────────────────────────────────────
@@ -1564,7 +1564,7 @@ let _iuCourseId = null;
 
 function openAccessRequest(courseId, title, university, teacherName) {
   _iuCourseId = courseId;
-  document.getElementById('iu-modal-title').textContent   = 'Demander laccès au cours';
+  document.getElementById('iu-modal-title').textContent   = "Demander l'acc\u00e8s au cours";
   document.getElementById('iu-modal-sub').textContent     = 'Votre demande sera envoyée au professeur';
   document.getElementById('iu-modal-course').textContent  = title;
   document.getElementById('iu-modal-univ').textContent    = university;
@@ -1596,7 +1596,7 @@ async function confirmAccessRequest() {
     await loadInterUniv();
     toast('✅ Demande envoyée ! Le professeur vous répondra bientôt.');
   } else {
-    toast(d?.message || 'Erreur lors de lenvoi.', 'err');
+    toast(d?.message || 'Erreur envoi.', 'err');
   }
 }
 

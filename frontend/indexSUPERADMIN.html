@@ -104,7 +104,7 @@ tr:hover td{background:#1e293b55}
 const API = (function() {
   var h = window.location.hostname;
   if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
-  return '/api';
+  return 'https://camunolearn-api.onrender.com/api';
 })();
 const TK = () => localStorage.getItem('sa_token');
 let ME = null;

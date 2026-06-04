@@ -275,7 +275,7 @@ document.head.appendChild(spinStyle);
 const API = (function() {
   var h = window.location.hostname;
   if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
-  return '/api';
+  return 'https://camunolearn-api.onrender.com/api';
 })();
 const TK  = () => localStorage.getItem('camunolearn_token');
 // Vérification rôle admin via token (côté client seulement pour UX, le vrai check est dans le backend)

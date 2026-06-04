@@ -259,7 +259,7 @@ document.head.appendChild(spinStyle);
 const API = (function() {
   var h = window.location.hostname;
   if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
-  return '/api';
+  return 'https://camunolearn-api.onrender.com/api';
 })();
 // Upload.io — remplacez ces 2 valeurs
 const UPLOADIO_KEY        = 'public_W23MTdC4sM22hJB8SGp22Q4b8hFW';   // ← ligne 60 : clé API upload.io
