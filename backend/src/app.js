@@ -14,7 +14,7 @@ const teacherRoutes    = require('./routes/teacher');
 const studentRoutes    = require('./routes/student');
 const forumRoutes      = require('./routes/forum');
 const adminRoutes      = require('./routes/admin');
-const superadminRoutes = require('./routes/superadmin');
+const superadminRoutes = require('./routes/Superadmin');
 const crossRoutes      = require('./routes/crossaccess');
 
 const app = express();
@@ -31,7 +31,8 @@ app.use(cors({
       origin.includes('localhost') ||
       origin.includes('127.0.0.1') ||
       origin.includes('learnx.cm') ||
-      origin.includes('0.0.0.0')
+      origin.includes('0.0.0.0') ||
+      origin.includes('onrender.com')
     ) return callback(null, true);
     callback(new Error('CORS non autorisé: ' + origin));
   },
