@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Corrections | CamunoLearn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;font-family:'DM Sans',sans-serif}
+.ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;user-select:none;line-height:1;vertical-align:middle}
+.ms.f{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+.card{background:#fff;border:1px solid #f0f0f0;border-radius:14px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-weight:700;font-size:.875rem;cursor:pointer;border:none;transition:.15s}
+.btn:active{transform:scale(.97)}
+.bp{background:#ea580c;color:#fff}.bp:hover{background:#c2410c}
+.bg{background:#f3f4f6;color:#374151}.bg:hover{background:#e5e7eb}
+.fld{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:9px;padding:9px 13px;font-size:.875rem;color:#111;outline:none;transition:border .15s}
+.fld:focus{border-color:#ea580c;box-shadow:0 0 0 3px rgba(234,88,12,.1)}
+.sk{background:linear-gradient(90deg,#f5f5f5 25%,#ebebeb 50%,#f5f5f5 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:10px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;cursor:pointer;border:none;transition:.12s}
+#toast{position:fixed;bottom:20px;right:20px;z-index:999;padding:11px 18px;border-radius:10px;font-weight:600;font-size:.875rem;box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateY(60px);opacity:0;transition:all .28s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+#toast.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+/* Modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.ov.open{display:flex}
+.mbox{background:#fff;border-radius:18px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.2)}
+/* Réponse texte quiz */
+.quiz-answer{background:#f0fdf4;border-radius:8px;padding:10px 14px;margin-top:6px;border-left:3px solid #00602a}
+.quiz-answer.wrong{background:#fef2f2;border-left-color:#dc2626}
+</style>
+</head>
+<body style="background:#f8f9fb;min-height:100vh">
+<script>
+const API = (function() {
+  var h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
+  return '/api';
+})();
+const TK  = () => localStorage.getItem('camunolearn_token');
+</script>
+
+<!-- TOPBAR -->
+<header style="position:sticky;top:0;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-bottom:1px solid #f0f0f0;z-index:40;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px">
+  <div style="display:flex;align-items:center;gap:10px;min-width:0">
+    <button onclick="history.back()" style="padding:6px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#6b7280;display:flex;align-items:center" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+      <span class="ms">arrow_back</span>
+    </button>
+    <div style="min-width:0">
+      <p id="hdr-sub" style="font-size:.7rem;color:#9ca3af;margin:0">Retour au cours</p>
+      <p id="hdr-title" style="font-family:Manrope;font-weight:700;font-size:.9rem;color:#111;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Copies — Chargement...</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span id="badge-attente" style="font-size:.75rem;color:#d97706;padding:5px 12px;background:#fffbeb;border-radius:8px;font-weight:600">— à corriger</span>
+  </div>
+</header>
+
+<main style="max-width:820px;margin:0 auto;padding:24px 16px">
+
+  <!-- Résumé stats -->
+  <div class="card" style="padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;gap:20px;flex:1;flex-wrap:wrap">
+      <div style="text-align:center">
+        <p id="sum-total" style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#111;margin:0">—</p>
+        <p style="font-size:.65rem;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin:2px 0 0">Rendus</p>
+      </div>
+      <div style="text-align:center">
+        <p id="sum-corr" style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#16a34a;margin:0">—</p>
+        <p style="font-size:.65rem;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin:2px 0 0">Corrigés</p>
+      </div>
+      <div style="text-align:center">
+        <p id="sum-att" style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#d97706;margin:0">—</p>
+        <p style="font-size:.65rem;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin:2px 0 0">En attente</p>
+      </div>
+      <div style="text-align:center">
+        <p id="sum-avg" style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#ea580c;margin:0">—</p>
+        <p style="font-size:.65rem;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin:2px 0 0">Moyenne</p>
+      </div>
+    </div>
+    <!-- Filtres -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="pill" id="f-all" onclick="setFilter('all')" style="background:#fff7ed;color:#c2410c;border:1.5px solid #ea580c">Tous</button>
+      <button class="pill" id="f-att" onclick="setFilter('att')" style="background:#fffbeb;color:#d97706;border:0.5px solid #f0f0f0">À corriger</button>
+      <button class="pill" id="f-ok"  onclick="setFilter('ok')"  style="background:#f0fdf4;color:#166534;border:0.5px solid #f0f0f0">Corrigés</button>
+    </div>
+  </div>
+
+  <!-- Liste copies -->
+  <div id="copies-list" style="display:flex;flex-direction:column;gap:12px">
+    <div class="sk" style="height:140px"></div>
+    <div class="sk" style="height:140px"></div>
+  </div>
+  <div id="copies-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">inbox</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune copie rendue</p>
+    <p style="font-size:.875rem;color:#9ca3af;margin-top:4px">Les étudiants n'ont pas encore soumis leurs copies</p>
+  </div>
+  <div id="copies-no-filter" class="card" style="display:none;text-align:center;padding:40px 20px">
+    <span class="ms" style="font-size:40px;color:#d1d5db">filter_list</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:10px">Aucune copie dans cette catégorie</p>
+  </div>
+</main>
+
+<!-- MODAL VISUALISATION COPIE -->
+<div id="m-view" class="ov" onclick="if(event.target===this)closeView()">
+  <div class="mbox">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #f0f0f0">
+      <div>
+        <h3 id="view-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Copie de l&#39;étudiant</h3>
+        <p id="view-sub"   style="font-size:.75rem;color:#9ca3af;margin-top:2px"></p>
+      </div>
+      <button onclick="closeView()" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
+        <span class="ms">close</span>
+      </button>
+    </div>
+    <div id="view-body" style="padding:20px 22px;max-height:60vh;overflow-y:auto"></div>
+    <div style="padding:14px 22px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:8px">
+      <button onclick="closeView()" class="btn bg">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- MODAL VISUALISATION TRAVAIL ÉTUDIANT -->
+<div id="m-view" style="position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto"
+     onclick="if(event.target===this)closeView()">
+  <div style="background:#fff;border-radius:18px;width:100%;max-width:700px;box-shadow:0 24px 60px rgba(0,0,0,.2);margin:auto;animation:popIn .2s ease both">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #f0f0f0">
+      <div>
+        <h3 id="view-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111;margin:0">Travail de l'étudiant</h3>
+        <p id="view-sub"   style="font-size:.75rem;color:#9ca3af;margin:3px 0 0"></p>
+      </div>
+      <button onclick="closeView()" style="padding:6px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#9ca3af;display:flex;align-items:center"
+              onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+        <span style="font-family:Material Symbols Outlined;font-size:22px">close</span>
+      </button>
+    </div>
+    <!-- Contenu -->
+    <div id="view-body" style="padding:22px;max-height:80vh;overflow-y:auto"></div>
+  </div>
+</div>
+<style>
+@keyframes popIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+</style>
+
+<script>
+
+const params    = new URLSearchParams(location.search);
+const ASSIGN_ID = params.get('id');
+const TITLE     = params.get('title') || 'Copies';
+const COURSE_ID = params.get('courseId');
+
+let ALL_SUBS  = [];
+let IS_QUIZ   = false;
+let curFilter = 'all';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!ASSIGN_ID || !TK()) { location.href = 'indexEnseignant.html'; return; }
+  document.getElementById('hdr-title').textContent = `Copies — ${decodeURIComponent(TITLE)}`;
+  await loadSubs();
+});
+
+async function api(path, opts = {}) {
+  try {
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${TK()}`, ...(opts.headers||{}) }
+    });
+    if (r.status === 401) { location.href = 'indexconnexion.html'; return null; }
+    return r.json();
+  } catch(e) { toast('Erreur réseau.','err'); return null; }
+}
+
+async function loadSubs() {
+  const d = await api(`/teacher/assignments/${ASSIGN_ID}/submissions`);
+  if (!d?.success) return;
+  ALL_SUBS = d.submissions;
+
+  // Détecter si c'est un quiz (le contenu est du JSON)
+  if (ALL_SUBS.length > 0 && ALL_SUBS[0].content) {
+    try { const p = JSON.parse(ALL_SUBS[0].content); IS_QUIZ = p.answers !== undefined; } catch(e) {}
+  }
+
+  updateStats();
+  renderSubs();
+}
+
+function updateStats() {
+  const corr = ALL_SUBS.filter(s => s.grade !== null);
+  const att  = ALL_SUBS.filter(s => s.grade === null);
+  const avg  = corr.length
+    ? (corr.reduce((s,x) => s + parseFloat(x.grade), 0) / corr.length).toFixed(1)
+    : '—';
+  document.getElementById('sum-total').textContent = ALL_SUBS.length;
+  document.getElementById('sum-corr').textContent  = corr.length;
+  document.getElementById('sum-att').textContent   = att.length;
+  document.getElementById('sum-avg').textContent   = avg !== '—' ? avg + '/20' : '—';
+  document.getElementById('badge-attente').textContent = `${att.length} à corriger`;
+}
+
+function setFilter(f) {
+  curFilter = f;
+  ['all','att','ok'].forEach(id => {
+    const btn = document.getElementById('f-'+id);
+    const isActive = id === f;
+    btn.style.border = isActive ? '1.5px solid #ea580c' : '0.5px solid #f0f0f0';
+    btn.style.background = id==='att' ? '#fffbeb' : id==='ok' ? '#f0fdf4' : '#fff7ed';
+    if (isActive) btn.style.fontWeight = '800';
+    else btn.style.fontWeight = '700';
+  });
+  renderSubs();
+}
+
+function renderSubs() {
+  let list = ALL_SUBS;
+  if (curFilter==='att') list = ALL_SUBS.filter(s => s.grade === null);
+  if (curFilter==='ok')  list = ALL_SUBS.filter(s => s.grade !== null);
+
+  const el     = document.getElementById('copies-list');
+  const empty  = document.getElementById('copies-empty');
+  const noFilt = document.getElementById('copies-no-filter');
+
+  if (!ALL_SUBS.length) { el.innerHTML=''; empty.style.display='block'; noFilt.style.display='none'; return; }
+  empty.style.display='none';
+  if (!list.length) { el.innerHTML=''; noFilt.style.display='block'; return; }
+  noFilt.style.display='none';
+
+  el.innerHTML = list.map(s => {
+    const corrected = s.grade !== null;
+    const initials  = (s.student_name||'??').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const avColor   = corrected ? (s.grade>=10?'#16a34a':'#dc2626') : '#d97706';
+
+    // Parser le contenu
+    let quizResult = null;
+    let textContent = s.content || null;
+    if (s.content) {
+      try {
+        const q = JSON.parse(s.content);
+        if (q.score !== undefined) { quizResult = q; textContent = null; }
+      } catch(e) {}
+    }
+    const prefilledGrade = s.grade ?? (quizResult ? quizResult.note : '');
+
+    return `<div class="card" style="padding:18px" id="sub-${s.id}">
+
+      <!-- En-tête -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="width:42px;height:42px;border-radius:50%;background:${corrected?'#f0fdf4':'#fff7ed'};color:${corrected?'#166534':'#c2410c'};display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">${initials}</div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:.875rem;font-weight:700;color:#111;margin:0">${s.student_name}</p>
+          <p style="font-size:.72rem;color:#9ca3af;margin:0">${s.student_email} · Rendu ${ago(s.submitted_at)}</p>
+        </div>
+        ${corrected
+          ? `<div style="text-align:right;flex-shrink:0">
+               <span style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:${avColor}">${s.grade}/20</span>
+               <p style="font-size:.65rem;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin:2px 0 0">Note actuelle</p>
+             </div>`
+          : `<span style="padding:4px 12px;background:#fff7ed;color:#c2410c;border-radius:999px;font-size:.72rem;font-weight:700">À corriger</span>`}
+      </div>
+
+      <!-- Réponse texte -->
+      ${textContent ? `
+        <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+            <span class="ms" style="color:#6b7280;font-size:16px">edit_note</span>
+            <p style="font-size:.72rem;font-weight:700;color:#9ca3af;margin:0;text-transform:uppercase;letter-spacing:.05em">Réponse de l&#39;étudiant</p>
+          </div>
+          <p style="font-size:.875rem;color:#374151;margin:0;white-space:pre-wrap;line-height:1.7">${textContent}</p>
+        </div>` : ''}
+
+      <!-- Résultat quiz -->
+      ${quizResult ? `
+        <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:10px;padding:14px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+            <span class="ms" style="color:#7c3aed;font-size:16px">quiz</span>
+            <p style="font-size:.72rem;font-weight:700;color:#9ca3af;margin:0;text-transform:uppercase;letter-spacing:.05em">Résultat Quiz auto-corrigé</p>
+          </div>
+          <div style="display:flex;gap:24px;flex-wrap:wrap">
+            <div style="text-align:center">
+              <p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#7c3aed;margin:0">${quizResult.score}/${quizResult.total}</p>
+              <p style="font-size:.65rem;color:#9ca3af;margin:2px 0 0;text-transform:uppercase">Questions correctes</p>
+            </div>
+            <div style="text-align:center">
+              <p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:${quizResult.note>=10?'#16a34a':'#dc2626'};margin:0">${quizResult.note}/20</p>
+              <p style="font-size:.65rem;color:#9ca3af;margin:2px 0 0;text-transform:uppercase">Note auto</p>
+            </div>
+          </div>
+          <p style="font-size:.75rem;color:#a78bfa;margin:8px 0 0">💡 Note pré-remplie. Modifiez si besoin avant d'enregistrer.</p>
+        </div>` : ''}
+
+      <!-- Copie PDF / Image -->
+      ${s.file_url ? `
+        <div style="margin-bottom:12px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <a href="${s.file_url}" target="_blank"
+               style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;color:#c2410c;font-size:.75rem;font-weight:700;text-decoration:none">
+              <span class="ms" style="font-size:16px">open_in_new</span>Ouvrir dans un onglet
+            </a>
+            <button onclick="togglePreview('${s.id}')"
+              style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;color:#1d4ed8;font-size:.75rem;font-weight:700;cursor:pointer">
+              <span class="ms" style="font-size:16px">visibility</span>Voir le travail ici
+            </button>
+          </div>
+          <div id="preview-${s.id}" style="display:none">
+            ${buildViewer(s.file_url)}
+          </div>
+        </div>` : ''}
+
+      <!-- Commentaire précédent -->
+      ${corrected && s.feedback ? `
+        <div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:12px;border-left:3px solid #ea580c">
+          <p style="font-size:.72rem;font-weight:700;color:#9ca3af;margin:0 0 3px">Commentaire envoyé</p>
+          <p style="font-size:.8rem;color:#374151;margin:0">${s.feedback}</p>
+        </div>` : ''}
+
+      <!-- Bouton visualiser + Zone notation -->
+      <div style="border-top:1px solid #f3f4f6;padding-top:12px">
+      <button onclick="openView('${s.id}')"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;background:linear-gradient(135deg,#ea580c,#f97316);color:#fff;border:none;border-radius:10px;font-size:.875rem;font-weight:700;cursor:pointer;margin-bottom:12px;transition:.15s"
+        onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+        <span style="font-family:Material Symbols Outlined;font-size:18px">visibility</span>
+        Visualiser le travail de l'étudiant
+      </button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <input type="number" min="0" max="20" step="0.5" placeholder="/20"
+                 value="${prefilledGrade}" id="g-${s.id}"
+                 class="fld" style="width:75px;text-align:center;padding:8px"/>
+          <span style="font-size:.8rem;color:#9ca3af">/20</span>
+        </div>
+        <input type="text" placeholder="Commentaire (optionnel)..."
+               value="${s.feedback||''}" id="f-${s.id}"
+               class="fld" style="flex:1;min-width:180px;padding:8px"/>
+        <button onclick="gradeIt('${s.id}')"
+                class="btn bp" style="padding:8px 16px;white-space:nowrap;flex-shrink:0">
+          <span class="ms" style="font-size:16px">${corrected?'edit':'check'}</span>
+          ${corrected?'Modifier la note':'Enregistrer la note'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+async function gradeIt(subId) {
+  const grade    = parseFloat(document.getElementById(`g-${subId}`).value);
+  const feedback = document.getElementById(`f-${subId}`).value.trim();
+  if (isNaN(grade) || grade < 0 || grade > 20) { toast('Note entre 0 et 20.', 'err'); return; }
+
+  const btn = document.querySelector(`#sub-${subId} .btn.bp`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement...'; }
+
+  const d = await api(`/teacher/submissions/${subId}/grade`, {
+    method: 'PUT',
+    body:   JSON.stringify({ grade, feedback })
+  });
+
+  if (d?.success) {
+    const idx = ALL_SUBS.findIndex(s => s.id === subId);
+    if (idx >= 0) { ALL_SUBS[idx].grade = grade; ALL_SUBS[idx].feedback = feedback; }
+    updateStats();
+    renderSubs();
+    toast(`✅ Note ${grade}/20 enregistrée — l'étudiant peut la voir sur son dashboard !`);
+  } else {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="ms" style="font-size:15px">check</span>Corriger'; }
+    toast(d?.message || 'Erreur.', 'err');
+  }
+}
+
+function togglePreview(subId) {
+  const el = document.getElementById('preview-' + subId);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── Ouvrir le modal de visualisation ──────────────────
+function openView(subId) {
+  const s = ALL_SUBS.find(x => x.id === subId);
+  if (!s) return;
+
+  document.getElementById('m-view').style.display = 'flex';
+  document.getElementById('view-title').textContent = 'Copie de ' + s.student_name;
+  document.getElementById('view-sub').textContent   = s.student_email + ' · Rendu ' + ago(s.submitted_at);
+
+  let html = '';
+
+  // ━━━ CAS 1 : QUIZ ━━━
+  if (s.is_quiz && s.content) {
+    let studentAnswers = null;
+    let quizTemplate   = null;
+
+    // Réponses de l'étudiant
+    try {
+      const parsed = JSON.parse(s.content);
+      if (parsed.answers !== undefined) {
+        studentAnswers = parsed.answers;  // tableau des indices choisis
+      }
+    } catch(e) {}
+
+    // Template du quiz (questions + options + bonne réponse)
+    try {
+      if (s.quiz_data) {
+        quizTemplate = typeof s.quiz_data === 'string'
+          ? JSON.parse(s.quiz_data)
+          : s.quiz_data;
+      }
+    } catch(e) {}
+
+    // ── Résumé score ──
+    if (studentAnswers && quizTemplate) {
+      let score = 0;
+      studentAnswers.forEach((ans, i) => {
+        if (quizTemplate[i] && ans === quizTemplate[i].correct) score++;
+      });
+      const total = quizTemplate.length;
+      const note  = parseFloat(((score / total) * 20).toFixed(1));
+      const col   = note >= 10 ? '#16a34a' : '#dc2626';
+      const bg    = note >= 10 ? '#f0fdf4' : '#fef2f2';
+      const bdr   = note >= 10 ? '#bbf7d0' : '#fecaca';
+
+      html += '<div style="background:' + bg + ';border:2px solid ' + bdr + ';border-radius:14px;padding:18px;margin-bottom:20px;display:flex;gap:24px;flex-wrap:wrap;align-items:center">'
+        + '<div style="text-align:center">'
+        + '<p style="font-family:Manrope;font-weight:900;font-size:2.5rem;color:#7c3aed;margin:0">' + score + '/' + total + '</p>'
+        + '<p style="font-size:.7rem;color:#6b7280;margin:4px 0 0;text-transform:uppercase;letter-spacing:.05em">Bonnes réponses</p></div>'
+        + '<div style="text-align:center">'
+        + '<p style="font-family:Manrope;font-weight:900;font-size:2.5rem;color:' + col + ';margin:0">' + note + '/20</p>'
+        + '<p style="font-size:.7rem;color:#6b7280;margin:4px 0 0;text-transform:uppercase;letter-spacing:.05em">Note calculée</p></div>'
+        + '<div style="flex:1;min-width:140px">'
+        + '<div style="height:10px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-bottom:6px">'
+        + '<div style="height:100%;background:' + col + ';border-radius:99px;width:' + Math.round((score/total)*100) + '%"></div></div>'
+        + '<p style="font-size:.75rem;color:#6b7280;text-align:center">' + Math.round((score/total)*100) + '% de réussite</p></div>'
+        + '</div>';
+
+      // ── Questions une par une ──
+      html += '<div style="display:flex;flex-direction:column;gap:14px">';
+      quizTemplate.forEach(function(q, qIdx) {
+        const studentChoice = studentAnswers[qIdx];
+        const isCorrect     = studentChoice === q.correct;
+
+        html += '<div style="border:2px solid ' + (isCorrect ? '#bbf7d0' : '#fecaca') + ';border-radius:12px;overflow:hidden">';
+
+        // En-tête question
+        html += '<div style="padding:12px 16px;background:' + (isCorrect ? '#f0fdf4' : '#fef2f2') + ';display:flex;align-items:flex-start;gap:10px">'
+          + '<span style="font-family:Material Symbols Outlined;font-size:20px;color:' + (isCorrect ? '#16a34a' : '#dc2626') + ';flex-shrink:0;margin-top:1px">'
+          + (isCorrect ? 'check_circle' : 'cancel') + '</span>'
+          + '<div style="flex:1">'
+          + '<p style="font-size:.7rem;font-weight:700;color:#9ca3af;margin:0 0 3px;text-transform:uppercase;letter-spacing:.05em">Question ' + (qIdx+1) + '/' + total + '</p>'
+          + '<p style="font-size:.9rem;font-weight:700;color:#111;margin:0">' + q.question + '</p>'
+          + '</div></div>';
+
+        // Options
+        html += '<div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px">';
+        (q.options || []).forEach(function(opt, oIdx) {
+          const isStudentChoice = oIdx === studentChoice;
+          const isCorrectAnswer = oIdx === q.correct;
+
+          let bg2 = '#f9fafb', border2 = '#e5e7eb', color2 = '#374151', icon = '';
+
+          if (isCorrectAnswer) {
+            bg2 = '#f0fdf4'; border2 = '#86efac'; color2 = '#166534';
+            icon = '<span style="font-family:Material Symbols Outlined;font-size:16px;color:#16a34a;margin-left:auto;flex-shrink:0">check_circle</span>';
+          }
+          if (isStudentChoice && !isCorrectAnswer) {
+            bg2 = '#fef2f2'; border2 = '#fca5a5'; color2 = '#991b1b';
+            icon = '<span style="font-family:Material Symbols Outlined;font-size:16px;color:#dc2626;margin-left:auto;flex-shrink:0">cancel</span>';
+          }
+          if (isStudentChoice && isCorrectAnswer) {
+            bg2 = '#f0fdf4'; border2 = '#86efac'; color2 = '#166534';
+            icon = '<span style="font-family:Material Symbols Outlined;font-size:16px;color:#16a34a;margin-left:auto;flex-shrink:0">check_circle</span>';
+          }
+
+          html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:2px solid ' + border2 + ';background:' + bg2 + '">'
+            + '<div style="width:24px;height:24px;border-radius:50%;border:2px solid ' + border2 + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.7rem;font-weight:700;color:' + color2 + '">'
+            + String.fromCharCode(65 + oIdx) + '</div>'
+            + '<span style="font-size:.875rem;color:' + color2 + ';font-weight:' + (isCorrectAnswer || isStudentChoice ? '700' : '400') + ';flex:1">' + opt + '</span>'
+            + (isStudentChoice ? '<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:999px;background:' + (isCorrect ? '#bbf7d0' : '#fecaca') + ';color:' + (isCorrect ? '#166534' : '#dc2626') + ';white-space:nowrap">Réponse étudiant</span>' : '')
+            + icon
+            + '</div>';
+        });
+        html += '</div></div>';
+      });
+      html += '</div>';
+
+    } else if (studentAnswers) {
+      html += '<p style="color:#6b7280;font-size:.875rem">Quiz soumis — template de questions non disponible pour reconstituer le corrigé.</p>';
+    }
+
+  // ━━━ CAS 2 : FICHIER PDF / IMAGE ━━━
+  } else if (s.file_url) {
+    const isPdf   = s.file_url.startsWith('data:application/pdf') || s.file_url.toLowerCase().includes('.pdf');
+    const isImage = s.file_url.startsWith('data:image') || /\.(jpg|jpeg|png|gif|webp)/i.test(s.file_url);
+
+    html += '<div style="margin-bottom:16px;display:flex;justify-content:flex-end">'
+      + '<a href="' + s.file_url + '" target="_blank" '
+      + 'style="font-size:.8rem;font-weight:700;color:#ea580c;text-decoration:none;display:flex;align-items:center;gap:5px;padding:8px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px">'
+      + '<span style="font-family:Material Symbols Outlined;font-size:16px">open_in_new</span>Ouvrir dans un onglet</a></div>';
+
+    if (isPdf) {
+      html += '<div style="border-radius:12px;overflow:hidden;border:2px solid #fed7aa">'
+        + '<div style="padding:8px 16px;background:#fff7ed;font-size:.8rem;color:#c2410c;font-weight:700;display:flex;align-items:center;gap:8px">'
+        + '<span style="font-family:Material Symbols Outlined;font-size:18px">picture_as_pdf</span>Copie PDF — faites défiler pour tout voir</div>'
+        + '<iframe src="' + s.file_url + '" style="width:100%;height:680px;border:none"></iframe>'
+        + '</div>';
+    } else if (isImage) {
+      html += '<div style="border-radius:12px;background:#f9fafb;border:2px solid #e5e7eb;padding:16px;text-align:center">'
+        + '<img src="' + s.file_url + '" style="max-width:100%;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1)" alt="Copie"/>'
+        + '</div>';
+    } else {
+      html += '<iframe src="' + s.file_url + '" style="width:100%;height:680px;border:none;border-radius:12px;border:2px solid #e5e7eb"></iframe>';
+    }
+
+  // ━━━ CAS 3 : RÉPONSE TEXTE ━━━
+  } else if (s.content) {
+    html += '<div style="background:#f8fafc;border:2px solid #e5e7eb;border-radius:12px;padding:20px">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
+      + '<span style="font-family:Material Symbols Outlined;font-size:20px;color:#6b7280">edit_note</span>'
+      + '<p style="font-size:.8rem;font-weight:700;color:#374151;margin:0;text-transform:uppercase;letter-spacing:.05em">Réponse rédigée</p></div>'
+      + '<p style="font-size:.95rem;color:#111;margin:0;white-space:pre-wrap;line-height:1.8;font-family:Georgia,serif">' + s.content + '</p>'
+      + '</div>';
+
+  // ━━━ CAS 4 : RIEN ━━━
+  } else {
+    html += '<div style="text-align:center;padding:50px 20px">'
+      + '<span style="font-family:Material Symbols Outlined;font-size:56px;color:#d1d5db">inbox</span>'
+      + '<p style="font-weight:700;color:#6b7280;margin-top:12px">Aucun travail soumis</p></div>';
+  }
+
+  document.getElementById('view-body').innerHTML = html;
+}
+
+function closeView() {
+  document.getElementById('m-view').style.display = 'none';
+  document.getElementById('view-body').innerHTML = '';
+}
+
+// Construit le HTML de visualisation selon le type de fichier
+function buildViewer(url) {
+  if (!url) return '';
+
+  const isPdf   = url.startsWith('data:application/pdf') || url.toLowerCase().endsWith('.pdf');
+  const isImage = url.startsWith('data:image') || /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+  const isData  = url.startsWith('data:');
+
+  const wrapStyle = 'border-radius:10px;overflow:hidden;border:1px solid #e5e7eb';
+
+  if (isPdf) {
+    return '<div style="' + wrapStyle + ';background:#f9fafb">'
+      + '<div style="padding:10px 14px;background:#fff7ed;border-bottom:1px solid #fed7aa;display:flex;align-items:center;gap:8px">'
+      + '<span style="font-family:Material Symbols Outlined;font-size:18px;color:#c2410c">picture_as_pdf</span>'
+      + '<span style="font-size:.8rem;font-weight:700;color:#c2410c">Copie PDF de l&#39;étudiant</span>'
+      + '</div>'
+      + '<iframe src="' + url + '" style="width:100%;height:600px;border:none" title="Copie"></iframe>'
+      + '</div>';
+  }
+
+  if (isImage) {
+    return '<div style="' + wrapStyle + ';background:#f9fafb;padding:12px;text-align:center">'
+      + '<div style="padding:8px 12px;background:#f0fdf4;border-radius:8px;margin-bottom:10px;display:inline-flex;align-items:center;gap:6px">'
+      + '<span style="font-family:Material Symbols Outlined;font-size:16px;color:#166534">image</span>'
+      + '<span style="font-size:.8rem;font-weight:700;color:#166534">Copie image de l&#39;étudiant</span>'
+      + '</div>'
+      + '<img src="' + url + '" style="max-width:100%;border-radius:8px;border:1px solid #e5e7eb" alt="Copie"/>'
+      + '</div>';
+  }
+
+  if (isData) {
+    return '<div style="' + wrapStyle + '">'
+      + '<iframe src="' + url + '" style="width:100%;height:600px;border:none" title="Copie"></iframe>'
+      + '</div>';
+  }
+
+  // URL distante — iframe peut être bloquée, proposer le lien
+  return '<div style="' + wrapStyle + ';padding:16px;background:#f9fafb;text-align:center">'
+    + '<p style="font-size:.8rem;color:#6b7280;margin:0 0 8px">'
+    + '<span style="font-family:Material Symbols Outlined;font-size:16px;vertical-align:middle;color:#9ca3af">description</span> Fichier externe</p>'
+    + '<a href="' + url + '" target="_blank" style="color:#ea580c;font-weight:700;font-size:.875rem">'
+    + 'Cliquez ici pour ouvrir le fichier dans un nouvel onglet</a>'
+    + '</div>';
+}
+
+function ago(d) {
+  const diff=Date.now()-new Date(d).getTime(),m=Math.floor(diff/60000),h=Math.floor(diff/3600000),dd=Math.floor(diff/86400000);
+  if(m<1)return"à l'instant";if(m<60)return`il y a ${m}min`;if(h<24)return`il y a ${h}h`;return`il y a ${dd}j`;
+}
+function toast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.className=type==='ok'?'ok show':'err show';setTimeout(()=>el.classList.remove('show'),4000);}
+</script>
+</body>
+</html>

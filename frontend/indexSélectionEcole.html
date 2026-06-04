@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Choisir votre établissement | CamunoLearn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  *{font-family:'DM Sans',sans-serif;box-sizing:border-box}
+  .ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;user-select:none;line-height:1}
+  .ms.f{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+
+  /* Cartes école */
+  .school-card{border:2px solid #f0f0f0;border-radius:14px;padding:14px;cursor:pointer;transition:all .18s;background:#fff;display:flex;align-items:center;gap:12px}
+  .school-card:hover{border-color:#00602a;transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,96,42,.12)}
+  .school-card.sel{border-color:#00602a;background:#f0fdf4}
+
+  /* Étapes */
+  .step{display:none;animation:up .25s ease both}
+  .step.on{display:block}
+  @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  /* Pilules filière */
+  .pill{padding:7px 14px;border-radius:999px;border:1.5px solid #e5e7eb;cursor:pointer;font-size:.8rem;font-weight:600;color:#6b7280;transition:all .15s;background:#fff}
+  .pill:hover{border-color:#00602a;color:#00602a}
+  .pill.sel{background:#00602a;color:#fff;border-color:#00602a}
+
+  /* Indicateur étapes */
+  .prog-step{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.875rem;transition:.2s;flex-shrink:0}
+  .prog-step.done{background:#00602a;color:#fff}
+  .prog-step.cur{background:#f0fdf4;color:#00602a;border:2px solid #00602a}
+  .prog-step.todo{background:#f3f4f6;color:#9ca3af}
+
+  /* Bouton principal */
+  .btn-main{background:#00602a;color:#fff;border:none;padding:14px;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer;width:100%;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
+  .btn-main:hover:not(:disabled){background:#004d21}
+  .btn-main:disabled{opacity:.5;cursor:not-allowed}
+
+  /* Carte niveau */
+  .level-card{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;border:2px solid #f0f0f0;cursor:pointer;transition:all .15s;background:#fff}
+  .level-card:hover{border-color:#00602a}
+  .level-card.sel{border-color:#00602a;background:#f0fdf4}
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:99px}
+</style>
+</head>
+<body style="background:#f8f9fb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+
+<div style="width:100%;max-width:580px">
+
+  <!-- Logo -->
+  <div style="text-align:center;margin-bottom:24px">
+    <div style="display:inline-flex;align-items:center;gap:8px">
+      <span class="ms f" style="color:#00602a;font-size:28px">school</span>
+      <span style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#00602a"><span style="color:#111">Camuno</span>Learn</span>
+    </div>
+  </div>
+
+  <!-- Carte principale -->
+  <div style="background:#fff;border-radius:20px;border:1px solid #f0f0f0;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06)">
+
+    <!-- Barre de progression (étudiants seulement) -->
+    <div id="steps-bar" style="background:#f9fafb;border-bottom:1px solid #f0f0f0;padding:16px 24px;display:flex;align-items:center;gap:8px">
+      <div class="prog-step cur" id="s1">1</div>
+      <div style="flex:1;height:2px;background:#e5e7eb;border-radius:99px">
+        <div id="prog-line1" style="height:100%;width:0%;background:#00602a;border-radius:99px;transition:width .3s"></div>
+      </div>
+      <div class="prog-step todo" id="s2">2</div>
+      <div style="flex:1;height:2px;background:#e5e7eb;border-radius:99px">
+        <div id="prog-line2" style="height:100%;width:0%;background:#00602a;border-radius:99px;transition:width .3s"></div>
+      </div>
+      <div class="prog-step todo" id="s3">3</div>
+      <span id="step-label" style="margin-left:8px;font-size:.8rem;color:#9ca3af;flex-shrink:0">Établissement</span>
+    </div>
+
+    <div style="padding:28px">
+
+      <!-- ═══════════════════════════════════════
+           ÉTAPE 1 — ÉCOLE
+      ════════════════════════════════════════ -->
+      <div class="step on" id="step1">
+        <h2 style="font-family:Manrope;font-weight:800;font-size:1.3rem;color:#111;margin-bottom:6px">Votre établissement</h2>
+        <p style="font-size:.875rem;color:#9ca3af;margin-bottom:20px">Sélectionnez votre université pour accéder à votre espace.</p>
+
+        <!-- Recherche -->
+        <div style="position:relative;margin-bottom:16px">
+          <span class="ms" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;color:#9ca3af">search</span>
+          <input id="school-search" type="text" placeholder="Rechercher un établissement..."
+                 style="width:100%;padding:10px 14px 10px 40px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:.875rem;outline:none;font-family:inherit"
+                 oninput="filterSchools(this.value)"
+                 onfocus="this.style.borderColor='#00602a'" onblur="this.style.borderColor='#e5e7eb'"/>
+        </div>
+
+        <!-- Grille des écoles -->
+        <div id="school-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:340px;overflow-y:auto;padding-right:4px;margin-bottom:20px">
+          <!-- Rempli par JS -->
+        </div>
+        <p id="no-school" style="display:none;text-align:center;color:#9ca3af;font-size:.875rem;padding:20px">Aucun établissement trouvé.</p>
+
+        <button id="btn1" class="btn-main" disabled onclick="handleStep1Continue()">
+          Continuer <span class="ms">arrow_forward</span>
+        </button>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           ÉTAPE 2 — FILIÈRE (étudiant uniquement)
+      ════════════════════════════════════════ -->
+      <div class="step" id="step2">
+        <button onclick="goStep(1)" style="display:flex;align-items:center;gap:6px;color:#9ca3af;font-size:.8rem;font-weight:600;border:none;background:none;cursor:pointer;margin-bottom:16px;font-family:inherit">
+          <span class="ms" style="font-size:16px">arrow_back</span> Retour
+        </button>
+        <h2 style="font-family:Manrope;font-weight:800;font-size:1.3rem;color:#111;margin-bottom:6px">Votre filière</h2>
+        <p style="font-size:.875rem;color:#9ca3af;margin-bottom:20px">Choisissez votre filière pour être inscrit automatiquement dans vos cours.</p>
+
+        <div id="filiere-grid" style="max-height:340px;overflow-y:auto;padding-right:4px;display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
+          <!-- Rempli par JS -->
+        </div>
+
+        <button id="btn2" class="btn-main" disabled onclick="goStep(3)">
+          Continuer <span class="ms">arrow_forward</span>
+        </button>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           ÉTAPE 3 — NIVEAU (étudiant uniquement)
+      ════════════════════════════════════════ -->
+      <div class="step" id="step3">
+        <button onclick="goStep(2)" style="display:flex;align-items:center;gap:6px;color:#9ca3af;font-size:.8rem;font-weight:600;border:none;background:none;cursor:pointer;margin-bottom:16px;font-family:inherit">
+          <span class="ms" style="font-size:16px">arrow_back</span> Retour
+        </button>
+        <h2 style="font-family:Manrope;font-weight:800;font-size:1.3rem;color:#111;margin-bottom:6px">Votre niveau</h2>
+        <p style="font-size:.875rem;color:#9ca3af;margin-bottom:20px">Sélectionnez votre niveau académique actuel.</p>
+
+        <div id="level-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+          <!-- Rempli par JS -->
+        </div>
+
+        <!-- Récapitulatif -->
+        <div id="recap" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px;margin-bottom:20px">
+          <p style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:8px">Récapitulatif</p>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;justify-content:space-between;font-size:.875rem">
+              <span style="color:#6b7280">École</span>
+              <span id="recap-school" style="font-weight:700;color:#111">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.875rem">
+              <span style="color:#6b7280">Filière</span>
+              <span id="recap-filiere" style="font-weight:700;color:#111">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.875rem">
+              <span style="color:#6b7280">Niveau</span>
+              <span id="recap-level" style="font-weight:700;color:#111">—</span>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn3" class="btn-main" disabled onclick="submitAll()">
+          <span class="ms">check_circle</span> Accéder à mon espace
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Message d'erreur global -->
+  <div id="alert-box" style="display:none;margin-top:14px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;font-size:.8rem;color:#991b1b;text-align:center"></div>
+
+</div><!-- /max-width -->
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════
+const API_BASE = 'http://localhost:3000/api';
+const token    = localStorage.getItem('camunolearn_token');
+let currentUser = {};
+try { currentUser = JSON.parse(localStorage.getItem('camunolearn_user') || '{}'); } catch(e) {}
+
+// ── Universités ───────────────────────────────────────
+const SCHOOLS = [
+  { name:'IUT de Douala',                    icon:'precision_manufacturing', short:'IUT' },
+  { name:'ENSET de Douala',                  icon:'engineering',             short:'ENSET' },
+  { name:'Université de Douala',             icon:'account_balance',         short:'UdD' },
+  { name:'UCAC - ICAM',                      icon:'church',                  short:'UCAC' },
+  { name:'FMSP Douala',                      icon:'local_hospital',          short:'FMSP' },
+  { name:'Institut Universitaire de la Côte',icon:'waves',                   short:'IUC' },
+  { name:'ESSEC Douala',                     icon:'trending_up',             short:'ESSEC' },
+  { name:'Université de Yaoundé I',          icon:'account_balance',         short:'UY1' },
+  { name:'Université de Yaoundé II',         icon:'account_balance',         short:'UY2' },
+  { name:"SUP'PTIC Douala",                  icon:'computer',                short:"SUP'PTIC" },
+];
+
+// ── Filières par école ────────────────────────────────
+const FILIERES = {
+  'IUT de Douala': {
+    'MTT — Technologies du Tertiaire': [
+      'GLT — Génie Logistique & Transport',
+      'GRH — Génie des Ressources Humaines',
+      'OGA — Organisation & Gestion Administrative',
+      'GAPMO — Gestion Appliquée aux PMO',
+      'TCO — Technique de Commercialisation',
+      'CFI — Comptabilité & Finance',
+    ],
+    'MTI — Technologies Industrielles': [
+      'GIM — Génie Industriel & Maintenance',
+      'GMP — Génie Mécanique & Productique',
+      'GTE — Génie Thermique & Énergie',
+      'GME — Génie Métallurgique',
+      'GMI — Génie des Mines',
+      'GC — Génie Civil',
+      'BTA — Biotechnologie & Technologie Alimentaire',
+      'MET — Météorologie',
+      'ENR — Énergie Renouvelable',
+    ],
+    "MTIN — Technologies de l'Information & du Numérique": [
+      'GEII — Génie Électrique & Informatique Industrielle',
+      'GI — Génie Informatique',
+      'GRT — Génie Réseaux & Télécoms',
+      'GBM — Génie Biomédical',
+    ],
+  },
+  'ENSET de Douala': {
+    'Génie Électrique & Industriel': [
+      'GEII — Génie Électrique & Informatique Industrielle',
+      'GI — Génie Industriel',
+      'GE — Génie Électrotechnique',
+    ],
+    'Informatique': [
+      'INFO — Informatique',
+      'GL — Génie Logiciel',
+    ],
+  },
+  'Université de Douala': {
+    'Droit': ['DROIT — Droit Général', 'DROIT AFF — Droit des Affaires'],
+    'Gestion & Économie': ['GESTION — Sciences de Gestion', 'ECONOMIE — Sciences Économiques'],
+    'Lettres & Sciences Humaines': ['LETTRES — Lettres Modernes', 'SH — Sciences Humaines'],
+  },
+  'UCAC - ICAM': {
+    'Génie': ['GI — Génie Industriel', 'GC — Génie Civil', 'GBM — Génie Biomédical'],
+  },
+  'ESSEC Douala': {
+    'Commerce & Gestion': ['GESTION — Sciences de Gestion', 'MARKETING — Marketing', 'FINANCE — Finance & Comptabilité'],
+  },
+  '__default__': {
+    'Général': [
+      'Informatique', 'Gestion', 'Droit', 'Sciences', 'Lettres',
+      'Médecine', 'Pharmacie', 'Génie Civil', 'Électrotechnique',
+    ],
+  },
+};
+
+// ── Niveaux ───────────────────────────────────────────
+const LEVELS = [
+  { v:'L1', label:'Licence 1 (1ère année)',  sub:'Première année de cycle' },
+  { v:'L2', label:'Licence 2 (2ème année)',  sub:'Deuxième année de cycle' },
+  { v:'L3', label:'Licence 3 (3ème année)',  sub:'Troisième année de cycle' },
+  { v:'M1', label:'Master 1',                sub:'Première année de master' },
+  { v:'M2', label:'Master 2',                sub:'Deuxième année de master' },
+  { v:'BTS', label:'BTS (Formation Alternée)',sub:'Brevet de Technicien Supérieur' },
+];
+
+// ── État ──────────────────────────────────────────────
+let selectedSchool  = null;
+let selectedFiliere = null;
+let selectedLevel   = null;
+let allSchoolsList  = [...SCHOOLS];
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  if (!token) { location.href = 'indexconnexion.html'; return; }
+
+  // Masquer la barre de progression pour prof et admin
+  const role = currentUser.role;
+  if (role === 'enseignant' || role === 'admin' || role === 'superadmin') {
+    document.getElementById('steps-bar').style.display = 'none';
+  }
+
+  // Adapter le label du bouton
+  updateBtn1Label();
+
+  // Afficher les écoles
+  renderSchools(SCHOOLS);
+});
+
+function updateBtn1Label() {
+  const role = currentUser.role;
+  const btn  = document.getElementById('btn1');
+  if (role === 'admin')       btn.textContent = 'Accéder à mon espace administrateur →';
+  else if (role === 'enseignant') btn.textContent = 'Accéder à mon espace enseignant →';
+  else btn.innerHTML = 'Continuer <span class="ms">arrow_forward</span>';
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDU ÉCOLES
+// ══════════════════════════════════════════════════════
+function renderSchools(list) {
+  const grid = document.getElementById('school-grid');
+  const none = document.getElementById('no-school');
+
+  if (!list.length) {
+    grid.innerHTML = '';
+    none.style.display = 'block';
+    return;
+  }
+  none.style.display = 'none';
+
+  grid.innerHTML = list.map(s => `
+    <div class="school-card ${selectedSchool === s.name ? 'sel' : ''}"
+         onclick="selectSchool('${s.name.replace(/'/g, "\\'")}', this)">
+      <div style="width:38px;height:38px;border-radius:10px;background:${selectedSchool===s.name?'#00602a':'#f0fdf4'};color:${selectedSchool===s.name?'#fff':'#00602a'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.18s">
+        <span class="ms" style="font-size:18px">${s.icon}</span>
+      </div>
+      <div style="min-width:0">
+        <p style="font-size:.78rem;font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0">${s.name}</p>
+        <p style="font-size:.68rem;color:#9ca3af;margin:2px 0 0">${s.short}</p>
+      </div>
+      ${selectedSchool === s.name
+        ? '<span class="ms f" style="color:#00602a;font-size:18px;flex-shrink:0;margin-left:auto">check_circle</span>'
+        : ''}
+    </div>`).join('');
+}
+
+function filterSchools(val) {
+  const term = val.toLowerCase().trim();
+  const filtered = term
+    ? SCHOOLS.filter(s => s.name.toLowerCase().includes(term) || s.short.toLowerCase().includes(term))
+    : SCHOOLS;
+  renderSchools(filtered);
+}
+
+function selectSchool(name, el) {
+  selectedSchool = name;
+  selectedFiliere = null;
+  selectedLevel   = null;
+  renderSchools(SCHOOLS.filter(s => {
+    const search = document.getElementById('school-search').value.toLowerCase();
+    return !search || s.name.toLowerCase().includes(search) || s.short.toLowerCase().includes(search);
+  }));
+  document.getElementById('btn1').disabled = false;
+}
+
+// ══════════════════════════════════════════════════════
+//  BOUTON ÉTAPE 1 → Selon le rôle
+// ══════════════════════════════════════════════════════
+async function handleStep1Continue() {
+  if (!selectedSchool) return;
+  const role = currentUser.role;
+
+  // Pour prof et admin → soumettre directement, pas d'étapes 2 et 3
+  if (role === 'enseignant' || role === 'admin' || role === 'superadmin') {
+    await submitSchool({ school: selectedSchool });
+  } else {
+    // Étudiant → aller à l'étape 2
+    renderFilieres();
+    goStep(2);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  FILIÈRES
+// ══════════════════════════════════════════════════════
+function renderFilieres() {
+  const grid = document.getElementById('filiere-grid');
+  const schoolFilieres = FILIERES[selectedSchool] || FILIERES['__default__'];
+
+  grid.innerHTML = Object.entries(schoolFilieres).map(([mention, filieres]) => `
+    <div>
+      <p style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:10px;padding:6px 10px;background:#f9fafb;border-radius:8px">${mention}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${filieres.map(f => `
+          <button class="pill ${selectedFiliere === f ? 'sel' : ''}"
+                  onclick="selectFiliere('${f.replace(/'/g, "\\'")}', this)">
+            ${f.split(' — ')[0]}
+          </button>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function selectFiliere(f, el) {
+  selectedFiliere = f;
+  document.querySelectorAll('#filiere-grid .pill').forEach(p => p.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('btn2').disabled = false;
+}
+
+// ══════════════════════════════════════════════════════
+//  NIVEAUX
+// ══════════════════════════════════════════════════════
+function renderLevels() {
+  const list = document.getElementById('level-list');
+  list.innerHTML = LEVELS.map(l => `
+    <div class="level-card ${selectedLevel === l.v ? 'sel' : ''}"
+         onclick="selectLevel('${l.v}', this)">
+      <div style="width:40px;height:40px;border-radius:10px;background:${selectedLevel===l.v?'#00602a':'#f3f4f6'};color:${selectedLevel===l.v?'#fff':'#6b7280'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.875rem;flex-shrink:0;transition:.18s">
+        ${l.v}
+      </div>
+      <div style="flex:1">
+        <p style="font-size:.875rem;font-weight:700;color:#111;margin:0">${l.label}</p>
+        <p style="font-size:.72rem;color:#9ca3af;margin:2px 0 0">${l.sub}</p>
+      </div>
+      ${selectedLevel === l.v
+        ? '<span class="ms f" style="color:#00602a;font-size:20px;flex-shrink:0">check_circle</span>'
+        : ''}
+    </div>`).join('');
+}
+
+function selectLevel(v, el) {
+  selectedLevel = v;
+  renderLevels();
+  // Récapitulatif
+  document.getElementById('recap-school').textContent   = selectedSchool;
+  document.getElementById('recap-filiere').textContent  = selectedFiliere ? selectedFiliere.split(' — ')[0] : '—';
+  document.getElementById('recap-level').textContent    = LEVELS.find(l => l.v === v)?.label || v;
+  document.getElementById('recap').style.display        = 'block';
+  document.getElementById('btn3').disabled = false;
+}
+
+// ══════════════════════════════════════════════════════
+//  NAVIGATION ENTRE ÉTAPES
+// ══════════════════════════════════════════════════════
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('on'));
+  document.getElementById('step' + n).classList.add('on');
+
+  // Mise à jour indicateur
+  const labels = { 1:'Établissement', 2:'Filière', 3:'Niveau' };
+  document.getElementById('step-label').textContent = labels[n];
+
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('s' + i);
+    if (i < n) {
+      el.className = 'prog-step done';
+      el.innerHTML = '<span class="ms" style="font-size:16px">check</span>';
+    } else if (i === n) {
+      el.className = 'prog-step cur';
+      el.textContent = i;
+    } else {
+      el.className = 'prog-step todo';
+      el.textContent = i;
+    }
+  }
+  document.getElementById('prog-line1').style.width = n >= 2 ? '100%' : '0%';
+  document.getElementById('prog-line2').style.width = n >= 3 ? '100%' : '0%';
+
+  if (n === 3) renderLevels();
+}
+
+// ══════════════════════════════════════════════════════
+//  SOUMISSION FINALE (étudiant — étape 3)
+// ══════════════════════════════════════════════════════
+async function submitAll() {
+  if (!selectedSchool || !selectedFiliere || !selectedLevel) return;
+  await submitSchool({
+    school:  selectedSchool,
+    filiere: selectedFiliere,
+    level:   selectedLevel,
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  APPEL API /auth/school — commun à tous les rôles
+// ══════════════════════════════════════════════════════
+async function submitSchool(body) {
+  const btnId = currentUser.role === 'etudiant' ? 'btn3' : 'btn1';
+  const btn   = document.getElementById(btnId);
+  const orig  = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite">autorenew</span> Enregistrement...';
+
+  try {
+    const r = await fetch(`${API_BASE}/auth/school`, {
+      method:  'PUT',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+      body:    JSON.stringify(body),
+    });
+    const d = await r.json();
+
+    if (r.ok && d.success) {
+      if (d.token) localStorage.setItem('camunolearn_token', d.token);
+      if (d.user)  localStorage.setItem('camunolearn_user',  JSON.stringify(d.user));
+      localStorage.setItem('userSchool', selectedSchool);
+      if (selectedFiliere) localStorage.setItem('userFiliere', selectedFiliere);
+
+      // Redirection selon le rôle
+      const role = d.user?.role || currentUser.role;
+      const routes = {
+        superadmin: 'indexSUPERADMIN.html',
+        admin:      'indexADMIN.html',
+        enseignant: 'indexEnseignant.html',
+        etudiant:   'indexETUDIANT.html',
+      };
+      location.href = routes[role] || 'indexETUDIANT.html';
+
+    } else {
+      showAlert(d.message || 'Erreur lors de l\'enregistrement.');
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  } catch(e) {
+    // Fallback si API indisponible
+    localStorage.setItem('userSchool', selectedSchool);
+    const role = currentUser.role;
+    const routes = {
+      superadmin: 'indexSUPERADMIN.html',
+      admin:      'indexADMIN.html',
+      enseignant: 'indexEnseignant.html',
+      etudiant:   'indexETUDIANT.html',
+    };
+    location.href = routes[role] || 'indexETUDIANT.html';
+  }
+}
+
+function showAlert(msg) {
+  const el = document.getElementById('alert-box');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+// Animation spin
+const style = document.createElement('style');
+style.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>

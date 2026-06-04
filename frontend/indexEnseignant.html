@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Espace Professeur | CamunoLearn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+// ══════════════════════════════════════════════════════
+//  AVATAR — Photo de profil (fonctionne sans Upload.io)
+// ══════════════════════════════════════════════════════
+
+// Couleurs selon le rôle
+const ROLE_COLORS = {
+  etudiant:   '00602a',
+  enseignant: 'ea580c', 
+  admin:      '004a77',
+  superadmin: 'f59e0b'
+};
+
+// Retourner l'URL de l'avatar (vraie photo ou initiales)
+function getAvatarUrl(user, size) {
+  size = size || 64;
+  if (user && user.avatar_url) return user.avatar_url;
+  var name  = user ? encodeURIComponent((user.first_name||'U') + ' ' + (user.last_name||'')) : 'U';
+  var color = (user && ROLE_COLORS[user.role]) ? ROLE_COLORS[user.role] : '00602a';
+  return 'https://ui-avatars.com/api/?name=' + name + '&background=' + color + '&color=fff&size=' + size;
+}
+
+// Mettre à jour tous les avatars dans la page
+function updateAllAvatars(user) {
+  var urlSmall = getAvatarUrl(user, 64);
+  var urlBig   = getAvatarUrl(user, 128);
+  var sideAv = document.getElementById('side-av');
+  var topAv  = document.getElementById('top-av');
+  var profAv = document.getElementById('prof-av');
+  if (sideAv) sideAv.src = urlSmall;
+  if (topAv)  topAv.src  = urlSmall;
+  if (profAv) profAv.src = urlBig;
+}
+
+// Redimensionner image (max 400px, qualité 85%)
+function resizeImage(file, maxSize) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+    img.onload = function() {
+      var w = img.width, h = img.height;
+      var ratio = Math.min(maxSize/w, maxSize/h, 1);
+      w = Math.round(w * ratio);
+      h = Math.round(h * ratio);
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(function(blob) {
+        resolve(blob || file);
+      }, 'image/jpeg', 0.85);
+    };
+    img.onerror = function() { resolve(file); };
+    img.src = url;
+  });
+}
+
+// Upload avatar — essaie Upload.io, sinon stocke en base64
+async function uploadAndSetAvatar(file, apiBase, getToken) {
+  var token = typeof getToken === 'function' ? getToken() : getToken;
+  var avatarUrl = null;
+
+  // Tenter Upload.io si clé configurée
+  // Accéder aux clés (const global ou window)
+  var _key = (typeof UPLOADIO_KEY !== 'undefined') ? UPLOADIO_KEY : (window.UPLOADIO_KEY || '');
+  var _acc = (typeof UPLOADIO_ACCOUNT_ID !== 'undefined') ? UPLOADIO_ACCOUNT_ID : (window.UPLOADIO_ACCOUNT_ID || '');
+  var hasUploadio = _key && _key !== 'your_uploadio_api_key' && _key.startsWith('public_');
+
+  try {
+    var resized = await resizeImage(file, 400);
+
+    if (hasUploadio) {
+      // Upload via Upload.io
+      var r = await fetch(
+        'https://api.upload.io/v2/accounts/' + _acc + '/uploads/binary',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + _key,
+            'Content-Type': resized.type || 'image/jpeg'
+          },
+          body: resized
+        }
+      );
+      if (r.ok) {
+        var data = await r.json();
+        avatarUrl = data.fileUrl;
+      }
+    }
+
+    // Fallback : convertir en base64 et stocker directement
+    if (!avatarUrl) {
+      avatarUrl = await new Promise(function(resolve) {
+        var reader = new FileReader();
+        reader.onload = function(e) { resolve(e.target.result); };
+        reader.onerror = function() { resolve(null); };
+        reader.readAsDataURL(resized);
+      });
+    }
+
+    if (!avatarUrl) return null;
+
+    // Sauvegarder en BDD
+    var save = await fetch(apiBase + '/auth/avatar', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ avatar_url: avatarUrl })
+    });
+    var saved = await save.json();
+    if (saved && saved.token) localStorage.setItem('camunolearn_token', saved.token);
+
+    return avatarUrl;
+
+  } catch(e) {
+    console.error('Avatar upload error:', e);
+    return null;
+  }
+}
+
+// Créer le bouton 📷 sur la photo de profil
+function createAvatarWidget(containerId, getUser, apiBase, getToken, onSuccess) {
+  var container = document.getElementById(containerId);
+  if (!container || document.getElementById('avatar-file-input')) return;
+
+  container.style.position = 'relative';
+  container.style.display  = 'inline-block';
+
+  // Bouton caméra
+  var btn = document.createElement('label');
+  btn.htmlFor = 'avatar-file-input';
+  btn.title   = 'Changer ma photo de profil';
+  btn.style.cssText = [
+    'position:absolute', 'bottom:0', 'right:0',
+    'width:28px', 'height:28px', 'border-radius:50%',
+    'background:#00602a', 'color:#fff',
+    'display:flex', 'align-items:center', 'justify-content:center',
+    'cursor:pointer', 'border:2px solid #fff', 'z-index:10',
+    'transition:.15s'
+  ].join(';');
+  btn.innerHTML = '<span style="font-family:Material Symbols Outlined;font-size:14px;line-height:1">photo_camera</span>';
+
+  // Input file
+  var input = document.createElement('input');
+  input.type    = 'file';
+  input.id      = 'avatar-file-input';
+  input.accept  = 'image/jpeg,image/png,image/webp,image/gif';
+  input.style.display = 'none';
+
+  input.addEventListener('change', async function() {
+    var file = input.files[0];
+    if (!file) return;
+
+    // Feedback visuel — spinner
+    btn.innerHTML = '<span style="font-family:Material Symbols Outlined;font-size:14px;line-height:1;display:block;animation:spin .8s linear infinite">autorenew</span>';
+    btn.style.opacity = '0.7';
+
+    var user = typeof getUser === 'function' ? getUser() : (window.ME || null);
+    var token = typeof getToken === 'function' ? getToken() : getToken;
+
+    var url = await uploadAndSetAvatar(file, apiBase, token);
+
+    btn.innerHTML = '<span style="font-family:Material Symbols Outlined;font-size:14px;line-height:1">photo_camera</span>';
+    btn.style.opacity = '1';
+
+    if (url) {
+      // Mettre à jour l'image dans la page
+      var img = container.querySelector('img');
+      if (img) img.src = url;
+
+      // Mettre à jour ME
+      if (user) user.avatar_url = url;
+      if (window.ME) window.ME.avatar_url = url;
+      updateAllAvatars(window.ME || user);
+
+      // Sauvegarder dans localStorage
+      try {
+        var u = JSON.parse(localStorage.getItem('camunolearn_user') || '{}');
+        u.avatar_url = url;
+        localStorage.setItem('camunolearn_user', JSON.stringify(u));
+      } catch(e) {}
+
+      if (onSuccess) onSuccess(url);
+    } else {
+      alert('Erreur lors de l\'upload. Réessayez.');
+    }
+    input.value = '';
+  });
+
+  container.appendChild(input);
+  container.appendChild(btn);
+}
+
+// Animation spin
+var spinStyle = document.createElement('style');
+spinStyle.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+document.head.appendChild(spinStyle);
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;font-family:'DM Sans',sans-serif}
+.ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;user-select:none;line-height:1;vertical-align:middle}
+.ms.f{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+.nb{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:none;font-size:.875rem;font-weight:600;color:#6b7280;cursor:pointer;width:100%;text-align:left;background:transparent;transition:background .12s,color .12s}
+.nb:hover{background:#fff7ed;color:#ea580c}
+.nb.on{background:#ea580c;color:#fff}
+.nb.on:hover{background:#c2410c}
+.nb.red{color:#dc2626}.nb.red:hover{background:#fef2f2}
+.sec{display:none}
+.sec.on{display:block;animation:up .22s ease both}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card{background:#fff;border:1px solid #f0f0f0;border-radius:14px}
+.cHov{transition:box-shadow .18s,transform .18s}.cHov:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.sk{background:linear-gradient(90deg,#f5f5f5 25%,#ebebeb 50%,#f5f5f5 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:10px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.42);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.ov.open{display:flex}
+.mbox{background:#fff;border-radius:18px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,.15);animation:up .2s ease both;max-height:92vh;overflow-y:auto}
+.fld{width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:9px;padding:9px 13px;font-size:.875rem;color:#111;outline:none;transition:border .15s,box-shadow .15s}
+.fld:focus{border-color:#ea580c;box-shadow:0 0 0 3px rgba(234,88,12,.1)}
+.fld:disabled{color:#9ca3af;background:#f3f4f6;cursor:not-allowed}
+.lbl{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:5px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:9px;font-weight:700;font-size:.875rem;cursor:pointer;border:none;transition:.15s}
+.btn:active{transform:scale(.97)}.btn:disabled{opacity:.6;cursor:not-allowed}
+.bp{background:#ea580c;color:#fff}.bp:hover:not(:disabled){background:#c2410c}
+.bg{background:#f3f4f6;color:#374151}.bg:hover{background:#e5e7eb}
+.bd{background:#fef2f2;color:#dc2626}.bd:hover{background:#fee2e2}
+.bsm{padding:7px 13px;font-size:.8rem}
+.bdg{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:.68rem;font-weight:700}
+.pbar{height:5px;background:#f3f4f6;border-radius:99px;overflow:hidden}
+.pfill{height:100%;background:#ea580c;border-radius:99px;transition:width .5s ease}
+#toast{position:fixed;bottom:20px;right:20px;z-index:999;padding:11px 18px;border-radius:10px;font-weight:600;font-size:.875rem;box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateY(60px);opacity:0;transition:all .28s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:360px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+#toast.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.upz{border:2px dashed #e5e7eb;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:border .15s,background .15s}
+.upz:hover{border-color:#ea580c;background:#fff7ed}
+.tab{padding:7px 14px;border-radius:7px;font-size:.8rem;font-weight:700;cursor:pointer;border:none;background:transparent;color:#6b7280;transition:.12s}
+.tab.on{background:#fff7ed;color:#ea580c}
+#sidebar{transition:transform .28s cubic-bezier(.4,0,.2,1)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:99px}
+/* Error banner */
+#err-banner{display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:14px 16px;margin-bottom:20px}
+</style>
+</head>
+<body style="background:#f8f9fb;min-height:100vh">
+
+<script>
+const API = (function() {
+  var h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
+  return '/api';
+})();
+// Upload.io — remplacez ces 2 valeurs
+const UPLOADIO_KEY        = 'public_W23MTdC4sM22hJB8SGp22Q4b8hFW';   // ← ligne 60 : clé API upload.io
+const UPLOADIO_ACCOUNT_ID = 'W23MTdC';         // ← ligne 61 : Account ID dans l'URL dashboard
+// Filières officielles IUT de Douala 2026-2027 + autres universités
+const FILIERES = [
+  // MTT
+  'GLT','GRH','OGA','GAPMO','TCO','CFI',
+  // MTI
+  'GIM','GMP','GTE','GME','GMI','GC','BTA','MET','ENR',
+  // MTIN
+  'GEII','GI','GRT','GBM',
+  // Autres universités
+  'Informatique','Gestion','Droit','Économie','Marketing',
+  'Médecine','Pharmacie','Génie Civil','Électrotechnique',
+  'Sciences','Lettres','Chimie','Physique',
+];
+const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique & Programmation','Réseaux & Télécommunications','Électronique','Électrotechnique','Mathématiques','Physique','Chimie','Mécanique','Gestion de projet','Économie & Gestion','Droit des affaires','Marketing','Comptabilité','Anglais technique','Intelligence Artificielle','Cybersécurité','Développement web','Systèmes embarqués','Architecture des ordinateurs'];
+</script>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="fixed left-0 top-0 h-screen w-56 bg-white border-r border-gray-100 z-50 flex flex-col p-4 -translate-x-full md:translate-x-0">
+  <div class="flex items-center gap-2 px-1 mb-5">
+    <span class="ms f" style="color:#ea580c;font-size:26px">school</span>
+    <span style="font-family:Manrope;font-weight:900;font-size:1.05rem;color:#ea580c"><span style="color:#111">Camuno</span>Learn</span>
+  </div>
+  <div class="flex items-center gap-2 bg-orange-50 rounded-xl px-3 py-2.5 mb-4">
+    <div id="side-av-wrap" style="position:relative;display:inline-block;flex-shrink:0"><img id="side-av" src="https://ui-avatars.com/api/?name=P&background=ea580c&color=fff" class="w-9 h-9 rounded-full" style="object-fit:cover"/></div>
+    <div class="min-w-0">
+      <p id="side-name" class="font-bold text-sm text-gray-900 truncate">Chargement...</p>
+      <p id="side-disc" class="text-xs font-medium truncate" style="color:#ea580c">—</p>
+      <p id="side-school" class="text-xs text-gray-400 truncate">—</p>
+    </div>
+  </div>
+  <nav class="flex flex-col gap-0.5 flex-grow">
+    <button class="nb on" data-s="dashboard" onclick="goTo('dashboard')"><span class="ms">dashboard</span>Vue d'ensemble</button>
+    <button class="nb" data-s="classes" onclick="goTo('classes')"><span class="ms">groups</span>Mes Classes</button>
+    <button class="nb" data-s="courses" onclick="goTo('courses')"><span class="ms">auto_stories</span>Mes Cours</button>
+    <button class="nb" data-s="assignments" onclick="goTo('assignments')"><span class="ms">assignment</span>Devoirs & Quiz</button>
+    <button class="nb" data-s="crossrequests" onclick="goTo('crossrequests')"><span class="ms">swap_horiz</span>Demandes Inter-Univ</button>
+    <button class="nb" data-s="communities" onclick="goTo('communities')"><span class="ms">forum</span>Communautés</button>
+    <button class="nb" data-s="stats" onclick="goTo('stats')"><span class="ms">analytics</span>Statistiques</button>
+    <div class="my-2 border-t border-gray-100"></div>
+    <button class="nb" data-s="profile" onclick="goTo('profile')"><span class="ms">manage_accounts</span>Mon Profil</button>
+  </nav>
+  <button class="nb red mt-2" onclick="showM('m-logout')"><span class="ms">logout</span>Déconnexion</button>
+</aside>
+
+<!-- TOPBAR -->
+<header class="fixed top-0 right-0 left-0 md:left-56 z-40 flex items-center justify-between px-5" style="height:52px;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-bottom:1px solid #f0f0f0">
+  <div class="flex items-center gap-3">
+    <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden p-1.5 rounded-lg hover:bg-gray-100 border-none bg-transparent cursor-pointer"><span class="ms">menu</span></button>
+    <h2 id="pg-title" style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111">Vue d'ensemble</h2>
+  </div>
+  <div class="flex items-center gap-2">
+    <button onclick="toggleNotif()" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 border-none bg-transparent cursor-pointer"><span class="ms">notifications</span></button>
+    <div id="notif-drop" style="display:none;position:fixed;top:54px;right:12px;width:240px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.12);border:1px solid #f0f0f0;z-index:200">
+      <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0;font-family:Manrope;font-weight:700;font-size:.875rem">Notifications</div>
+      <div style="padding:24px 16px;text-align:center"><span class="ms" style="font-size:36px;color:#d1d5db">notifications_off</span><p style="font-size:.8rem;color:#9ca3af;margin-top:6px">Aucune pour l'instant</p></div>
+    </div>
+    <img id="top-av" src="https://ui-avatars.com/api/?name=P&background=ea580c&color=fff" onclick="goTo('profile')" class="w-8 h-8 rounded-full cursor-pointer" style="border:2px solid #ea580c"/>
+  </div>
+</header>
+
+<main class="md:ml-56 pb-24 md:pb-8" style="padding-top:52px;min-height:100vh">
+<div style="max-width:920px;margin:0 auto;padding:24px 16px">
+
+<!-- Bannière d'erreur -->
+<div id="err-banner">
+  <div style="display:flex;align-items:flex-start;gap:10px">
+    <span class="ms" style="color:#dc2626;flex-shrink:0">warning</span>
+    <div>
+      <p style="font-weight:700;color:#991b1b;margin-bottom:4px" id="err-title">Erreur de connexion</p>
+      <p style="font-size:.8rem;color:#b91c1c" id="err-msg">—</p>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button onclick="fixRole()" class="btn bsm" style="background:#dc2626;color:#fff">Réparer le rôle</button>
+        <button onclick="doLogout()" class="btn bsm bg">Se reconnecter</button>
+        <a href="debug.html" class="btn bsm bg">Ouvrir le debug</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="sec-dashboard" class="sec on">
+  <div class="mb-5">
+    <h1 id="greet" style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Bonjour ! 👋</h1>
+    <p id="greet-sub" style="font-size:.875rem;color:#9ca3af;margin-top:3px">Chargement...</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px">
+    <div class="card cHov" style="padding:18px"><div style="width:36px;height:36px;background:#fff7ed;color:#ea580c;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px"><span class="ms">groups</span></div><p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin-bottom:3px">Classes</p><p id="st-cl" style="font-family:Manrope;font-weight:900;font-size:2rem;color:#111">—</p></div>
+    <div class="card cHov" style="padding:18px"><div style="width:36px;height:36px;background:#eff6ff;color:#2563eb;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px"><span class="ms">auto_stories</span></div><p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin-bottom:3px">Cours</p><p id="st-co" style="font-family:Manrope;font-weight:900;font-size:2rem;color:#111">—</p></div>
+    <div class="card cHov" style="padding:18px"><div style="width:36px;height:36px;background:#f0fdf4;color:#16a34a;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px"><span class="ms">person</span></div><p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin-bottom:3px">Étudiants</p><p id="st-st" style="font-family:Manrope;font-weight:900;font-size:2rem;color:#111">—</p></div>
+    <div class="card cHov" style="padding:18px"><div style="width:36px;height:36px;background:#fffbeb;color:#d97706;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px"><span class="ms">assignment_late</span></div><p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin-bottom:3px">À corriger</p><p id="st-gr" style="font-family:Manrope;font-weight:900;font-size:2rem;color:#d97706">—</p></div>
+  </div>
+  <div class="card" style="padding:22px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111">Activité récente</h3>
+      <button onclick="goTo('assignments')" style="font-size:.8rem;font-weight:700;color:#ea580c;border:none;background:none;cursor:pointer">Voir tout →</button>
+    </div>
+    <div id="recent"><div class="sk" style="height:48px;margin-bottom:8px"></div><div class="sk" style="height:48px"></div></div>
+  </div>
+</div>
+
+<!-- CLASSES -->
+<div id="sec-classes" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Mes Classes</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Groupes d'étudiants par filière et niveau</p></div>
+    <button onclick="openClassCreate()" class="btn bp"><span class="ms">add</span>Nouvelle classe</button>
+  </div>
+  <div id="cl-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px"><div class="sk" style="height:140px"></div><div class="sk" style="height:140px"></div></div>
+  <div id="cl-empty" class="card" style="display:none;text-align:center;padding:60px 20px"><span class="ms" style="font-size:48px;color:#d1d5db">groups</span><p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune classe créée</p><button onclick="openClassCreate()" class="btn bp" style="margin-top:16px"><span class="ms">add</span>Nouvelle classe</button></div>
+</div>
+
+<!-- COURS -->
+<div id="sec-courses" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Mes Cours</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Supports uploadés, accessibles par vos étudiants</p></div>
+    <button onclick="openCourseCreate()" class="btn bp"><span class="ms">add</span>Nouveau cours</button>
+  </div>
+  <div id="co-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"><div class="sk" style="height:180px"></div><div class="sk" style="height:180px"></div></div>
+  <div id="co-empty" class="card" style="display:none;text-align:center;padding:60px 20px"><span class="ms" style="font-size:48px;color:#d1d5db">auto_stories</span><p style="font-weight:700;color:#6b7280;margin-top:12px">Aucun cours créé</p><button onclick="openCourseCreate()" class="btn bp" style="margin-top:16px"><span class="ms">add</span>Nouveau cours</button></div>
+</div>
+
+<!-- DEVOIRS & QUIZ -->
+<div id="sec-assignments" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Devoirs & Quiz</h1><p id="as-sub" style="font-size:.875rem;color:#9ca3af;margin-top:2px">Chargement...</p></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="openAssignCreate('devoir')" class="btn bp bsm"><span class="ms">assignment</span>Devoir</button>
+      <button onclick="openAssignCreate('quiz')" class="btn bsm" style="background:#7c3aed;color:#fff"><span class="ms">quiz</span>Quiz</button>
+    </div>
+  </div>
+  <div id="as-list" style="display:flex;flex-direction:column;gap:12px"><div class="sk" style="height:110px"></div><div class="sk" style="height:110px"></div></div>
+  <div id="as-empty" class="card" style="display:none;text-align:center;padding:60px 20px"><span class="ms" style="font-size:48px;color:#d1d5db">assignment</span><p style="font-weight:700;color:#6b7280;margin-top:12px">Aucun devoir ou quiz</p><div style="display:flex;gap:10px;justify-content:center;margin-top:16px"><button onclick="openAssignCreate('devoir')" class="btn bp bsm">Créer un devoir</button><button onclick="openAssignCreate('quiz')" class="btn bsm" style="background:#7c3aed;color:#fff">Créer un quiz</button></div></div>
+</div>
+
+<!-- COMMUNAUTÉS -->
+<div id="sec-communities" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Communautés</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Espaces d'échange — visibles par vos étudiants</p></div>
+    <button onclick="showM('m-comm')" class="btn bp"><span class="ms">add</span>Nouvelle communauté</button>
+  </div>
+  <div id="cm-list" style="display:flex;flex-direction:column;gap:12px"><div class="sk" style="height:90px"></div><div class="sk" style="height:90px"></div></div>
+  <div id="cm-empty" class="card" style="display:none;text-align:center;padding:60px 20px"><span class="ms" style="font-size:48px;color:#d1d5db">forum</span><p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune communauté créée</p><p style="font-size:.875rem;color:#9ca3af;margin-top:4px">Les communautés créées ici apparaissent dans le dashboard de vos étudiants</p><button onclick="showM('m-comm')" class="btn bp" style="margin-top:16px">Créer une communauté</button></div>
+</div>
+
+<!-- STATISTIQUES -->
+<div id="sec-stats" class="sec">
+  <div class="mb-5"><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Statistiques</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Performances globales de vos classes</p></div>
+  <div id="stats-content"><div class="sk" style="height:120px;border-radius:14px;margin-bottom:14px"></div><div class="sk" style="height:200px;border-radius:14px"></div></div>
+</div>
+
+<!-- DEMANDES INTER-UNIVERSITÉS -->
+<div id="sec-crossrequests" class="sec">
+  <div class="mb-5">
+    <h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Demandes Inter-Universités</h1>
+    <p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Étudiants d'autres universités qui souhaitent accéder à vos cours</p>
+  </div>
+  <div id="cross-list" style="display:flex;flex-direction:column;gap:12px">
+    <div class="sk" style="height:100px"></div>
+  </div>
+  <div id="cross-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">swap_horiz</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune demande</p>
+    <p style="font-size:.875rem;color:#9ca3af;margin-top:4px">Activez "Cours public" sur vos cours pour recevoir des demandes d'autres universités.</p>
+  </div>
+</div>
+
+<!-- PROFIL -->
+<div id="sec-profile" class="sec">
+  <div class="mb-5"><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Mon Profil</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Vos informations personnelles et académiques</p></div>
+  <div class="card" style="overflow:hidden">
+    <div style="background:linear-gradient(135deg,#ea580c,#f97316);padding:28px 28px 0">
+      <div style="display:flex;align-items:flex-end;gap:20px;padding-bottom:20px;flex-wrap:wrap">
+        <div id="prof-av-wrap" style="position:relative;display:inline-block;flex-shrink:0"><img id="prof-av" src="https://ui-avatars.com/api/?name=P&background=fff&color=ea580c&size=128" style="width:84px;height:84px;border-radius:50%;border:4px solid rgba(255,255,255,.3);object-fit:cover"/></div>
+        <div style="color:#fff;padding-bottom:4px">
+          <h2 id="prof-display-name" style="font-family:Manrope;font-weight:900;font-size:1.4rem;line-height:1.2">—</h2>
+          <p id="prof-display-disc" style="font-size:.875rem;opacity:.85;margin-top:2px">—</p>
+          <p id="prof-display-school" style="font-size:.8rem;opacity:.7;margin-top:1px">—</p>
+        </div>
+      </div>
+    </div>
+    <div style="padding:24px 28px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div><label class="lbl">Prénom</label><input id="p-first" type="text" class="fld" placeholder="Votre prénom"/></div>
+        <div><label class="lbl">Nom de famille</label><input id="p-last" type="text" class="fld" placeholder="Votre nom"/></div>
+        <div><label class="lbl">Email (non modifiable)</label><input id="p-email" type="email" disabled class="fld"/></div>
+        <div><label class="lbl">Téléphone</label><input id="p-phone" type="tel" placeholder="+237 6XX XXX XXX" class="fld"/></div>
+        <div style="grid-column:1/-1"><label class="lbl">Discipline d'enseignement</label><select id="p-disc" class="fld"><option value="">Sélectionner ma discipline...</option></select></div>
+        <div><label class="lbl">Établissement (non modifiable)</label><input id="p-school" type="text" disabled class="fld"/></div>
+        <div><label class="lbl">Filière principale</label><select id="p-filiere" class="fld"><option value="">—</option></select></div>
+        <div style="grid-column:1/-1"><label class="lbl">Biographie</label><textarea id="p-bio" rows="3" placeholder="Décrivez votre parcours..." class="fld" style="resize:none"></textarea></div>
+        <div><label class="lbl">Membre depuis</label><input id="p-since" type="text" disabled class="fld"/></div>
+        <div><label class="lbl">Rôle</label><input value="Enseignant" disabled class="fld"/></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #f0f0f0;padding-top:16px">
+        <button onclick="loadProfile()" class="btn bg">Annuler</button>
+        <button onclick="saveProfile()" class="btn bp">Enregistrer les modifications</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div></main>
+
+<!-- Mobile nav -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 flex justify-around py-2">
+  <button onclick="goTo('dashboard')" data-s="dashboard" class="mob flex flex-col items-center gap-0.5 border-none bg-transparent cursor-pointer" style="color:#ea580c;padding:4px 8px"><span class="ms f" style="font-size:22px">dashboard</span><span style="font-size:9px;font-weight:700">Accueil</span></button>
+  <button onclick="goTo('classes')" data-s="classes" class="mob flex flex-col items-center gap-0.5 border-none bg-transparent cursor-pointer" style="color:#9ca3af;padding:4px 8px"><span class="ms" style="font-size:22px">groups</span><span style="font-size:9px;font-weight:700">Classes</span></button>
+  <button onclick="goTo('courses')" data-s="courses" class="mob flex flex-col items-center gap-0.5 border-none bg-transparent cursor-pointer" style="color:#9ca3af;padding:4px 8px"><span class="ms" style="font-size:22px">auto_stories</span><span style="font-size:9px;font-weight:700">Cours</span></button>
+  <button onclick="goTo('assignments')" data-s="assignments" class="mob flex flex-col items-center gap-0.5 border-none bg-transparent cursor-pointer" style="color:#9ca3af;padding:4px 8px"><span class="ms" style="font-size:22px">assignment</span><span style="font-size:9px;font-weight:700">Devoirs</span></button>
+  <button onclick="goTo('stats')" data-s="stats" class="mob flex flex-col items-center gap-0.5 border-none bg-transparent cursor-pointer" style="color:#9ca3af;padding:4px 8px"><span class="ms" style="font-size:22px">analytics</span><span style="font-size:9px;font-weight:700">Stats</span></button>
+</nav>
+<div id="toast"></div>
+
+<!-- MODALS -->
+
+<!-- Classe -->
+<div id="m-class" class="ov" onclick="if(event.target===this)hideM('m-class')">
+  <div class="mbox">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Créer une classe</h3>
+      <button onclick="hideM('m-class')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Nom *</label><input id="cl-name" type="text" placeholder="Ex: GEII L2 — Groupe A" class="fld"/></div>
+      <div><label class="lbl">Filière *</label><select id="cl-fil" class="fld"><option value="">Sélectionner...</option></select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Niveau</label><select id="cl-lvl" class="fld"><option value="">—</option><option>L1</option><option>L2</option><option>L3</option><option>M1</option><option>M2</option></select></div>
+        <div><label class="lbl">Année</label><input id="cl-yr" type="text" value="2025/2026" class="fld"/></div>
+      </div>
+      <div><label class="lbl">Description</label><textarea id="cl-desc" rows="2" placeholder="Objectifs du groupe..." class="fld" style="resize:none"></textarea></div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-class')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitClass()" id="cl-btn" class="btn bp" style="flex:1">Créer la classe</button>
+    </div>
+  </div>
+</div>
+
+<!-- Détail classe -->
+<div id="m-class-detail" class="ov" onclick="if(event.target===this)hideM('m-class-detail')">
+  <div class="mbox" style="max-width:560px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid #f0f0f0">
+      <div><h3 id="cd-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Classe</h3><p id="cd-sub" style="font-size:.75rem;color:#9ca3af;margin-top:2px"></p></div>
+      <button onclick="hideM('m-class-detail')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'"><span class="ms">close</span></button>
+    </div>
+    <div style="display:flex;gap:4px;padding:10px 22px;border-bottom:1px solid #f0f0f0">
+      <button class="tab on" id="tab-students" onclick="cdTab('students')">👥 Étudiants</button>
+      <button class="tab" id="tab-courses-cd" onclick="cdTab('courses')">📚 Cours</button>
+      <button class="tab" id="tab-assign-cd" onclick="cdTab('assignments')">📋 Devoirs</button>
+    </div>
+    <div id="cd-body" style="padding:16px 22px;max-height:380px;overflow-y:auto"><div class="sk" style="height:40px;border-radius:8px"></div></div>
+  </div>
+</div>
+
+<!-- Cours -->
+<div id="m-course" class="ov" onclick="if(event.target===this)hideM('m-course')">
+  <div class="mbox" style="max-width:500px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 id="m-co-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Créer un cours</h3>
+      <button onclick="hideM('m-course')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Titre *</label><input id="co-ttl" type="text" placeholder="Ex: Automatisme Industriel" class="fld"/></div>
+      <div><label class="lbl">Description</label><textarea id="co-desc" rows="2" placeholder="Contenu, objectifs..." class="fld" style="resize:none"></textarea></div>
+      <div><label class="lbl">Classe cible <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#9ca3af">(étudiants inscrits automatiquement)</span></label><select id="co-class" class="fld"><option value="">Aucune classe spécifique</option></select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Filière</label><input id="co-fil" type="text" placeholder="Ex: GEII L2" class="fld"/></div>
+        <div><label class="lbl">Couleur</label><select id="co-col" class="fld"><option value="orange">🟠 Orange</option><option value="green">🟢 Vert</option><option value="blue">🔵 Bleu</option><option value="purple">🟣 Violet</option></select></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0">
+        <input type="checkbox" id="co-public" style="accent-color:#00602a;width:16px;height:16px"/>
+        <div>
+          <label for="co-public" style="font-weight:700;font-size:.8rem;color:#166534;cursor:pointer">🌍 Rendre visible par d'autres universités</label>
+          <p style="font-size:.72rem;color:#4ade80;margin:2px 0 0">Les étudiants d'autres universités pourront demander l'accès</p>
+        </div>
+      </div>
+      <div>
+        <label class="lbl">Support PDF <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#9ca3af">(stocké sur Upload.io — optionnel)</span></label>
+        <div class="upz" id="co-drop" onclick="document.getElementById('co-file').click()">
+          <span class="ms" style="font-size:30px;color:#d1d5db;display:block;margin-bottom:6px">upload_file</span>
+          <p style="font-size:.875rem;font-weight:600;color:#6b7280" id="co-file-label">Cliquez ou glissez un PDF ici</p>
+          <p style="font-size:.72rem;color:#9ca3af;margin-top:3px">Max 20MB</p>
+        </div>
+        <input type="file" id="co-file" accept=".pdf" style="display:none" onchange="onFileChange('co-file','co-file-label')"/>
+        <div id="co-prog-wrap" style="display:none;margin-top:8px"><div class="pbar"><div class="pfill" id="co-prog" style="width:0%"></div></div><p id="co-prog-txt" style="font-size:.72rem;color:#9ca3af;margin-top:4px">Upload...</p></div>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-course')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitCourse()" id="co-btn" class="btn bp" style="flex:1">Créer le cours</button>
+    </div>
+  </div>
+</div>
+
+<!-- Devoir/Quiz -->
+<div id="m-assign" class="ov" onclick="if(event.target===this)hideM('m-assign')">
+  <div class="mbox" style="max-width:520px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <div>
+        <h3 id="m-as-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Nouveau devoir</h3>
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <button class="tab on" id="tab-devoir" onclick="switchAsTab('devoir')">📄 Devoir</button>
+          <button class="tab" id="tab-quiz" onclick="switchAsTab('quiz')">🧠 Quiz</button>
+        </div>
+      </div>
+      <button onclick="hideM('m-assign')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Titre *</label><input id="as-ttl" type="text" placeholder="Ex: TP Grafcet — Séance 3" class="fld"/></div>
+      <div><label class="lbl">Cours associé *</label><select id="as-course" class="fld"><option value="">Sélectionnez un cours...</option></select></div>
+      <div><label class="lbl">Date limite</label><input id="as-due" type="datetime-local" class="fld"/></div>
+      <div><label class="lbl">Instructions pour les étudiants</label><textarea id="as-inst" rows="2" placeholder="Consignes, contraintes, format attendu..." class="fld" style="resize:none"></textarea></div>
+      <div id="devoir-section">
+        <label class="lbl">Énoncé PDF (optionnel)</label>
+        <div class="upz" onclick="document.getElementById('as-file').click()"><span class="ms" style="font-size:26px;color:#d1d5db">upload_file</span><p style="font-size:.8rem;color:#6b7280;margin-top:5px" id="as-file-label">Choisir un PDF</p></div>
+        <input type="file" id="as-file" accept=".pdf" style="display:none" onchange="onFileChange('as-file','as-file-label')"/>
+      </div>
+      <div id="quiz-section" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <label class="lbl" style="margin:0">Questions *</label>
+          <button onclick="addQuizQ()" class="btn bp bsm"><span class="ms" style="font-size:16px">add</span>Question</button>
+        </div>
+        <div id="quiz-qs" style="max-height:280px;overflow-y:auto"></div>
+        <p style="font-size:.72rem;color:#9ca3af;margin-top:6px">💡 Sélectionnez la bonne réponse avec le bouton radio</p>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-assign')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitAssign()" id="as-btn" class="btn bp" style="flex:1">Créer le devoir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Communauté -->
+<div id="m-comm" class="ov" onclick="if(event.target===this)hideM('m-comm')">
+  <div class="mbox">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Nouvelle communauté</h3>
+      <button onclick="hideM('m-comm')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Nom *</label><input id="cm-name" type="text" placeholder="Ex: Forum Automatisme GEII L2" class="fld" oninput="updateCommPreview()"/></div>
+      <div><label class="lbl">Description (visible par les étudiants)</label><textarea id="cm-desc" rows="3" placeholder="De quoi parle cette communauté ?" class="fld" style="resize:none" oninput="updateCommPreview()"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Catégorie</label><input id="cm-cat" type="text" placeholder="Ex: GEII, MTI..." class="fld" oninput="updateCommPreview()"/></div>
+        <div><label class="lbl">Icône</label><select id="cm-icon" class="fld" onchange="updateCommPreview()"><option value="forum">💬 Forum</option><option value="memory">⚙️ Automatisme</option><option value="code_blocks">💻 Code</option><option value="calculate">📐 Maths</option><option value="bolt">⚡ Électro</option><option value="science">🔬 Sciences</option><option value="psychology">🧠 IA</option><option value="architecture">🏗️ Génie Civil</option><option value="gavel">⚖️ Droit</option></select></div>
+      </div>
+      <!-- Aperçu -->
+      <div style="background:#f9fafb;border-radius:10px;padding:14px;border:1px solid #f0f0f0">
+        <p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin-bottom:10px">Aperçu côté étudiant</p>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;background:#fff7ed;color:#ea580c;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms" id="cm-prev-icon">forum</span></div>
+          <div><p style="font-size:.875rem;font-weight:700;color:#111" id="cm-prev-name">Nom de la communauté</p><p style="font-size:.72rem;color:#9ca3af" id="cm-prev-cat">Catégorie · 0 membre</p><p style="font-size:.75rem;color:#6b7280;margin-top:2px" id="cm-prev-desc">Description...</p></div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-comm')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitComm()" id="cm-btn" class="btn bp" style="flex:1">Créer la communauté</button>
+    </div>
+  </div>
+</div>
+
+<!-- Copies -->
+<div id="m-subs" class="ov" onclick="if(event.target===this)hideM('m-subs')">
+  <div class="mbox" style="max-width:500px;max-height:85vh;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid #f0f0f0;flex-shrink:0"><div><h3 id="subs-ttl" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Copies</h3><p id="subs-sub" style="font-size:.75rem;color:#9ca3af;margin-top:2px"></p></div><button onclick="hideM('m-subs')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'"><span class="ms">close</span></button></div>
+    <div id="subs-list" style="flex:1;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</div>
+
+<!-- Logout -->
+<div id="m-logout" class="ov" onclick="if(event.target===this)hideM('m-logout')">
+  <div class="mbox" style="max-width:340px">
+    <div style="padding:28px 24px 20px;text-align:center"><div style="width:52px;height:52px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px"><span class="ms" style="color:#dc2626;font-size:26px">logout</span></div><h3 style="font-family:Manrope;font-weight:800;font-size:1.1rem;color:#111;margin-bottom:8px">Déconnexion</h3><p style="font-size:.875rem;color:#9ca3af">Voulez-vous quitter votre espace enseignant ?</p></div>
+    <div style="padding:0 24px 24px;display:flex;gap:10px"><button onclick="hideM('m-logout')" class="btn bg" style="flex:1">Annuler</button><button onclick="doLogout()" class="btn" style="flex:1;background:#dc2626;color:#fff">Quitter</button></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const TK = () => localStorage.getItem('camunolearn_token');
+let ME = null, CLASSES = [], COURSES = [], loaded = {}, editCourseId = null, currentClassId = null;
+let assignMode = 'devoir', quizCount = 0;
+const TITLES = {dashboard:'Vue d\'ensemble',classes:'Mes Classes',courses:'Mes Cours',assignments:'Devoirs & Quiz',communities:'Communautés',stats:'Statistiques',crossrequests:'Demandes Inter-Universités',profile:'Mon Profil'};
+
+// ══════════════════════════════════════════════
+//  INIT — avec auto-réparation du rôle
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!TK()) { location.href = 'indexconnexion.html'; return; }
+
+  // Remplir selects statiques
+  const clFil = document.getElementById('cl-fil');
+  FILIERES.forEach(f => clFil.innerHTML += `<option value="${f}">${f}</option>`);
+  const pDisc = document.getElementById('p-disc');
+  DISCIPLINES.forEach(d => pDisc.innerHTML += `<option value="${d}">${d}</option>`);
+  const pFil = document.getElementById('p-filiere');
+  FILIERES.forEach(f => pFil.innerHTML += `<option value="${f}">${f}</option>`);
+
+  // Drag & drop PDF cours
+  const drop = document.getElementById('co-drop');
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.borderColor='#ea580c'; drop.style.background='#fff7ed'; });
+  drop.addEventListener('dragleave', () => { drop.style.borderColor=''; drop.style.background=''; });
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.style.borderColor=''; drop.style.background='';
+    const f = e.dataTransfer.files[0];
+    if (f?.type==='application/pdf') {
+      const dt = new DataTransfer(); dt.items.add(f);
+      document.getElementById('co-file').files = dt.files;
+      onFileChange('co-file','co-file-label');
+    }
+  });
+
+  // Étape 1 : vérifier/rafraîchir le token via /auth/me
+  await bootstrap();
+});
+
+async function bootstrap() {
+  // Essayer de rafraîchir via /auth/me
+  try {
+    const r = await fetch(`${API}/auth/me`, {
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${TK()}` }
+    });
+    const d = await r.json();
+    if (r.ok && d.success) {
+      // Mettre à jour le token (contient le rôle à jour)
+      if (d.token) { localStorage.setItem('camunolearn_token', d.token); }
+      ME = d.user;
+      // Vérifier que c'est bien un enseignant
+      if (ME.role !== 'enseignant' && ME.role !== 'admin') {
+        showErr('Rôle incorrect', `Votre compte a le rôle "${ME.role}". Cliquez sur "Réparer le rôle" pour vous définir comme enseignant.`);
+      }
+      updateSidebar();
+      await loadDashboard();
+    } else if (r.status === 401) {
+      doLogout();
+    } else {
+      // /auth/me non disponible ou erreur — essayer le dashboard directement
+      await loadDashboard();
+    }
+  } catch(e) {
+    // Serveur non accessible
+    showErr('Serveur inaccessible', `Impossible de joindre le serveur. Vérifiez que le backend tourne sur le port 3000.`);
+    document.getElementById('greet').textContent = 'Serveur non connecté';
+    document.getElementById('greet-sub').textContent = 'Lancez le backend avec: cd backend && node src/app.js';
+  }
+}
+
+// Réparer le rôle depuis le frontend
+async function fixRole() {
+  try {
+    const r = await fetch(`${API}/auth/role`, {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${TK()}` },
+      body: JSON.stringify({ role: 'enseignant' })
+    });
+    const d = await r.json();
+    if (r.ok && d.token) {
+      localStorage.setItem('camunolearn_token', d.token);
+      const user = JSON.parse(localStorage.getItem('camunolearn_user')||'{}');
+      user.role = 'enseignant'; localStorage.setItem('camunolearn_user', JSON.stringify(user));
+      localStorage.setItem('userRole','enseignant');
+      document.getElementById('err-banner').style.display = 'none';
+      toast('Rôle réparé ! Rechargement...');
+      setTimeout(() => location.reload(), 1500);
+    } else toast('Erreur réparation. Reconnectez-vous.','err');
+  } catch(e) { toast('Serveur non accessible.','err'); }
+}
+
+// ══════════════════════════════════════════════
+//  API — auto-retry avec token refresh
+// ══════════════════════════════════════════════
+async function api(path, opts = {}) {
+  try {
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${TK()}`, ...(opts.headers||{}) }
+    });
+    if (r.status === 401) { doLogout(); return null; }
+    const data = await r.json();
+    // Sauvegarder automatiquement tout nouveau token reçu
+    if (data?.token) { localStorage.setItem('camunolearn_token', data.token); }
+    if (r.status === 403) {
+      showErr('Accès refusé (403)', `${data.message} — Le token ne contient pas le bon rôle. Cliquez "Réparer le rôle".`);
+      return null;
+    }
+    return data;
+  } catch(e) {
+    showErr('Erreur réseau', 'Impossible de joindre le serveur. Vérifiez que node src/app.js tourne sur le port 3000.');
+    return null;
+  }
+}
+
+function showErr(title, msg) {
+  document.getElementById('err-banner').style.display = 'block';
+  document.getElementById('err-title').textContent = title;
+  document.getElementById('err-msg').textContent = msg;
+}
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+function goTo(s) {
+  document.querySelectorAll('.sec').forEach(x => x.classList.remove('on'));
+  document.getElementById('sec-'+s)?.classList.add('on');
+  document.querySelectorAll('.nb[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s===s));
+  document.querySelectorAll('.mob[data-s]').forEach(b => {
+    const ic = b.querySelector('.ms');
+    if (b.dataset.s===s) { b.style.color='#ea580c'; if(ic)ic.classList.add('f'); }
+    else { b.style.color='#9ca3af'; if(ic)ic.classList.remove('f'); }
+  });
+  document.getElementById('pg-title').textContent = TITLES[s]||'';
+  document.getElementById('sidebar').classList.add('-translate-x-full');
+  document.getElementById('notif-drop').style.display='none';
+  if (s==='classes'&&!loaded.classes) loadClasses();
+  if (s==='courses'&&!loaded.courses) loadCourses();
+  if (s==='assignments'&&!loaded.assignments) loadAssignments();
+  if (s==='communities'&&!loaded.communities) loadCommunities();
+  if (s==='stats'&&!loaded.stats) loadStats();
+  if (s==='profile'&&!loaded.profile)         loadProfile();
+  if (s==='crossrequests'&&!loaded.crossrequests) loadCrossRequests();
+}
+
+// ══════════════════════════════════════════════
+//  SIDEBAR
+// ══════════════════════════════════════════════
+function updateSidebar() {
+  if (!ME) return;
+  const fullName = `${ME.first_name} ${ME.last_name}`;
+  // Restaurer avatar depuis localStorage
+  try {
+    const saved = JSON.parse(localStorage.getItem('camunolearn_user') || '{}');
+    if (saved.avatar_url && !ME.avatar_url) ME.avatar_url = saved.avatar_url;
+  } catch(e) {}
+  const url = getAvatarUrl(ME);
+  document.getElementById('side-av').src = url;
+  document.getElementById('top-av').src  = url;
+  document.getElementById('side-name').textContent   = fullName;
+  document.getElementById('side-disc').textContent   = ME.discipline||'Discipline non définie';
+  document.getElementById('side-school').textContent = ME.school||'—';
+}
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
+async function loadDashboard() {
+  const d = await api('/teacher/dashboard');
+  if (!d) return;
+  if (!d.success) { showErr('Erreur dashboard', d.message||'Erreur inconnue'); return; }
+  ME = d.user;
+  updateSidebar();
+
+  const hr = new Date().getHours();
+  const word = hr<12?'Bonjour':hr<18?'Bon après-midi':'Bonsoir';
+  // Afficher le prénom ET le nom complet
+  document.getElementById('greet').textContent = `${word}, ${ME.first_name} ${ME.last_name} ! 👋`;
+  document.getElementById('greet-sub').textContent = `${ME.discipline||'Discipline non définie'} · ${ME.school||''}`;
+
+  document.getElementById('st-cl').textContent = d.stats.classes  || '0';
+  document.getElementById('st-co').textContent = d.stats.courses  || '0';
+  document.getElementById('st-st').textContent = d.stats.students || '0';
+  document.getElementById('st-gr').textContent = d.stats.toGrade  || '0';
+
+  const el = document.getElementById('recent');
+  if (!d.recentActivity?.length) {
+    el.innerHTML = '<p style="text-align:center;color:#9ca3af;font-size:.875rem;padding:20px 0">Aucune activité récente.</p>';
+    return;
+  }
+  el.innerHTML = d.recentActivity.map(a => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+      <div style="width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;${a.grade!==null?'background:#f0fdf4;color:#16a34a':'background:#fff7ed;color:#ea580c'}"><span class="ms">${a.grade!==null?'check_circle':'assignment_turned_in'}</span></div>
+      <div style="flex:1;min-width:0"><p style="font-size:.875rem;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.student_name} — <span style="font-weight:400;color:#6b7280">${a.assignment_title}</span></p><p style="font-size:.72rem;color:#9ca3af">${a.course_title} · ${ago(a.submitted_at)}</p></div>
+      <span class="bdg" style="${a.grade!==null?'background:#f0fdf4;color:#166534':'background:#fff7ed;color:#ea580c'}">${a.grade!==null?a.grade+'/20':'À corriger'}</span>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+//  CLASSES
+// ══════════════════════════════════════════════
+async function loadClasses() {
+  const d = await api('/teacher/classes');
+  if (!d?.success) return;
+  CLASSES = d.classes; loaded.classes = true;
+  syncSel('co-class',CLASSES,'id','name','Aucune classe spécifique');
+  renderClasses();
+}
+
+function renderClasses() {
+  const g=document.getElementById('cl-grid'),e=document.getElementById('cl-empty');
+  if (!CLASSES.length) { g.innerHTML=''; e.style.display='block'; return; }
+  e.style.display='none';
+  const pal=[['#fff7ed','#ea580c'],['#eff6ff','#2563eb'],['#f0fdf4','#16a34a'],['#faf5ff','#7c3aed'],['#f0fdfa','#0d9488']];
+  g.innerHTML = CLASSES.map((c,i)=>{
+    const[bg,fg]=pal[i%pal.length];
+    return`<div class="card cHov" style="padding:18px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div style="width:40px;height:40px;background:${bg};color:${fg};border-radius:10px;display:flex;align-items:center;justify-content:center"><span class="ms">groups</span></div>
+        <div style="display:flex;gap:2px">
+          <button onclick="openClassDetail('${c.id}','${esc(c.name)}')" title="Voir les détails" style="padding:5px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#9ca3af" onmouseover="this.style.background='#f3f4f6';this.style.color='#ea580c'" onmouseout="this.style.background='transparent';this.style.color='#9ca3af'"><span class="ms" style="font-size:17px">open_in_new</span></button>
+          <button onclick="deleteClass('${c.id}')" title="Supprimer" style="padding:5px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#d1d5db" onmouseover="this.style.background='#fef2f2';this.style.color='#dc2626'" onmouseout="this.style.background='transparent';this.style.color='#d1d5db'"><span class="ms" style="font-size:17px">delete</span></button>
+        </div>
+      </div>
+      <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#111;margin-bottom:3px">${c.name}</h3>
+      <p style="font-size:.72rem;color:#9ca3af;margin-bottom:10px">${c.filiere}${c.level?' · '+c.level:''} · ${c.academic_year}</p>
+      ${c.description?`<p style="font-size:.75rem;color:#6b7280;margin-bottom:10px">${c.description}</p>`:''}
+      <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f3f4f6;padding-top:10px">
+        <span style="font-size:.72rem;font-weight:600;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="ms" style="font-size:14px">person</span>${c.student_count} étudiant${c.student_count!=1?'s':''}</span>
+        <button onclick="openClassDetail('${c.id}','${esc(c.name)}')" style="font-size:.75rem;font-weight:700;color:#ea580c;border:none;background:none;cursor:pointer">Gérer →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openClassCreate() {
+  document.getElementById('cl-name').value='';
+  document.getElementById('cl-fil').value='';
+  document.getElementById('cl-lvl').value='';
+  document.getElementById('cl-yr').value='2025/2026';
+  document.getElementById('cl-desc').value='';
+  document.getElementById('cl-btn').textContent='Créer la classe';
+  document.getElementById('cl-btn').disabled=false;
+  showM('m-class');
+}
+
+async function submitClass() {
+  const name=document.getElementById('cl-name').value.trim();
+  const fil=document.getElementById('cl-fil').value;
+  const lvl=document.getElementById('cl-lvl').value;
+  const yr=document.getElementById('cl-yr').value.trim();
+  const desc=document.getElementById('cl-desc').value.trim();
+  if(!name||!fil){toast('Nom et filière obligatoires.','err');return;}
+  const btn=document.getElementById('cl-btn');
+  btn.disabled=true;btn.textContent='Création...';
+  const d=await api('/teacher/classes',{method:'POST',body:JSON.stringify({name,filiere:fil,level:lvl,academic_year:yr,description:desc})});
+  btn.disabled=false;btn.textContent='Créer la classe';
+  if(d?.success){hideM('m-class');loaded.classes=false;await loadClasses();document.getElementById('st-cl').textContent=CLASSES.length;loaded.courses=false;toast(`✅ Classe "${name}" créée ! Créez un cours et liez-le à cette classe.`);}
+  else if(d) toast(d.message||'Erreur.','err');
+}
+
+async function deleteClass(id){
+  if(!confirm('Supprimer cette classe ?'))return;
+  const d=await api(`/teacher/classes/${id}`,{method:'DELETE'});
+  if(d?.success){loaded.classes=false;await loadClasses();toast('Classe supprimée.');}
+}
+
+async function openClassDetail(id,name){
+  currentClassId=id;
+  document.getElementById('cd-title').textContent=name;
+  document.getElementById('cd-sub').textContent='Chargement...';
+  document.getElementById('cd-body').innerHTML='<div class="sk" style="height:40px;border-radius:8px"></div>';
+  document.querySelectorAll('#m-class-detail .tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('tab-students').classList.add('on');
+  showM('m-class-detail');
+  await cdTab('students');
+}
+
+async function cdTab(tab){
+  document.querySelectorAll('#m-class-detail .tab').forEach(t=>t.classList.remove('on'));
+  const tabId=tab==='courses'?'tab-courses-cd':tab==='assignments'?'tab-assign-cd':'tab-students';
+  document.getElementById(tabId)?.classList.add('on');
+  const body=document.getElementById('cd-body');
+  body.innerHTML='<div class="sk" style="height:40px;border-radius:8px"></div>';
+  if(tab==='students'){
+    const d=await api(`/teacher/classes/${currentClassId}/students`);
+    if(!d?.success)return;
+    document.getElementById('cd-sub').textContent=`${d.students.length} étudiant${d.students.length!=1?'s':''}`;
+    body.innerHTML=!d.students.length?'<p style="text-align:center;color:#9ca3af;font-size:.875rem;padding:20px 0">Aucun étudiant inscrit.</p>':
+      d.students.map(s=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#f9fafb;border-radius:10px;margin-bottom:8px"><div style="width:34px;height:34px;border-radius:50%;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0">${s.first_name[0]}${s.last_name[0]}</div><div><p style="font-size:.875rem;font-weight:600;color:#111">${s.first_name} ${s.last_name}</p><p style="font-size:.72rem;color:#9ca3af">${s.email}</p></div><span class="bdg" style="background:#f0fdf4;color:#166534;margin-left:auto">Actif</span></div>`).join('');
+  } else if(tab==='courses'){
+    if(!loaded.courses)await loadCourses();
+    const all=COURSES.filter(c=>c.class_id===currentClassId);
+    document.getElementById('cd-sub').textContent=`${all.length} cours`;
+    body.innerHTML=!all.length?'<p style="text-align:center;color:#9ca3af;font-size:.875rem;padding:20px 0">Aucun cours lié à cette classe.</p>':
+      all.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#f9fafb;border-radius:10px;margin-bottom:8px"><div style="width:34px;height:34px;border-radius:10px;background:#fff7ed;color:#ea580c;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms">auto_stories</span></div><div style="flex:1;min-width:0"><p style="font-size:.875rem;font-weight:600;color:#111">${c.title}</p><p style="font-size:.72rem;color:#9ca3af">${c.filiere||'—'}</p></div>${c.file_url?`<a href="${c.file_url}" target="_blank" class="btn bp bsm"><span class="ms" style="font-size:14px">download</span>PDF</a>`:''}</div>`).join('');
+  } else {
+    const d=await api('/teacher/assignments');if(!d?.success)return;
+    const ass=d.assignments.filter(a=>COURSES.find(c=>c.id===a.course_id&&c.class_id===currentClassId));
+    document.getElementById('cd-sub').textContent=`${ass.length} devoir${ass.length!=1?'s':''}`;
+    body.innerHTML=!ass.length?'<p style="text-align:center;color:#9ca3af;font-size:.875rem;padding:20px 0">Aucun devoir.</p>':
+      ass.map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#f9fafb;border-radius:10px;margin-bottom:8px"><div style="width:34px;height:34px;border-radius:10px;background:#fffbeb;color:#d97706;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms">${a.is_quiz?'quiz':'assignment'}</span></div><div style="flex:1"><p style="font-size:.875rem;font-weight:600;color:#111">${a.title}</p><p style="font-size:.72rem;color:#9ca3af">${a.course_title} · ${a.submissions_count} rendu${a.submissions_count!=1?'s':''}</p></div><span class="bdg" style="${parseInt(a.to_grade)>0?'background:#fffbeb;color:#d97706':'background:#f0fdf4;color:#166534'}">${parseInt(a.to_grade)>0?a.to_grade+' à corriger':'✓'}</span></div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  COURS
+// ══════════════════════════════════════════════
+async function loadCourses(){
+  if(!loaded.classes)await loadClasses();
+  const d=await api('/teacher/courses');
+  if(!d?.success)return;
+  COURSES=d.courses;loaded.courses=true;
+  syncSel('as-course',COURSES,'id','title','Sélectionnez un cours...',c=>`${c.title}${c.filiere?' ('+c.filiere+')':''}`);
+  renderCourses();
+}
+
+function renderCourses(){
+  const g=document.getElementById('co-grid'),e=document.getElementById('co-empty');
+  if(!COURSES.length){g.innerHTML='';e.style.display='block';return;}
+  e.style.display='none';
+  const dot={orange:'#ea580c',green:'#22c55e',blue:'#3b82f6',purple:'#8b5cf6'};
+  const bg={orange:'#fff7ed|#ea580c',green:'#f0fdf4|#166534',blue:'#eff6ff|#1d4ed8',purple:'#faf5ff|#6d28d9'};
+  g.innerHTML=COURSES.map(c=>{
+    const d=dot[c.color]||dot.orange;
+    const[bgg,fg]=(bg[c.color]||bg.orange).split('|');
+    return`<div class="card cHov" style="display:flex;flex-direction:column;overflow:hidden;cursor:pointer"
+      onclick="location.href='pageCoursDetail.html?id=${c.id}'">
+      <div style="height:4px;background:${d}"></div>
+      <div style="padding:16px;flex:1;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div style="display:flex;flex-wrap:wrap;gap:5px"><span class="bdg" style="background:${bgg};color:${fg}">${c.filiere||'Cours'}</span>${c.class_name?`<span class="bdg" style="background:#f3f4f6;color:#6b7280">${c.class_name}</span>`:''}</div>
+          <div style="display:flex;gap:2px">
+            <button onclick="event.stopPropagation();openEditCourse('${c.id}')" style="padding:4px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#d1d5db" onmouseover="this.style.background='#f3f4f6';this.style.color='#ea580c'" onmouseout="this.style.background='transparent';this.style.color='#d1d5db'"><span class="ms" style="font-size:16px">edit</span></button>
+            <button onclick="event.stopPropagation();deleteCourse('${c.id}')" style="padding:4px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#d1d5db" onmouseover="this.style.background='#fef2f2';this.style.color='#dc2626'" onmouseout="this.style.background='transparent';this.style.color='#d1d5db'"><span class="ms" style="font-size:16px">delete</span></button>
+          </div>
+        </div>
+        <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111;margin-bottom:4px">${c.title}</h3>
+        ${c.description?`<p style="font-size:.75rem;color:#9ca3af;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${c.description}</p>`:''}
+        <div style="display:flex;justify-content:space-between;border-top:1px solid #f3f4f6;padding-top:12px;margin-top:auto;font-size:.72rem;font-weight:600;color:#9ca3af">
+          <span style="display:flex;align-items:center;gap:3px"><span class="ms" style="font-size:13px">person</span>${c.student_count} étud.</span>
+          <span style="display:flex;align-items:center;gap:3px"><span class="ms" style="font-size:13px">assignment</span>${c.assignment_count} devoir${c.assignment_count!=1?'s':''}</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          ${c.file_url ? `<a href="${c.file_url}" target="_blank" onclick="event.stopPropagation()"
+             style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#f0fdf4;color:#16a34a;border-radius:8px;font-size:.75rem;font-weight:700;text-decoration:none">
+             <span class="ms" style="font-size:15px">picture_as_pdf</span>Voir PDF
+          </a>` : ''}
+          <a href="pageCoursDetail.html?id=${c.id}" onclick="event.stopPropagation()"
+             style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#fff7ed;color:#ea580c;border-radius:8px;font-size:.75rem;font-weight:700;text-decoration:none">
+             <span class="ms" style="font-size:15px">open_in_new</span>Gérer →
+          </a>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openCourseCreate(){
+  editCourseId=null;
+  document.getElementById('m-co-title').textContent='Créer un cours';
+  document.getElementById('co-btn').textContent='Créer le cours';
+  ['co-ttl','co-desc','co-fil'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('co-col').value='orange';
+  document.getElementById('co-file').value='';document.getElementById('co-file-label').textContent='Cliquez ou glissez un PDF ici';
+  document.getElementById('co-prog-wrap').style.display='none';
+  // Charger les classes si pas encore fait
+  if(!loaded.classes) await loadClasses();
+  syncSel('co-class',CLASSES,'id','name','Aucune classe spécifique');
+  showM('m-course');
+}
+
+function openEditCourse(id){
+  editCourseId=id;const c=COURSES.find(x=>x.id===id);if(!c)return;
+  document.getElementById('m-co-title').textContent='Modifier le cours';document.getElementById('co-btn').textContent='Enregistrer';
+  document.getElementById('co-ttl').value=c.title;document.getElementById('co-desc').value=c.description||'';document.getElementById('co-fil').value=c.filiere||'';document.getElementById('co-col').value=c.color||'orange';
+  document.getElementById('co-file-label').textContent=c.file_url?'Fichier existant (cliquer pour remplacer)':'Cliquez ou glissez un PDF ici';
+  syncSel('co-class',CLASSES,'id','name','Aucune classe spécifique');document.getElementById('co-class').value=c.class_id||'';
+  showM('m-course');
+}
+
+async function submitCourse(){
+  const title=document.getElementById('co-ttl').value.trim();
+  const desc=document.getElementById('co-desc').value.trim();
+  const fil=document.getElementById('co-fil').value.trim();
+  const color=document.getElementById('co-col').value;
+  const classId=document.getElementById('co-class').value||null;
+  const file=document.getElementById('co-file').files[0];
+  if(!title){toast('Le titre est obligatoire.','err');return;}
+  const btn=document.getElementById('co-btn');btn.disabled=true;btn.textContent='Enregistrement...';
+  let file_url=null;
+  if(file)file_url=await uploadCloudinary(file,'co-prog','co-prog-txt','co-prog-wrap');
+  const isPublic = document.getElementById('co-public')?.checked || false;
+  const body={title,description:desc,filiere:fil,color,class_id:classId,is_public:isPublic};
+  if(file_url)body.file_url=file_url;
+  const d=editCourseId?await api(`/teacher/courses/${editCourseId}`,{method:'PUT',body:JSON.stringify(body)}):await api('/teacher/courses',{method:'POST',body:JSON.stringify(body)});
+  btn.disabled=false;btn.textContent=editCourseId?'Enregistrer':'Créer le cours';
+  if(d?.success){
+    hideM('m-course');
+    editCourseId=null;
+    loaded.courses=false;
+    await loadCourses();
+    document.getElementById('st-co').textContent=COURSES.length;
+    // Recharger aussi les devoirs si ouverts pour mettre à jour le select cours
+    loaded.assignments=false;
+    toast(`✅ Cours "${title}" ${editCourseId?'modifié':'créé'} — visible par vos étudiants dès maintenant !`);
+  } else if(d) toast(d.message||'Erreur lors de la création du cours.','err');
+}
+
+async function deleteCourse(id){if(!confirm('Supprimer ce cours ?'))return;const d=await api(`/teacher/courses/${id}`,{method:'DELETE'});if(d?.success){loaded.courses=false;await loadCourses();}}
+
+// ══════════════════════════════════════════════
+//  DEVOIRS & QUIZ
+// ══════════════════════════════════════════════
+async function loadAssignments(){
+  if(!loaded.courses)await loadCourses();
+  const d=await api('/teacher/assignments');
+  if(!d?.success)return;
+  loaded.assignments=true;
+  const list=d.assignments;
+  const tg=list.reduce((s,a)=>s+parseInt(a.to_grade||0),0);
+  document.getElementById('as-sub').textContent=`${list.length} devoir${list.length!=1?'s':''} · ${tg} à corriger`;
+  const el=document.getElementById('as-list'),empty=document.getElementById('as-empty');
+  if(!list.length){el.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  el.innerHTML=list.map(a=>{
+    const due=a.due_date?new Date(a.due_date):null;
+    const urgent=due&&due<new Date()&&a.status==='pending';
+    const pct=a.total_students>0?Math.round((a.submissions_count/a.total_students)*100):0;
+    const dueStr=due?due.toLocaleDateString('fr-FR',{day:'numeric',month:'long'}):'Pas de date limite';
+    const ng=parseInt(a.to_grade||0);
+    return`<div class="card" style="padding:18px${urgent?';border-left:4px solid #dc2626':''}">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-bottom:10px">
+        <div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+            ${urgent?'<span class="bdg" style="background:#fef2f2;color:#dc2626">⚠️ URGENT</span>':''}
+            <span class="bdg" style="background:${a.is_quiz?'#faf5ff':'#f3f4f6'};color:${a.is_quiz?'#7c3aed':'#6b7280'}">${a.is_quiz?'🧠 Quiz':'📄 Devoir'}</span>
+            <span class="bdg" style="background:#f3f4f6;color:#6b7280">${a.course_title}</span>
+            ${a.class_name?`<span class="bdg" style="background:#fff7ed;color:#ea580c">${a.class_name}</span>`:''}
+          </div>
+          <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111">${a.title}</h3>
+          <p style="font-size:.72rem;color:#9ca3af;margin-top:2px">Limite : ${dueStr}</p>
+          ${a.instructions?`<p style="font-size:.75rem;color:#6b7280;margin-top:3px;font-style:italic">${a.instructions}</p>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0"><p style="font-family:Manrope;font-weight:900;font-size:1.4rem;color:${ng>0?'#d97706':'#16a34a'}">${a.submissions_count}/${a.total_students||'?'}</p><p style="font-size:.7rem;color:#9ca3af;font-weight:600">rendus</p></div>
+      </div>
+      <div class="pbar" style="margin-bottom:12px"><div class="pfill" style="width:${pct}%"></div></div>
+      ${a.file_url?`<a href="${a.file_url}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:700;color:#ea580c;text-decoration:none;margin-bottom:10px"><span class="ms" style="font-size:14px">download</span>Voir l'énoncé</a><br>`:''}
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="deleteAssign('${a.id}')" class="btn bd bsm">Supprimer</button>
+        <button onclick="viewSubs('${a.id}','${esc(a.title)}',${a.total_students||0})" class="btn bp bsm">Voir copies${ng>0?' · '+ng+' à corriger':''}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openAssignCreate(mode){
+  assignMode=mode;quizCount=0;
+  document.getElementById('as-ttl').value='';document.getElementById('as-due').value='';document.getElementById('as-inst').value='';document.getElementById('as-file').value='';document.getElementById('as-file-label').textContent='Choisir un PDF';document.getElementById('quiz-qs').innerHTML='';
+  switchAsTab(mode);
+  // Charger les cours si pas encore fait
+  if(!loaded.courses) await loadCourses();
+  syncSel('as-course',COURSES,'id','title','Sélectionnez un cours...',c=>`${c.title}${c.filiere?' ('+c.filiere+')':''}`);
+  showM('m-assign');
+}
+
+function switchAsTab(mode){
+  assignMode=mode;
+  document.getElementById('devoir-section').style.display=mode==='devoir'?'block':'none';
+  document.getElementById('quiz-section').style.display=mode==='quiz'?'block':'none';
+  document.getElementById('tab-devoir').classList.toggle('on',mode==='devoir');
+  document.getElementById('tab-quiz').classList.toggle('on',mode==='quiz');
+  document.getElementById('m-as-title').textContent=mode==='quiz'?'Nouveau quiz':'Nouveau devoir';
+  document.getElementById('as-btn').textContent=mode==='quiz'?'Créer le quiz':'Créer le devoir';
+}
+
+function addQuizQ(){
+  const i=++quizCount;
+  const div=document.createElement('div');
+  div.style.cssText='background:#f9fafb;border:1px solid #f0f0f0;border-radius:12px;padding:14px;margin-bottom:10px';
+  div.id=`qb-${i}`;
+  div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><p style="font-size:.8rem;font-weight:700;color:#374151">Question ${i}</p><button onclick="document.getElementById('qb-${i}').remove()" style="border:none;background:none;cursor:pointer;color:#d1d5db" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#d1d5db'"><span class="ms" style="font-size:15px">delete</span></button></div>
+    <input type="text" placeholder="Texte de la question..." class="fld" id="qq-${i}" style="margin-bottom:10px"/>
+    <div style="display:flex;flex-direction:column;gap:7px">${[1,2,3,4].map(n=>`<div style="display:flex;align-items:center;gap:8px"><input type="radio" name="correct-${i}" value="${n}" id="r-${i}-${n}" style="accent-color:#ea580c;flex-shrink:0"/><input type="text" placeholder="Option ${n}" class="fld" id="opt-${i}-${n}" style="flex:1"/></div>`).join('')}</div>`;
+  document.getElementById('quiz-qs').appendChild(div);
+}
+
+async function submitAssign(){
+  const title=document.getElementById('as-ttl').value.trim();
+  const courseId=document.getElementById('as-course').value;
+  const due=document.getElementById('as-due').value;
+  const inst=document.getElementById('as-inst').value.trim();
+  if(!title||!courseId){toast('Titre et cours obligatoires.','err');return;}
+  const btn=document.getElementById('as-btn');btn.disabled=true;btn.textContent='Enregistrement...';
+  let file_url=null,quiz_data=null;
+  if(assignMode==='devoir'){
+    const file=document.getElementById('as-file').files[0];
+    if(file)file_url=await uploadCloudinary(file,null,null,null);
+  } else {
+    const qs=[];
+    document.querySelectorAll('[id^="qb-"]').forEach(block=>{
+      const idx=block.id.split('-')[1];
+      const q=document.getElementById(`qq-${idx}`)?.value.trim();
+      if(!q)return;
+      const opts=[];let correct=0;
+      for(let n=1;n<=4;n++){const v=document.getElementById(`opt-${idx}-${n}`)?.value.trim();if(v)opts.push(v);if(document.getElementById(`r-${idx}-${n}`)?.checked)correct=opts.length-1;}
+      if(opts.length>=2)qs.push({question:q,options:opts,correct:Math.max(0,correct)});
+    });
+    if(!qs.length){toast('Ajoutez au moins une question avec 2 options.','err');btn.disabled=false;btn.textContent='Créer le quiz';return;}
+    quiz_data=JSON.stringify(qs);
+  }
+  const d=await api('/teacher/assignments',{method:'POST',body:JSON.stringify({title,course_id:courseId,due_date:due||null,instructions:inst,is_quiz:assignMode==='quiz',file_url,quiz_data})});
+  btn.disabled=false;btn.textContent=assignMode==='quiz'?'Créer le quiz':'Créer le devoir';
+  if(d?.success){
+    hideM('m-assign');
+    loaded.assignments=false;
+    await loadAssignments();
+    toast(`✅ "${title}" créé ! Les étudiants inscrits au cours peuvent le voir maintenant.`);
+  } else if(d) toast(d.message||'Erreur lors de la création.','err');
+}
+
+async function deleteAssign(id){if(!confirm('Supprimer ?'))return;const d=await api(`/teacher/assignments/${id}`,{method:'DELETE'});if(d?.success){loaded.assignments=false;await loadAssignments();}}
+
+async function viewSubs(assignId,title,total){
+  document.getElementById('subs-ttl').textContent=title;document.getElementById('subs-sub').textContent='Chargement...';document.getElementById('subs-list').innerHTML='<div class="sk" style="height:60px;border-radius:10px"></div>';
+  showM('m-subs');
+  const d=await api(`/teacher/assignments/${assignId}/submissions`);if(!d?.success)return;
+  const list=d.submissions;
+  document.getElementById('subs-sub').textContent=`${list.length} copie${list.length!=1?'s':''} sur ${total}`;
+  if(!list.length){document.getElementById('subs-list').innerHTML='<div style="text-align:center;padding:30px 0"><span class="ms" style="font-size:40px;color:#d1d5db">inbox</span><p style="color:#9ca3af;font-size:.875rem;margin-top:8px">Aucune copie rendue.</p></div>';return;}
+  document.getElementById('subs-list').innerHTML=list.map(s=>`<div style="background:#f9fafb;border-radius:12px;padding:14px" id="sub-${s.id}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><p style="font-size:.875rem;font-weight:600;color:#111">${s.student_name}</p><p style="font-size:.72rem;color:#9ca3af">${s.student_email} · ${ago(s.submitted_at)}</p>${s.file_url?`<a href="${s.file_url}" target="_blank" style="font-size:.72rem;font-weight:700;color:#ea580c;text-decoration:none">📎 Voir la copie</a>`:''}</div><span class="bdg" style="${s.grade!==null?'background:#f0fdf4;color:#166534;font-size:.8rem;font-weight:900':'background:#fff7ed;color:#ea580c'}">${s.grade!==null?s.grade+'/20':'À corriger'}</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="number" min="0" max="20" step="0.5" placeholder="/20" value="${s.grade??''}" id="g-${s.id}" class="fld" style="width:72px;text-align:center;padding:8px"/>
+      <input type="text" placeholder="Commentaire..." value="${s.feedback||''}" id="f-${s.id}" class="fld" style="flex:1;padding:8px"/>
+      <button onclick="gradeIt('${s.id}')" class="btn bp bsm" style="white-space:nowrap">${s.grade!==null?'Modifier':'Noter'}</button>
+    </div>
+  </div>`).join('');
+}
+
+async function gradeIt(subId){
+  const grade=parseFloat(document.getElementById(`g-${subId}`).value);
+  const feedback=document.getElementById(`f-${subId}`).value.trim();
+  if(isNaN(grade)||grade<0||grade>20){toast('Note entre 0 et 20.','err');return;}
+  const d=await api(`/teacher/submissions/${subId}/grade`,{method:'PUT',body:JSON.stringify({grade,feedback})});
+  if(d?.success){const b=document.querySelector(`#sub-${subId} .bdg`);if(b){b.style.background='#f0fdf4';b.style.color='#166534';b.style.fontSize='.8rem';b.style.fontWeight='900';b.textContent=grade+'/20';}const btn=document.querySelector(`#sub-${subId} button[onclick^="gradeIt"]`);if(btn)btn.textContent='Modifier';const cur=parseInt(document.getElementById('st-gr').textContent||'0');if(cur>0)document.getElementById('st-gr').textContent=cur-1;toast('Note enregistrée !');}
+  else if(d)toast(d.message||'Erreur.','err');
+}
+
+// ══════════════════════════════════════════════
+//  COMMUNAUTÉS
+// ══════════════════════════════════════════════
+async function loadCommunities(){
+  // Utiliser la route forum partagée (profs + étudiants voient les mêmes communautés de leur école)
+  const d=await api('/forum/communities');
+  if(!d?.success)return;
+  loaded.communities=true;
+  const el=document.getElementById('cm-list'),empty=document.getElementById('cm-empty');
+  if(!d.communities.length){el.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  el.innerHTML=d.communities.map(c=>{
+    const isMine = true; // Le prof peut gérer toutes les communautés de son école
+    return`<div class="card" style="padding:16px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0">
+          <div style="width:42px;height:42px;background:#fff7ed;color:#ea580c;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms">${c.icon||'forum'}</span></div>
+          <div style="min-width:0;flex:1">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">
+              <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#111">${c.name}</h3>
+              <span class="bdg" style="background:#f0fdf4;color:#166534">✓ Partagée avec vos étudiants</span>
+            </div>
+            <p style="font-size:.72rem;color:#9ca3af">${c.member_count} membre${c.member_count!=1?'s':''} · ${c.category||'Général'} · par ${c.teacher_name||'Professeur'}</p>
+            ${c.description?`<p style="font-size:.875rem;color:#6b7280;margin-top:4px">${c.description}</p>`:''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+          <a href="PageCommunaute.html?id=${c.id}" style="padding:7px 12px;background:#fff7ed;color:#ea580c;border-radius:8px;font-size:.75rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:4px">
+            <span class="ms" style="font-size:14px">open_in_new</span>Ouvrir
+          </a>
+          <button onclick="deleteComm('${c.id}')"
+            style="padding:7px 12px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px"
+            onmouseover="this.style.background='#dc2626';this.style.color='#fff'"
+            onmouseout="this.style.background='#fef2f2';this.style.color='#dc2626'">
+            <span class="ms" style="font-size:14px">delete</span>Supprimer
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function submitComm(){
+  const name=document.getElementById('cm-name').value.trim();
+  const desc=document.getElementById('cm-desc').value.trim();
+  const cat=document.getElementById('cm-cat').value.trim();
+  const icon=document.getElementById('cm-icon').value;
+  if(!name){toast('Le nom est obligatoire.','err');return;}
+  const btn=document.getElementById('cm-btn');btn.disabled=true;btn.textContent='Création...';
+  const d=await api('/teacher/communities',{method:'POST',body:JSON.stringify({name,description:desc,category:cat,icon})});
+  btn.disabled=false;btn.textContent='Créer la communauté';
+  if(d?.success){
+    hideM('m-comm');
+    ['cm-name','cm-desc','cm-cat'].forEach(id=>document.getElementById(id).value='');
+    loaded.communities=false;
+    await loadCommunities();
+    toast(`✅ Communauté "${name}" créée ! Vos étudiants peuvent la rejoindre depuis leur dashboard.`);
+  } else if(d) toast(d.message||'Erreur.','err');
+}
+
+async function deleteComm(id){
+  if(!confirm('Supprimer cette communauté ? Tous les posts seront perdus.'))return;
+  const d=await api(`/teacher/communities/${id}`,{method:'DELETE'});
+  if(d?.success){loaded.communities=false;await loadCommunities();toast('Communauté supprimée.');}
+  else if(d)toast(d.message||'Erreur.','err');
+}
+
+function updateCommPreview(){
+  document.getElementById('cm-prev-name').textContent=document.getElementById('cm-name').value||'Nom';
+  document.getElementById('cm-prev-desc').textContent=document.getElementById('cm-desc').value||'Description...';
+  document.getElementById('cm-prev-cat').textContent=(document.getElementById('cm-cat').value||'Catégorie')+' · 0 membre';
+  document.getElementById('cm-prev-icon').textContent=document.getElementById('cm-icon').value;
+}
+
+// ══════════════════════════════════════════════
+//  STATISTIQUES
+// ══════════════════════════════════════════════
+async function loadStats(){
+  const d=await api('/teacher/stats');if(!d?.success)return;
+  loaded.stats=true;
+  const el=document.getElementById('stats-content'),g=d.globalStats;
+  if(!d.avgByCourse.length){el.innerHTML=`<div class="card" style="text-align:center;padding:60px 20px"><span class="ms" style="font-size:48px;color:#d1d5db">analytics</span><p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune donnée disponible</p><p style="font-size:.875rem;color:#9ca3af;margin-top:4px">Créez des devoirs, corrigez des copies pour voir les stats ici.</p></div>`;return;}
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px">
+    <div class="card cHov" style="padding:18px;text-align:center"><p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#ea580c">${g.global_average||'—'}</p><p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;margin-top:4px;letter-spacing:.05em">Moy. globale /20</p></div>
+    <div class="card cHov" style="padding:18px;text-align:center"><p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#111">${g.total_submissions||0}</p><p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;margin-top:4px;letter-spacing:.05em">Copies reçues</p></div>
+    <div class="card cHov" style="padding:18px;text-align:center"><p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#16a34a">${g.graded||0}</p><p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;margin-top:4px;letter-spacing:.05em">Corrigées</p></div>
+    <div class="card cHov" style="padding:18px;text-align:center"><p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#d97706">${g.pending||0}</p><p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;margin-top:4px;letter-spacing:.05em">En attente</p></div>
+  </div>
+  <div class="card" style="padding:22px"><h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111;margin-bottom:18px">Moyenne par cours</h3><div style="display:flex;flex-direction:column;gap:16px">
+    ${d.avgByCourse.map(c=>{const avg=parseFloat(c.average)||0,pct=(avg/20)*100,col=avg>=14?'#22c55e':avg>=10?'#ea580c':'#ef4444',txt=avg>=14?'#16a34a':avg>=10?'#ea580c':'#dc2626';return`<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div><span style="font-size:.875rem;font-weight:600;color:#111">${c.title}</span><span style="font-size:.72rem;color:#9ca3af;margin-left:8px">${c.filiere||''}${c.class_name?' · '+c.class_name:''} · ${c.students} étud.</span></div><span style="font-family:Manrope;font-weight:900;font-size:.875rem;color:${txt};margin-left:12px;flex-shrink:0">${avg>0?avg+'/20':'—'}</span></div><div class="pbar"><div class="pfill" style="width:${pct}%;background:${col}"></div></div></div>`;}).join('')}
+  </div></div>`;
+}
+
+// ══════════════════════════════════════════════
+//  PROFIL — infos depuis l'inscription
+// ══════════════════════════════════════════════
+async function loadProfile(){
+  const d=await api('/teacher/profile');if(!d?.success)return;
+  loaded.profile=true;const u=d.user;
+  document.getElementById('p-first').value=u.first_name||'';
+  document.getElementById('p-last').value=u.last_name||'';
+  document.getElementById('p-email').value=u.email||'';
+  document.getElementById('p-phone').value=u.phone||'';
+  document.getElementById('p-school').value=u.school||'—';
+  document.getElementById('p-disc').value=u.discipline||'';
+  document.getElementById('p-filiere').value=u.filiere||'';
+  document.getElementById('p-bio').value=u.bio||'';
+  document.getElementById('p-since').value=new Date(u.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  const fullName=`${u.first_name} ${u.last_name}`;
+  document.getElementById('prof-display-name').textContent=fullName;
+  document.getElementById('prof-display-disc').textContent=u.discipline||'Discipline non définie';
+  document.getElementById('prof-display-school').textContent=`📍 ${u.school||'—'}${u.filiere?' · '+u.filiere:''}`;
+  document.getElementById('prof-av').src = getAvatarUrl(ME, 128);
+  if (!document.getElementById('avatar-file-input')) {
+    createAvatarWidget('prof-av-wrap', () => ME, API, () => TK(), (url) => {
+      if (ME) ME.avatar_url = url;
+      updateAllAvatars(ME);
+      toast('✅ Photo de profil mise à jour !');
+    });
+  }
+}
+
+async function saveProfile(){
+  const fn=document.getElementById('p-first').value.trim();const ln=document.getElementById('p-last').value.trim();
+  const disc=document.getElementById('p-disc').value;const fil=document.getElementById('p-filiere').value;
+  const bio=document.getElementById('p-bio').value.trim();const phone=document.getElementById('p-phone').value.trim();
+  if(!fn||!ln){toast('Prénom et nom obligatoires.','err');return;}
+  const d=await api('/teacher/profile',{method:'PUT',body:JSON.stringify({first_name:fn,last_name:ln,discipline:disc,filiere:fil,bio,phone})});
+  if(d?.success){
+    ME=d.user;updateSidebar();
+    const fullName=`${fn} ${ln}`;const hr=new Date().getHours();
+    document.getElementById('greet').textContent=`${hr<12?'Bonjour':hr<18?'Bon après-midi':'Bonsoir'}, ${fullName} ! 👋`;
+    document.getElementById('greet-sub').textContent=`${disc||'—'} · ${ME.school||''}`;
+    document.getElementById('prof-display-name').textContent=fullName;
+    document.getElementById('prof-display-disc').textContent=disc||'—';
+    document.getElementById('prof-display-school').textContent=`📍 ${ME.school||'—'}${fil?' · '+fil:''}`;
+    document.getElementById('prof-av').src = getAvatarUrl(ME, 128);
+  if (!document.getElementById('avatar-file-input')) {
+    createAvatarWidget('prof-av-wrap', () => ME, API, () => TK(), (url) => {
+      if (ME) ME.avatar_url = url;
+      updateAllAvatars(ME);
+      toast('✅ Photo de profil mise à jour !');
+    });
+  }
+    toast('Profil mis à jour !');
+  } else if(d)toast(d.message||'Erreur.','err');
+}
+
+// ══════════════════════════════════════════════
+//  CLOUDINARY
+// ══════════════════════════════════════════════
+async function uploadCloudinary(file, progId, txtId, wrapId) {
+  if (wrapId) document.getElementById(wrapId).style.display = 'block';
+  if (progId) document.getElementById(progId).style.width = '10%';
+  if (txtId)  document.getElementById(txtId).textContent = 'Préparation...';
+
+  // Vérifier si Upload.io est configuré avec de vraies clés
+  const hasRealKey = UPLOADIO_KEY && UPLOADIO_KEY !== 'your_uploadio_api_key'
+                     && UPLOADIO_KEY.startsWith('public_') && UPLOADIO_ACCOUNT_ID;
+
+  try {
+    if (hasRealKey) {
+      // Tenter Upload.io
+      if (txtId) document.getElementById(txtId).textContent = 'Upload vers le cloud...';
+      const r = await fetch(
+        `https://api.upload.io/v2/accounts/${UPLOADIO_ACCOUNT_ID}/uploads/binary`,
+        { method:'POST', headers:{ 'Authorization':`Bearer ${UPLOADIO_KEY}`, 'Content-Type': file.type || 'application/pdf' }, body: file }
+      );
+      if (r.ok) {
+        const d = await r.json();
+        if (progId) document.getElementById(progId).style.width = '100%';
+        if (txtId)  document.getElementById(txtId).textContent = 'Upload terminé !';
+        setTimeout(()=>{ if(wrapId) document.getElementById(wrapId).style.display='none'; }, 800);
+        return d.fileUrl;
+      }
+      // Upload.io a échoué → fallback base64
+      console.warn('Upload.io a retourné', r.status, '— fallback base64');
+    }
+
+    // ── Fallback : convertir en base64 ───────────────
+    if (txtId) document.getElementById(txtId).textContent = 'Conversion locale...';
+    if (progId) document.getElementById(progId).style.width = '60%';
+
+    // Vérifier la taille (max 5MB pour base64)
+    if (file.size > 5 * 1024 * 1024) {
+      toast('⚠️ Fichier trop grand (max 5MB sans Upload.io). Configurez vos clés Upload.io pour des fichiers plus grands.', 'err');
+      if (wrapId) document.getElementById(wrapId).style.display = 'none';
+      return null;
+    }
+
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('Lecture fichier échouée'));
+      reader.readAsDataURL(file);
+    });
+
+    if (progId) document.getElementById(progId).style.width = '100%';
+    if (txtId)  document.getElementById(txtId).textContent = 'Fichier prêt !';
+    setTimeout(()=>{ if(wrapId) document.getElementById(wrapId).style.display='none'; }, 800);
+    return base64;
+
+  } catch(e) {
+    console.error('Upload error:', e);
+    toast('Erreur upload: ' + e.message, 'err');
+    if (wrapId) document.getElementById(wrapId).style.display='none';
+    return null;
+  }
+}
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function syncSel(selId,list,valKey,labelKey,placeholder,labelFn){
+  const sel=document.getElementById(selId);if(!sel)return;const cur=sel.value;
+  sel.innerHTML=`<option value="">${placeholder}</option>`;
+  list.forEach(item=>sel.innerHTML+=`<option value="${item[valKey]}">${labelFn?labelFn(item):item[labelKey]}</option>`);
+  if(cur)sel.value=cur;
+}
+function onFileChange(inputId,labelId){const f=document.getElementById(inputId).files[0];if(f)document.getElementById(labelId).textContent=`${f.name} (${(f.size/1024/1024).toFixed(1)}MB)`;}
+function showM(id){document.getElementById(id).classList.add('open');}
+function hideM(id){document.getElementById(id).classList.remove('open');}
+function toggleNotif(){const d=document.getElementById('notif-drop');d.style.display=d.style.display==='none'?'block':'none';}
+function esc(s){return(s||'').replace(/'/g,"\\'");}
+function toast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.className=type==='ok'?'ok show':'err show';setTimeout(()=>el.classList.remove('show'),4000);}
+function ago(d){const diff=Date.now()-new Date(d).getTime(),m=Math.floor(diff/60000),h=Math.floor(diff/3600000),dd=Math.floor(diff/86400000);if(m<1)return"Instant";if(m<60)return`${m}min`;if(h<24)return`${h}h`;return`${dd}j`;}
+// ══════════════════════════════════════════════
+//  DEMANDES INTER-UNIVERSITÉS
+// ══════════════════════════════════════════════
+async function loadCrossRequests() {
+  const d = await api('/cross/pending');
+  const el    = document.getElementById('cross-list');
+  const empty = document.getElementById('cross-empty');
+  // Vider le skeleton dans tous les cas
+  el.innerHTML = '';
+  if (!d?.success) {
+    empty.style.display = 'block';
+    empty.innerHTML = `<span class="ms" style="font-size:48px;color:#d1d5db">swap_horiz</span>
+      <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune demande reçue</p>
+      <p style="font-size:.875rem;color:#9ca3af;margin-top:4px">Les étudiants d'autres universités pourront demander accès à vos cours ici.</p>`;
+    return;
+  }
+  if (!d.requests.length) { el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  const statusCfg = {
+    pending:  { bg:'#fff7ed', col:'#c2410c', txt:'En attente' },
+    approved: { bg:'#f0fdf4', col:'#166534', txt:'Acceptée ✓' },
+    rejected: { bg:'#fef2f2', col:'#dc2626', txt:'Refusée' },
+  };
+
+  el.innerHTML = d.requests.map(r => {
+    const cfg = statusCfg[r.status] || statusCfg.pending;
+    return `<div class="card" style="padding:16px 20px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span class="bdg" style="background:${cfg.bg};color:${cfg.col}">${cfg.txt}</span>
+            <span class="bdg" style="background:#e8f1f8;color:#004a77">Autre université</span>
+          </div>
+          <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#111;margin-bottom:4px">
+            ${r.student_name} — ${r.course_title}
+          </h3>
+          <p style="font-size:.75rem;color:#9ca3af">
+            ${r.student_school} · ${r.filiere||'—'} · ${r.student_email}
+          </p>
+          ${r.message ? `<p style="font-size:.8rem;color:#6b7280;margin-top:6px;background:#f9fafb;padding:8px 10px;border-radius:8px;border-left:3px solid #e5e7eb">"${r.message}"</p>` : ''}
+        </div>
+        ${r.status === 'pending' ? `
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button onclick="respondCross('${r.id}','rejected')" class="btn bd bsm">Refuser</button>
+          <button onclick="respondCross('${r.id}','approved')" class="btn bp bsm">Accepter</button>
+        </div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function respondCross(requestId, status) {
+  const d = await api(`/cross/request/${requestId}`, {
+    method: 'PUT',
+    body:   JSON.stringify({ status })
+  });
+  if (d?.success) {
+    loaded.crossrequests = false;
+    await loadCrossRequests();
+    toast(status === 'approved'
+      ? "✅ Accès accordé ! L'étudiant peut maintenant voir votre cours."
+      : "Demande refusée.");
+  } else toast(d?.message||'Erreur.','err');
+}
+
+function doLogout(){localStorage.clear();location.href='indexconnexion.html';}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#notif-drop')&&!e.target.closest('button[onclick="toggleNotif()"]'))document.getElementById('notif-drop').style.display='none';
+  if(!e.target.closest('#sidebar')&&!e.target.closest('button[onclick*="sidebar"]'))document.getElementById('sidebar').classList.add('-translate-x-full');
+});
+</script>
+</body>
+</html>

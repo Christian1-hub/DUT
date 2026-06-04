@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CamunoLearn — Plateforme E-learning d'Excellence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+<!-- ══ ROUTING AUTOMATIQUE ══════════════════════════════ -->
+<script>
+(function() {
+  var token = localStorage.getItem('camunolearn_token');
+  if (!token) return;
+  fetch('/api/auth/me', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d.success) return;
+      var routes = {
+        'etudiant':   'indexETUDIANT.html',
+        'enseignant': 'indexEnseignant.html',
+        'admin':      'indexADMIN.html',
+        'superadmin': 'indexSUPERADMIN.html'
+      };
+      if (routes[d.user.role]) location.replace(routes[d.user.role]);
+    }).catch(function() {});
+})();
+</script>
+
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "on-tertiary-fixed-variant": "#93000d",
+        "surface-container-lowest": "#ffffff",
+        "outline": "#6f7a6e",
+        "secondary-container": "#e2e0fc",
+        "on-tertiary-container": "#ffe6e4",
+        "on-error": "#ffffff",
+        "primary-fixed-dim": "#7fda91",
+        "secondary": "#5d5c74",
+        "primary": "#00602a",
+        "on-primary": "#ffffff",
+        "tertiary-container": "#cd2627",
+        "inverse-primary": "#7fda91",
+        "on-background": "#191c1e",
+        "on-secondary-fixed-variant": "#45455b",
+        "surface-container-low": "#f2f4f6",
+        "surface-tint": "#016d31",
+        "surface-container": "#eceef0",
+        "on-primary-container": "#aaffb7",
+        "surface-container-highest": "#e0e3e5",
+        "background": "#f8f9fb",
+        "on-secondary-container": "#63627a",
+        "secondary-fixed": "#e2e0fc",
+        "on-error-container": "#93000a",
+        "on-surface-variant": "#3f493f",
+        "tertiary": "#a90111",
+        "primary-fixed": "#9bf7ab",
+        "on-tertiary": "#ffffff",
+        "on-surface": "#191c1e",
+        "primary-container": "#1a7a3c",
+        "error": "#ba1a1a",
+        "inverse-on-surface": "#eff1f3",
+        "tertiary-fixed-dim": "#ffb4ac",
+        "surface-variant": "#e0e3e5",
+        "on-primary-fixed-variant": "#005323",
+        "on-secondary": "#ffffff",
+        "surface-dim": "#d8dadc",
+        "tertiary-fixed": "#ffdad6",
+        "inverse-surface": "#2d3133",
+        "surface-container-high": "#e6e8ea",
+        "error-container": "#ffdad6",
+        "secondary-fixed-dim": "#c6c4df",
+        "outline-variant": "#becabc",
+        "on-secondary-fixed": "#1a1a2e",
+        "on-tertiary-fixed": "#410002",
+        "surface-bright": "#f8f9fb",
+        "surface": "#f8f9fb",
+        "on-primary-fixed": "#00210a"
+      },
+      borderRadius: { "DEFAULT":"0.25rem","lg":"1rem","xl":"1.5rem","full":"9999px" },
+      fontFamily: { "headline":["Manrope","sans-serif"],"body":["Inter","sans-serif"],"label":["Inter","sans-serif"] }
+    }
+  }
+}
+</script>
+<style>
+body{font-family:'Inter',sans-serif;background-color:#f8f9fb;color:#191c1e}
+.font-headline{font-family:'Manrope',sans-serif}
+.material-symbols-outlined{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;user-select:none;line-height:1;vertical-align:middle}
+.hero-gradient{background:linear-gradient(135deg,#00602a 0%,#1a7a3c 100%)}
+.ambient-shadow{box-shadow:0 8px 32px rgba(25,28,30,.06)}
+.feature-card{opacity:0;transform:translateY(30px);transition:all .6s ease-out}
+.feature-card.show{opacity:1;transform:translateY(0)}
+.fade-up{opacity:0;transform:translateY(28px);transition:opacity .65s cubic-bezier(.22,1,.36,1),transform .65s cubic-bezier(.22,1,.36,1)}
+.fade-up.show{opacity:1;transform:translateY(0)}
+.star{position:absolute;background:#fff;border-radius:50%;opacity:0;animation:twinkle 3s ease-in-out infinite,floatStar 8s linear infinite;pointer-events:none}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.8;transform:scale(1)}}
+@keyframes floatStar{0%{transform:translateY(0) translateX(0)}100%{transform:translateY(-20px) translateX(10px)}}
+.star-shooting{position:absolute;width:2px;height:2px;background:#fff;box-shadow:0 0 6px 2px rgba(255,255,255,.6);border-radius:50%;opacity:0;animation:shootingStar 4s linear infinite;pointer-events:none}
+@keyframes shootingStar{0%{opacity:0;transform:translateX(0) translateY(0)}10%{opacity:1}20%{opacity:1;transform:translateX(-80px) translateY(40px)}100%{opacity:0;transform:translateX(-200px) translateY(100px)}}
+@keyframes scroll-left{0%{transform:translateX(0%)}100%{transform:translateX(-50%)}}
+.animate-scroll-right{animation:scroll-left 40s linear infinite}
+</style>
+</head>
+<body class="antialiased">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 h-20 flex justify-between items-center px-6 md:px-12 z-50">
+  <div class="flex items-center gap-2">
+    <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings:'FILL' 1">school</span>
+    <span class="text-2xl font-extrabold tracking-tight text-primary font-headline"><span class="text-on-surface">Camuno</span>Learn</span>
+  </div>
+  <form class="hidden md:flex items-center bg-surface-container-low px-4 py-2 rounded-full w-64 lg:w-80 border border-transparent focus-within:border-primary transition-all">
+    <span class="material-symbols-outlined text-outline mr-2 text-sm">search</span>
+    <input class="bg-transparent border-none focus:ring-0 text-sm w-full font-body outline-none" placeholder="Rechercher un cours..." type="text"/>
+  </form>
+  <div class="flex items-center gap-4">
+    <button id="langToggle" class="flex items-center gap-1 px-3 py-2 rounded-full bg-surface-container-low hover:bg-surface-container-highest transition-colors text-sm font-medium text-on-surface">
+      <span class="material-symbols-outlined text-base">language</span>
+      <span id="langLabel">FR</span>
+    </button>
+    <a href="indexconnexion.html" class="px-5 py-2 text-primary font-semibold hover:opacity-90 transition-opacity font-body text-sm inline-flex items-center gap-2">
+      <span class="material-symbols-outlined md:hidden">login</span>
+      <span class="hidden md:inline" data-i18n="login">Se connecter</span>
+    </a>
+    <a href="#section-prix" class="hidden md:inline-flex items-center gap-1.5 px-4 py-2 text-primary font-semibold hover:bg-primary/10 rounded-full transition-colors font-body text-sm" onclick="document.getElementById('section-prix').scrollIntoView({behavior:'smooth'});return false">
+      <span class="material-symbols-outlined text-sm">sell</span>
+      Tarifs
+    </a>
+    <a href="indexInscription.html" class="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-full font-semibold hover:opacity-90 transition-opacity font-body text-sm">
+      <span class="material-symbols-outlined md:hidden">person_add</span>
+      <span class="hidden md:inline" data-i18n="signup">S'inscrire</span>
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="pt-32 pb-20 hero-gradient relative overflow-hidden">
+  <div class="max-w-7xl mx-auto px-8 grid md:grid-cols-2 gap-12 items-center relative z-10">
+    <div class="space-y-8">
+      <div class="space-y-4">
+        <h1 class="text-5xl md:text-6xl font-headline font-extrabold text-white leading-tight tracking-tight fade-up" data-i18n="hero_title">
+          Apprenez,<br/>Progressez,<br/>Réussissez.
+        </h1>
+        <p class="text-white/80 text-lg md:text-xl font-body max-w-lg leading-relaxed fade-up" data-i18n="hero_subtitle">
+          La plateforme e-learning des universités camerounaises. Accédez à des centaines de cours, devoirs et ressources en ligne.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-4 fade-up">
+        <a href="indexInscription.html" class="inline-block px-8 py-4 bg-white text-primary rounded-full font-bold text-lg hover:bg-surface-container-low transition-colors ambient-shadow" data-i18n="hero_cta_primary">Commencer Maintenant</a>
+        <a href="indexconnexion.html" class="px-8 py-4 border-2 border-white/40 text-white rounded-full font-bold text-lg hover:bg-white/10 transition-colors" data-i18n="hero_cta_secondary">Se connecter</a>
+      </div>
+      <div class="flex gap-8 pt-4 fade-up">
+        <div class="text-white"><p class="text-2xl font-bold font-headline">120+</p><p class="text-sm text-white/60 font-body" data-i18n="stat_courses_label">Cours</p></div>
+        <div class="text-white"><p class="text-2xl font-bold font-headline">5 000+</p><p class="text-sm text-white/60 font-body" data-i18n="stat_students_label">Étudiants</p></div>
+        <div class="text-white"><p class="text-2xl font-bold font-headline">140+</p><p class="text-sm text-white/60 font-body" data-i18n="stat_teachers_label">Professeurs</p></div>
+        <div class="text-white"><p class="text-2xl font-bold font-headline">10</p><p class="text-sm text-white/60 font-body">Universités</p></div>
+      </div>
+    </div>
+    <div class="relative hidden md:block">
+      <div class="bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/20 transform rotate-2">
+        <img id="heroImg" alt="Dashboard CamunoLearn" class="rounded-xl shadow-2xl w-full object-cover aspect-[4/3]" src="image.png"
+             onerror="this.parentElement.style.background='rgba(255,255,255,0.05)';this.parentElement.style.minHeight='300px';this.style.display='none'"/>
+      </div>
+      <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-lg ambient-shadow flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-primary">verified</span>
+        </div>
+        <div>
+          <p class="text-sm font-bold font-headline text-primary" data-i18n="badge_title">Certification Académique</p>
+          <p class="text-xs text-on-surface-variant font-body" data-i18n="badge_subtitle">Reconnu par l'État</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12 transform translate-x-1/2"></div>
+</section>
+
+<!-- FONCTIONNALITÉS -->
+<section class="py-24 bg-white">
+  <div class="max-w-7xl mx-auto px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl md:text-4xl font-headline font-bold text-on-surface mb-4 fade-up" data-i18n="features_title">Pourquoi choisir CamunoLearn ?</h2>
+      <div class="w-20 h-1.5 bg-primary-container mx-auto rounded-full fade-up"></div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div class="group p-8 rounded-xl hover:bg-surface-container-low transition-all duration-300">
+        <div class="feature-card">
+          <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+            <span class="material-symbols-outlined text-primary group-hover:text-white text-3xl">school</span>
+          </div>
+          <h3 class="text-xl font-bold font-headline mb-3 text-on-surface" data-i18n="feature1_title">Cours en ligne</h3>
+          <p class="text-on-surface-variant text-sm leading-relaxed font-body" data-i18n="feature1_desc">Des contenus pédagogiques structurés, validés par les meilleurs professeurs universitaires.</p>
+        </div>
+      </div>
+      <div class="group p-8 rounded-xl hover:bg-surface-container-low transition-all duration-300">
+        <div class="feature-card">
+          <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+            <span class="material-symbols-outlined text-primary group-hover:text-white text-3xl">quiz</span>
+          </div>
+          <h3 class="text-xl font-bold font-headline mb-3 text-on-surface" data-i18n="feature2_title">Devoirs &amp; Quiz</h3>
+          <p class="text-on-surface-variant text-sm leading-relaxed font-body" data-i18n="feature2_desc">Évaluez vos connaissances en temps réel avec des tests interactifs et des corrections détaillées.</p>
+        </div>
+      </div>
+      <div class="group p-8 rounded-xl hover:bg-surface-container-low transition-all duration-300">
+        <div class="feature-card">
+          <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+            <span class="material-symbols-outlined text-primary group-hover:text-white text-3xl">language</span>
+          </div>
+          <h3 class="text-xl font-bold font-headline mb-3 text-on-surface">Inter-Universités</h3>
+          <p class="text-on-surface-variant text-sm leading-relaxed font-body">Accédez aux cours d'autres universités camerounaises. Élargissez votre horizon académique sans frontières.</p>
+        </div>
+      </div>
+      <div class="group p-8 rounded-xl hover:bg-surface-container-low transition-all duration-300">
+        <div class="feature-card">
+          <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+            <span class="material-symbols-outlined text-primary group-hover:text-white text-3xl">groups</span>
+          </div>
+          <h3 class="text-xl font-bold font-headline mb-3 text-on-surface" data-i18n="feature4_title">Communauté</h3>
+          <p class="text-on-surface-variant text-sm leading-relaxed font-body" data-i18n="feature4_desc">Échangez avec d'autres étudiants et collaborez sur des projets d'étude passionnants.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COURS POPULAIRES -->
+<section class="py-24 bg-surface-container-low">
+  <div class="max-w-7xl mx-auto px-8">
+    <div class="flex justify-between items-end mb-12">
+      <div>
+        <h2 class="text-3xl md:text-4xl font-headline font-bold text-on-surface fade-up" data-i18n="courses_title">Cours Populaires</h2>
+        <p class="text-on-surface-variant mt-2 font-body fade-up" data-i18n="courses_subtitle">Découvrez les modules les plus suivis ce semestre.</p>
+      </div>
+      <a href="indexInscription.html" class="hidden md:block text-primary font-bold hover:underline font-body" data-i18n="courses_view_all">Tout voir →</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="bg-surface-container-lowest rounded-lg overflow-hidden ambient-shadow flex flex-col h-full">
+        <div class="relative h-48">
+          <img alt="Dev Web" class="w-full h-full object-cover" src="https://potentiel-humain.eu/wp-content/uploads/2020/09/programming.jpg"/>
+          <div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold font-body">L3 INFO</div>
+        </div>
+        <div class="p-6 flex-grow flex flex-col">
+          <div class="flex items-center gap-2 mb-3"><span class="material-symbols-outlined text-primary text-sm">person</span><span class="text-xs text-on-surface-variant font-medium font-body">Dr. Jean-Pierre N.</span></div>
+          <h3 class="text-xl font-bold font-headline mb-4 text-on-surface">Développement Web Avancé</h3>
+          <div class="mt-auto space-y-4">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs text-on-surface-variant font-body"><span>Progression</span><span>85%</span></div>
+              <div class="w-full h-2 bg-surface-container-highest rounded-full"><div class="bg-primary h-full rounded-full" style="width:85%"></div></div>
+            </div>
+            <a href="indexInscription.html" class="block w-full py-3 bg-surface-container-high text-on-surface rounded-full font-bold hover:bg-primary hover:text-white transition-all font-body text-center">Voir le cours</a>
+          </div>
+        </div>
+      </div>
+      <div class="bg-surface-container-lowest rounded-lg overflow-hidden ambient-shadow flex flex-col h-full">
+        <div class="relative h-48">
+          <img alt="GEII" class="w-full h-full object-cover" src="https://www.iut.unilim.fr/wp-content/uploads/sites/3/2021/03/GEII.jpg"/>
+          <div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold font-body">L2 GEII</div>
+        </div>
+        <div class="p-6 flex-grow flex flex-col">
+          <div class="flex items-center gap-2 mb-3"><span class="material-symbols-outlined text-primary text-sm">person</span><span class="text-xs text-on-surface-variant font-medium font-body">Pr. Marie Ebanda</span></div>
+          <h3 class="text-xl font-bold font-headline mb-4 text-on-surface">Automatisme Industriel</h3>
+          <div class="mt-auto space-y-4">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs text-on-surface-variant font-body"><span>Progression</span><span>40%</span></div>
+              <div class="w-full h-2 bg-surface-container-highest rounded-full"><div class="bg-primary h-full rounded-full" style="width:40%"></div></div>
+            </div>
+            <a href="indexInscription.html" class="block w-full py-3 bg-surface-container-high text-on-surface rounded-full font-bold hover:bg-primary hover:text-white transition-all font-body text-center">Voir le cours</a>
+          </div>
+        </div>
+      </div>
+      <div class="bg-surface-container-lowest rounded-lg overflow-hidden ambient-shadow flex flex-col h-full">
+        <div class="relative h-48">
+          <img alt="SQL" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKE7P16hhsLydcaEzkD-l8UyKpo9HaGN579X5LSdFSSI8vjbW5KL0R9UeIYqDmqY9U6mlmPBfFyR7at7HSDC0JXv2O3PdB7CwFKJRMoTxumUaKa4s7SE0Rf8PAVgf2wIoXB9IJCaLKxHS8DOSn9csNgdiUknkzldDaDFnKFbGMXX7WaT-rW7SSnLyg5MGZjsMCjR1NR4m907JK5qqEW78xLorTt5_NrUE59_tcTYPpAfFIvIWEeI-iNyRkQ0gL0pHOBxEpi6LA2Xf3"/>
+          <div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold font-body">L1 INFO</div>
+        </div>
+        <div class="p-6 flex-grow flex flex-col">
+          <div class="flex items-center gap-2 mb-3"><span class="material-symbols-outlined text-primary text-sm">person</span><span class="text-xs text-on-surface-variant font-medium font-body">Dr. Samuel Fouda</span></div>
+          <h3 class="text-xl font-bold font-headline mb-4 text-on-surface">Base de Données SQL</h3>
+          <div class="mt-auto space-y-4">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs text-on-surface-variant font-body"><span>Progression</span><span>15%</span></div>
+              <div class="w-full h-2 bg-surface-container-highest rounded-full"><div class="bg-primary h-full rounded-full" style="width:15%"></div></div>
+            </div>
+            <a href="indexInscription.html" class="block w-full py-3 bg-surface-container-high text-on-surface rounded-full font-bold hover:bg-primary hover:text-white transition-all font-body text-center">Voir le cours</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMMENT ÇA MARCHE -->
+<section class="py-24 bg-white">
+  <div class="max-w-7xl mx-auto px-8">
+    <div class="text-center mb-20">
+      <h2 class="text-3xl md:text-4xl font-headline font-bold text-on-surface mb-4 fade-up" data-i18n="how_title">Comment ça marche ?</h2>
+      <p class="text-on-surface-variant max-w-xl mx-auto font-body fade-up" data-i18n="how_subtitle">Trois étapes simples pour transformer votre avenir académique.</p>
+    </div>
+    <div class="relative flex flex-col md:flex-row justify-between items-center gap-12">
+      <div class="absolute top-8 left-0 w-full h-0.5 bg-surface-container-highest hidden md:block -z-10"></div>
+      <div class="flex flex-col items-center text-center max-w-xs fade-up">
+        <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center font-bold text-xl mb-6 ambient-shadow z-10">1</div>
+        <h3 class="font-headline font-bold text-xl mb-3" data-i18n="step1_title">Créez votre compte</h3>
+        <p class="text-on-surface-variant text-sm font-body" data-i18n="step1_desc">Inscrivez-vous gratuitement avec votre adresse étudiante ou personnelle.</p>
+      </div>
+      <div class="flex flex-col items-center text-center max-w-xs fade-up">
+        <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center font-bold text-xl mb-6 ambient-shadow z-10">2</div>
+        <h3 class="font-headline font-bold text-xl mb-3" data-i18n="step2_title">Rejoignez vos cours</h3>
+        <p class="text-on-surface-variant text-sm font-body" data-i18n="step2_desc">Inscrivez-vous aux modules de votre filière ou découvrez de nouveaux domaines.</p>
+      </div>
+      <div class="flex flex-col items-center text-center max-w-xs fade-up">
+        <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center font-bold text-xl mb-6 ambient-shadow z-10">3</div>
+        <h3 class="font-headline font-bold text-xl mb-3" data-i18n="step3_title">Apprenez &amp; progressez</h3>
+        <p class="text-on-surface-variant text-sm font-body" data-i18n="step3_desc">Suivez les cours à votre rythme et obtenez vos attestations de réussite.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TÉMOIGNAGES -->
+<section class="py-24 bg-surface-container-low overflow-hidden">
+  <div class="max-w-7xl mx-auto px-8 mb-12">
+    <div class="text-center">
+      <h2 class="text-3xl md:text-4xl font-headline font-bold text-on-surface mb-4 fade-up" data-i18n="testimonials_title">Ce que disent nos étudiants</h2>
+      <div class="w-20 h-1.5 bg-primary-container mx-auto rounded-full fade-up"></div>
+    </div>
+  </div>
+  <div class="relative flex overflow-x-hidden">
+    <div class="flex animate-scroll-right whitespace-nowrap gap-8 py-4 hover:[animation-play-state:paused]">
+      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
+        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">ET</div><div><h4 class="font-bold font-headline text-on-surface">Emma T.</h4><p class="text-xs text-primary font-body">L2 Droit · UdD</p></div></div>
+        <p class="text-on-surface-variant italic font-body text-sm">"Grâce à CamunoLearn, j'ai pu rattraper mes cours de droit constitutionnel même quand je ne pouvais pas me déplacer à l'amphi."</p>
+      </div>
+      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
+        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-600">MK</div><div><h4 class="font-bold font-headline text-on-surface">Marc K.</h4><p class="text-xs text-primary font-body">M1 Informatique · IUT</p></div></div>
+        <p class="text-on-surface-variant italic font-body text-sm">"Les quiz de préparation aux examens sont incroyablement proches des épreuves réelles. C'est l'outil indispensable."</p>
+      </div>
+      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
+        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-bold text-orange-600">AN</div><div><h4 class="font-bold font-headline text-on-surface">Aïcha N.</h4><p class="text-xs text-primary font-body">L3 Gestion · ESSEC</p></div></div>
+        <p class="text-on-surface-variant italic font-body text-sm">"La plateforme est fluide et les professeurs sont très réactifs dans les forums. Je recommande à 100%."</p>
+      </div>
+      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
+        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600">SD</div><div><h4 class="font-bold font-headline text-on-surface">Samuel D.</h4><p class="text-xs text-primary font-body">L1 GC · UCAC-ICAM</p></div></div>
+        <p class="text-on-surface-variant italic font-body text-sm">"Grâce aux cours inter-universités, j'accède aux cours de GI de l'IUT depuis l'UCAC. Révolutionnaire !"</p>
+      </div>
+      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
+        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center font-bold text-red-600">LB</div><div><h4 class="font-bold font-headline text-on-surface">Lucie B.</h4><p class="text-xs text-primary font-body">M2 Marketing · ESSEC</p></div></div>
+        <p class="text-on-surface-variant italic font-body text-sm">"La certification obtenue après le cours de Marketing Digital a été un vrai plus sur mon CV pour mon stage."</p>
+      </div>
+      <!-- Duplicate for infinite scroll -->
+      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
+        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">ET</div><div><h4 class="font-bold font-headline text-on-surface">Emma T.</h4><p class="text-xs text-primary font-body">L2 Droit · UdD</p></div></div>
+        <p class="text-on-surface-variant italic font-body text-sm">"Grâce à CamunoLearn, j'ai pu rattraper mes cours de droit constitutionnel même quand je ne pouvais pas me déplacer à l'amphi."</p>
+      </div>
+      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
+        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-600">MK</div><div><h4 class="font-bold font-headline text-on-surface">Marc K.</h4><p class="text-xs text-primary font-body">M1 Informatique · IUT</p></div></div>
+        <p class="text-on-surface-variant italic font-body text-sm">"Les quiz de préparation aux examens sont incroyablement proches des épreuves réelles. C'est l'outil indispensable."</p>
+      </div>
+      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
+        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-bold text-orange-600">AN</div><div><h4 class="font-bold font-headline text-on-surface">Aïcha N.</h4><p class="text-xs text-primary font-body">L3 Gestion · ESSEC</p></div></div>
+        <p class="text-on-surface-variant italic font-body text-sm">"La plateforme est fluide et les professeurs sont très réactifs dans les forums. Je recommande à 100%."</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- PRIX ══════════════════════════════════════════════════════ -->
+<section id="section-prix" class="py-24" style="background:linear-gradient(180deg,#f8f9fb 0%,#f0fdf4 40%,#f8f9fb 100%);position:relative;overflow:hidden">
+
+  <div style="position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:1000px;height:1000px;background:radial-gradient(circle,rgba(0,96,42,.05) 0%,transparent 65%);pointer-events:none"></div>
+
+  <div class="max-w-7xl mx-auto px-6 relative">
+
+    <!-- En-tête -->
+    <div class="text-center mb-14">
+      <div class="inline-flex items-center gap-2 bg-white border border-primary/20 text-primary px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-5 fade-up shadow-sm">
+        <span class="material-symbols-outlined text-sm">sell</span>Tarifs transparents
+      </div>
+      <h2 class="text-4xl md:text-5xl font-headline font-extrabold text-on-surface mb-4 fade-up leading-tight">
+        Le plan qui correspond<br/><span style="color:#00602a">exactement à vos besoins</span>
+      </h2>
+      <p class="text-on-surface-variant text-lg max-w-2xl mx-auto font-body fade-up leading-relaxed">
+        Des prix pensés pour chaque taille d'établissement. Commencez gratuitement, évoluez sans friction.
+      </p>
+      <!-- Toggle -->
+      <div class="flex items-center justify-center gap-3 mt-8 fade-up">
+        <span class="text-sm font-semibold" id="lbl-monthly" style="color:#00602a;font-weight:800">Mensuel</span>
+        <button onclick="togglePricing()" id="pricing-toggle"
+          style="width:52px;height:28px;border-radius:999px;background:#00602a;border:none;cursor:pointer;position:relative;transition:.3s">
+          <span id="toggle-dot" style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.3s"></span>
+        </button>
+        <span class="text-sm font-semibold text-on-surface-variant" id="lbl-yearly">Annuel</span>
+        <span id="save-badge" style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;display:none">Économisez 20% 🎉</span>
+      </div>
+    </div>
+
+    <!-- ═══ 5 PLANS ═══ -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:50px;align-items:start" class="plans-grid">
+
+      <!-- ── DÉCOUVERTE ── -->
+      <div class="fade-up" style="background:#fff;border:1.5px solid #e5e7eb;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.05)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.05)'">
+        <div style="padding:22px 20px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb">
+          <div style="font-size:1.6rem;margin-bottom:10px">🌱</div>
+          <p style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#9ca3af;margin-bottom:3px">Découverte</p>
+          <p style="font-size:.78rem;color:#6b7280;margin-bottom:16px;line-height:1.4">Tester la plateforme. Parfait pour un seul cours.</p>
+          <div style="display:flex;align-items:flex-end;gap:4px">
+            <span style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#111;line-height:1">0</span>
+            <span style="font-size:.75rem;color:#9ca3af;margin-bottom:5px">XAF</span>
+          </div>
+          <p style="font-size:.68rem;color:#9ca3af;margin-top:3px">Gratuit à vie</p>
+        </div>
+        <div style="padding:18px 20px">
+          <button onclick="openModalPricing('decouverte')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#f3f4f6;color:#374151;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s" onmouseover="this.style.background='#00602a';this.style.color='#fff'" onmouseout="this.style.background='#f3f4f6';this.style.color='#374151'">
+            <span class="material-symbols-outlined" style="font-size:16px">rocket_launch</span>Démarrer
+          </button>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>30 étudiants max</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>3 cours PDF</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Devoirs basiques</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>1 prof</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#9ca3af;opacity:.5"><span style="width:17px;height:17px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#9ca3af">close</span></span>Quiz auto</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#9ca3af;opacity:.5"><span style="width:17px;height:17px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#9ca3af">close</span></span>Communautés</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STARTER ── -->
+      <div class="fade-up" style="background:#fff;border:1.5px solid #e5e7eb;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.05)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.05)'">
+        <div style="padding:22px 20px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb">
+          <div style="font-size:1.6rem;margin-bottom:10px">🎓</div>
+          <p style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#9ca3af;margin-bottom:3px">Starter</p>
+          <p style="font-size:.78rem;color:#6b7280;margin-bottom:16px;line-height:1.4">Pour une filière complète avec plusieurs profs.</p>
+          <div style="display:flex;align-items:flex-end;gap:4px">
+            <span class="price-val" data-m="19900" data-y="15900" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#111;line-height:1">19 900</span>
+            <span style="font-size:.75rem;color:#9ca3af;margin-bottom:5px">XAF/mois</span>
+          </div>
+          <p class="price-note" data-m="facturé mensuellement" data-y="soit 190 800 XAF/an" style="font-size:.68rem;color:#9ca3af;margin-top:3px">facturé mensuellement</p>
+        </div>
+        <div style="padding:18px 20px">
+          <button onclick="openModalPricing('starter')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#00602a;color:#fff;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s" onmouseover="this.style.background='#004d22'" onmouseout="this.style.background='#00602a'">
+            <span class="material-symbols-outlined" style="font-size:16px">bolt</span>Choisir
+          </button>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>150 étudiants</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Cours PDF illimités</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>5 profs max</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Devoirs & corrections</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>1 communauté</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Support email</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#9ca3af;opacity:.5"><span style="width:17px;height:17px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#9ca3af">close</span></span>Inter-universités</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRO (POPULAIRE) ── -->
+      <div class="fade-up" style="background:linear-gradient(160deg,#00602a 0%,#1a7a3c 100%);border-radius:22px;overflow:hidden;box-shadow:0 20px 50px rgba(0,96,42,.4);transform:scale(1.05);position:relative;transition:.25s;z-index:2" onmouseover="this.style.transform='scale(1.05) translateY(-6px)'" onmouseout="this.style.transform='scale(1.05)'">
+        <div style="position:absolute;top:14px;right:14px;background:#f59e0b;color:#1c1c00;font-size:.62rem;font-weight:800;padding:4px 12px;border-radius:999px;z-index:1;letter-spacing:.04em">⭐ POPULAIRE</div>
+        <div style="padding:22px 20px 16px;background:rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.15)">
+          <div style="font-size:1.6rem;margin-bottom:10px">🏛️</div>
+          <p style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.55);margin-bottom:3px">Pro</p>
+          <p style="font-size:.78rem;color:rgba(255,255,255,.7);margin-bottom:16px;line-height:1.4">Un département entier avec toutes les features.</p>
+          <div style="display:flex;align-items:flex-end;gap:4px">
+            <span class="price-val" data-m="49000" data-y="39200" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#fff;line-height:1">49 000</span>
+            <span style="font-size:.75rem;color:rgba(255,255,255,.55);margin-bottom:5px">XAF/mois</span>
+          </div>
+          <p class="price-note" data-m="facturé mensuellement" data-y="soit 470 400 XAF/an 🎉" style="font-size:.68rem;color:rgba(255,255,255,.5);margin-top:3px">facturé mensuellement</p>
+        </div>
+        <div style="padding:18px 20px">
+          <button onclick="openModalPricing('pro')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#fff;color:#00602a;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='#fff'">
+            <span class="material-symbols-outlined" style="font-size:16px">bolt</span>Choisir ce plan
+          </button>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>500 étudiants</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>Profs illimités</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>Quiz auto-corrigés</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>Inter-universités</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>Communautés illimitées</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>Métriques avancées</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>WhatsApp prioritaire</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>Stockage 20 GB</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── UNIVERSITÉ ── -->
+      <div class="fade-up" style="background:#fff;border:1.5px solid #e5e7eb;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.05)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.05)'">
+        <div style="padding:22px 20px 16px;background:linear-gradient(135deg,#0d1f12,#1a3326);border-bottom:1px solid #1e3a28">
+          <div style="font-size:1.6rem;margin-bottom:10px">🏫</div>
+          <p style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#4ade80;margin-bottom:3px">Université</p>
+          <p style="font-size:.78rem;color:#6b7280;margin-bottom:16px;line-height:1.4">L'établissement entier. Toutes filières, tous niveaux.</p>
+          <div style="display:flex;align-items:flex-end;gap:4px">
+            <span class="price-val" data-m="120000" data-y="96000" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#fff;line-height:1">120 000</span>
+            <span style="font-size:.75rem;color:#6b7280;margin-bottom:5px">XAF/mois</span>
+          </div>
+          <p class="price-note" data-m="facturé mensuellement" data-y="soit 1 152 000 XAF/an" style="font-size:.68rem;color:#6b7280;margin-top:3px">facturé mensuellement</p>
+        </div>
+        <div style="padding:18px 20px">
+          <button onclick="openModalPricing('universite')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#00602a;color:#fff;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s" onmouseover="this.style.background='#004d22'" onmouseout="this.style.background='#00602a'">
+            <span class="material-symbols-outlined" style="font-size:16px">domain</span>Choisir
+          </button>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Étudiants illimités</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Tout le plan Pro</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Admin université</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Rapports direction</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Stockage 100 GB</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Formation équipe</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Attestations numériques</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RÉSEAU NATIONAL ── -->
+      <div class="fade-up" style="background:linear-gradient(160deg,#1c1c2e,#2d1b69);border:1.5px solid #4c1d95;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(76,29,149,.2)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 20px 50px rgba(76,29,149,.35)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(76,29,149,.2)'">
+        <div style="padding:22px 20px 16px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(139,92,246,.3)">
+          <div style="font-size:1.6rem;margin-bottom:10px">🌐</div>
+          <p style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#a78bfa;margin-bottom:3px">Réseau National</p>
+          <p style="font-size:.78rem;color:#6b7280;margin-bottom:16px;line-height:1.4">Plusieurs universités. Ministère. Déploiement national.</p>
+          <div style="display:flex;align-items:flex-end;gap:4px">
+            <span class="price-val" data-m="350000" data-y="280000" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#fff;line-height:1">350 000</span>
+            <span style="font-size:.75rem;color:#6b7280;margin-bottom:5px">XAF/mois</span>
+          </div>
+          <p class="price-note" data-m="facturé mensuellement" data-y="soit 3 360 000 XAF/an" style="font-size:.68rem;color:#6b7280;margin-top:3px">facturé mensuellement</p>
+        </div>
+        <div style="padding:18px 20px">
+          <button onclick="openModalPricing('reseau')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <span class="material-symbols-outlined" style="font-size:16px">language</span>Nous contacter
+          </button>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Universités illimitées</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Super Admin central</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Hébergement dédié</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>SLA 99.9% garanti</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Stockage illimité</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Account manager dédié</div>
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Rapports ministériels</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- fin plans-grid -->
+
+    <!-- Bande paiements -->
+    <div class="fade-up" style="background:#fff;border:1.5px solid #e5e7eb;border-radius:18px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:32px;box-shadow:0 2px 12px rgba(0,0,0,.04)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="material-symbols-outlined" style="color:#00602a;font-size:20px">lock</span>
+        <span style="font-size:.85rem;font-weight:700;color:#374151">Paiements sécurisés</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:.72rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em">On accepte :</span>
+        <div style="background:#ffcc00;color:#000;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:800">📱 MTN MoMo</div>
+        <div style="background:#ff6600;color:#fff;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:800">🟠 Orange Money</div>
+        <div style="background:#1a56db;color:#fff;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:800">💳 Visa / MC</div>
+        <div style="background:#f3f4f6;color:#374151;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:700">🏦 Virement</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;color:#16a34a;font-size:.85rem;font-weight:700">
+        <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>Sans engagement
+      </div>
+    </div>
+
+    <!-- CTA détails -->
+    <div class="text-center fade-up">
+      <a href="indexPrix.html" style="display:inline-flex;align-items:center;gap:8px;color:#00602a;font-weight:700;font-size:.9rem;text-decoration:none;padding:11px 24px;border:2px solid #00602a;border-radius:12px;transition:.2s" onmouseover="this.style.background='#00602a';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='#00602a'">
+        <span class="material-symbols-outlined" style="font-size:17px">open_in_new</span>Comparer tous les plans en détail & FAQ
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="py-16">
+  <div class="max-w-7xl mx-auto px-8">
+    <div class="hero-gradient rounded-3xl p-12 md:p-20 text-center relative overflow-hidden">
+      <div class="absolute inset-0 overflow-hidden pointer-events-none" id="starContainer"></div>
+      <div class="relative z-10">
+        <h2 class="text-3xl md:text-5xl font-headline font-extrabold text-white mb-8 fade-up" data-i18n="cta_title">Prêt à rejoindre CamunoLearn ?</h2>
+        <div class="flex flex-wrap justify-center gap-4 fade-up">
+          <a href="indexInscription.html" class="inline-block px-14 py-5 bg-white text-primary rounded-full font-bold text-lg hover:opacity-90 hover:scale-105 transition-all font-body shadow-xl" data-i18n="cta_button">S'inscrire dès maintenant</a>
+          <a href="indexconnexion.html" class="inline-block px-10 py-5 border-2 border-white/40 text-white rounded-full font-bold text-lg hover:bg-white/10 transition-all font-body">Se connecter</a>
+        </div>
+      </div>
+      <div class="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+      <div class="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="w-full py-16 px-12 grid grid-cols-1 md:grid-cols-4 gap-12 bg-[#0F5C2E]">
+  <div>
+    <span class="text-xl font-bold text-white font-headline mb-6 block">CamunoLearn</span>
+    <p class="text-slate-300 text-sm font-body leading-relaxed max-w-xs" data-i18n="footer_description">L'excellence académique à portée de clic. La première plateforme d'apprentissage collaborative au Cameroun.</p>
+  </div>
+  <div>
+    <h4 class="font-headline font-semibold text-white mb-6">Plateforme</h4>
+    <ul class="space-y-4">
+      <li><a class="text-slate-300 hover:text-white transition-colors font-body text-sm" href="indexInscription.html">S'inscrire</a></li>
+      <li><a class="text-slate-300 hover:text-white transition-colors font-body text-sm" href="indexconnexion.html">Se connecter</a></li>
+      <li><a class="text-slate-300 hover:text-white transition-colors font-body text-sm" href="#">Tous les cours</a></li>
+      <li><a class="text-slate-300 hover:text-white transition-colors font-body text-sm" href="indexPrix.html">Tarifs & Plans</a></li>
+    </ul>
+  </div>
+  <div>
+    <h4 class="font-headline font-semibold text-white mb-6">Universités</h4>
+    <ul class="space-y-4">
+      <li><span class="text-slate-300 text-sm font-body">IUT de Douala</span></li>
+      <li><span class="text-slate-300 text-sm font-body">ENSET de Douala</span></li>
+      <li><span class="text-slate-300 text-sm font-body">UCAC - ICAM</span></li>
+      <li><span class="text-slate-300 text-sm font-body">ESSEC Douala</span></li>
+      <li><span class="text-slate-300 text-sm font-body">Université de Yaoundé I</span></li>
+    </ul>
+  </div>
+  <div>
+    <h4 class="font-headline font-semibold text-white mb-6">Contact</h4>
+    <ul class="space-y-4">
+      <li class="text-slate-300 text-sm font-body">Douala, Cameroun</li>
+      <li class="text-slate-300 text-sm font-body">contact@camunolearn.cm</li>
+      <li class="text-slate-300 text-sm font-body">+237 691 929 394</li>
+    </ul>
+  </div>
+  <div class="col-span-1 md:col-span-4 pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
+    <p class="text-slate-300 text-sm font-body">
+  © 2026 <span id="sa-logo" style="cursor:default;user-select:none" title="">CamunoLearn</span> — Tous droits réservés
+</p>
+<script>
+let _c=0,_t;
+document.getElementById('sa-logo').addEventListener('click',function(){
+  _c++; clearTimeout(_t);
+  if(_c>=5){_c=0;location.href='indexconnexion.html';}
+  else _t=setTimeout(()=>{_c=0;},2000);
+});
+</script>
+    <div class="flex gap-6">
+      <a class="text-slate-300 hover:text-white font-body text-xs" href="#">Confidentialité</a>
+      <a class="text-slate-300 hover:text-white font-body text-xs" href="#">Conditions</a>
+      <a class="text-slate-300 hover:text-white font-body text-xs" href="#">Cookies</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── Traductions FR/EN ────────────────────────────────────
+const translations = {
+  fr: {
+    login:"Se connecter",signup:"S'inscrire",
+    hero_title:"Apprenez,<br/>Progressez,<br/>Réussissez.",
+    hero_subtitle:"La plateforme e-learning des universités camerounaises.",
+    hero_cta_primary:"Commencer Maintenant",hero_cta_secondary:"Se connecter",
+    stat_courses_label:"Cours",stat_students_label:"Étudiants",stat_teachers_label:"Professeurs",
+    badge_title:"Certification Académique",badge_subtitle:"Reconnu par l'État",
+    features_title:"Pourquoi choisir CamunoLearn ?",
+    feature1_title:"Cours en ligne",feature1_desc:"Contenus pédagogiques structurés, validés par les meilleurs professeurs universitaires.",
+    feature2_title:"Devoirs & Quiz",feature2_desc:"Évaluez vos connaissances avec des tests interactifs et des corrections détaillées.",
+    feature4_title:"Communauté",feature4_desc:"Échangez avec d'autres étudiants et collaborez sur des projets passionnants.",
+    courses_title:"Cours Populaires",courses_subtitle:"Découvrez les modules les plus suivis ce semestre.",courses_view_all:"Tout voir →",
+    how_title:"Comment ça marche ?",how_subtitle:"Trois étapes simples pour transformer votre avenir académique.",
+    step1_title:"Créez votre compte",step1_desc:"Inscrivez-vous gratuitement avec votre adresse étudiante ou personnelle.",
+    step2_title:"Rejoignez vos cours",step2_desc:"Inscrivez-vous aux modules de votre filière ou découvrez de nouveaux domaines.",
+    step3_title:"Apprenez & progressez",step3_desc:"Suivez les cours à votre rythme et obtenez vos attestations de réussite.",
+    testimonials_title:"Ce que disent nos étudiants",
+    cta_title:"Prêt à rejoindre CamunoLearn ?",cta_button:"S'inscrire dès maintenant",
+    footer_description:"L'excellence académique à portée de clic."
+  },
+  en: {
+    login:"Log in",signup:"Sign up",
+    hero_title:"Learn,<br/>Grow,<br/>Succeed.",
+    hero_subtitle:"The e-learning platform for Cameroonian universities.",
+    hero_cta_primary:"Start Now",hero_cta_secondary:"Log in",
+    stat_courses_label:"Courses",stat_students_label:"Students",stat_teachers_label:"Teachers",
+    badge_title:"Academic Certification",badge_subtitle:"State-recognized",
+    features_title:"Why choose CamunoLearn?",
+    feature1_title:"Online Courses",feature1_desc:"Structured educational content validated by top university professors.",
+    feature2_title:"Assignments & Quizzes",feature2_desc:"Evaluate your knowledge with interactive tests and detailed feedback.",
+    feature4_title:"Community",feature4_desc:"Connect with students and collaborate on exciting study projects.",
+    courses_title:"Popular Courses",courses_subtitle:"Discover the most followed modules this semester.",courses_view_all:"View all →",
+    how_title:"How it works?",how_subtitle:"Three simple steps to transform your academic future.",
+    step1_title:"Create your account",step1_desc:"Sign up for free with your student or personal email.",
+    step2_title:"Join your courses",step2_desc:"Enroll in your faculty modules or explore new fields.",
+    step3_title:"Learn & progress",step3_desc:"Study at your pace and earn certificates of achievement.",
+    testimonials_title:"What our students say",
+    cta_title:"Ready to join CamunoLearn?",cta_button:"Sign up now",
+    footer_description:"Academic excellence at your fingertips."
+  }
+};
+
+let currentLang = 'fr';
+
+function updateLanguage(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.getElementById('langLabel').textContent = lang.toUpperCase();
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if (translations[lang][key]) el.innerHTML = translations[lang][key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n-placeholder');
+    if (translations[lang][key]) el.placeholder = translations[lang][key];
+  });
+}
+
+document.getElementById('langToggle').addEventListener('click', function() {
+  updateLanguage(currentLang === 'fr' ? 'en' : 'fr');
+});
+
+// ── Étoiles animées ──────────────────────────────────────
+function generateStars() {
+  var c = document.getElementById('starContainer');
+  if (!c) return;
+  for (var i = 0; i < 60; i++) {
+    var s = document.createElement('div');
+    s.className = 'star';
+    var size = Math.random() * 3 + 1;
+    s.style.cssText = 'width:'+size+'px;height:'+size+'px;left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;animation-delay:'+Math.random()*5+'s;animation-duration:'+(Math.random()*3+2)+'s';
+    c.appendChild(s);
+  }
+  for (var j = 0; j < 8; j++) {
+    var sh = document.createElement('div');
+    sh.className = 'star-shooting';
+    sh.style.cssText = 'left:'+(Math.random()*80+10)+'%;top:'+Math.random()*70+'%;animation-delay:'+Math.random()*8+'s;animation-duration:'+(Math.random()*3+2)+'s';
+    c.appendChild(sh);
+  }
+}
+
+// ── Toggle prix mensuel/annuel ───────────────────────────────
+let pricingYearly = false;
+function togglePricing() {
+  pricingYearly = !pricingYearly;
+  const dot   = document.getElementById('toggle-dot');
+  const badge = document.getElementById('save-badge');
+  const lblM  = document.getElementById('lbl-monthly');
+  const lblY  = document.getElementById('lbl-yearly');
+  const mode  = pricingYearly ? 'y' : 'm';
+
+  dot.style.transform  = pricingYearly ? 'translateX(24px)' : 'translateX(0)';
+  badge.style.display  = pricingYearly ? 'inline-flex' : 'none';
+  lblY.style.color     = pricingYearly ? '#00602a' : '#9ca3af';
+  lblY.style.fontWeight= pricingYearly ? '800' : '600';
+  lblM.style.color     = pricingYearly ? '#9ca3af' : '#00602a';
+  lblM.style.fontWeight= pricingYearly ? '600' : '800';
+
+  // Mettre à jour tous les prix dynamiquement via data attributes
+  document.querySelectorAll('.price-val').forEach(el => {
+    const raw = parseInt(el.dataset[mode]);
+    el.textContent = raw.toLocaleString('fr-FR');
+  });
+  document.querySelectorAll('.price-note').forEach(el => {
+    el.textContent = el.dataset[mode];
+  });
+}
+
+// Responsive plans grid
+function fixPlansGrid() {
+  const grid = document.querySelector('.plans-grid');
+  if (!grid) return;
+  if (window.innerWidth < 640) {
+    grid.style.gridTemplateColumns = '1fr';
+  } else if (window.innerWidth < 1024) {
+    grid.style.gridTemplateColumns = 'repeat(2,1fr)';
+  } else {
+    grid.style.gridTemplateColumns = 'repeat(5,1fr)';
+  }
+}
+window.addEventListener('resize', fixPlansGrid);
+fixPlansGrid();
+
+// ── Animations au scroll ──────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  updateLanguage('fr');
+  generateStars();
+
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e, i) {
+      if (e.isIntersecting) { setTimeout(function() { e.target.classList.add('show'); }, i * 150); obs.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.feature-card').forEach(function(el) { obs.observe(el); });
+
+  var fObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e, i) {
+      if (e.isIntersecting) { setTimeout(function() { e.target.classList.add('show'); }, i * 120); fObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.fade-up').forEach(function(el) { fObs.observe(el); });
+
+  // Hero immédiat
+  document.querySelectorAll('.hero-gradient .fade-up').forEach(function(el, i) {
+    setTimeout(function() { el.classList.add('show'); }, 200 + i * 180);
+  });
+});
+</script>
+
+<!-- MODAL CONTACT COMMERCIAL ─────────────────────────────── -->
+<div id="modal-pricing" style="position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px"
+     onclick="if(event.target===this)closeModalPricing()">
+  <div style="background:#fff;border-radius:24px;width:100%;max-width:480px;box-shadow:0 32px 80px rgba(0,0,0,.2);overflow:hidden;animation:pricingPop .25s ease both">
+    <div style="background:linear-gradient(135deg,#00602a,#1a7a3c);padding:28px 32px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <p id="modal-plan-name" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-bottom:4px">Plan sélectionné</p>
+          <h3 id="modal-plan-title" style="font-family:Manrope;font-weight:900;font-size:1.4rem;color:#fff;margin:0">Université Pro</h3>
+          <p id="modal-plan-price" style="font-size:.9rem;color:rgba(255,255,255,.7);margin:4px 0 0">49 000 XAF/mois</p>
+        </div>
+        <button onclick="closeModalPricing()" style="border:none;background:rgba(255,255,255,.15);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+    </div>
+    <div style="padding:28px 32px">
+      <p style="font-size:.875rem;color:#6b7280;margin-bottom:20px">Notre équipe vous contacte sous 24h pour démarrer votre essai gratuit.</p>
+      <div id="modal-success" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;text-align:center;margin-bottom:16px">
+        <p style="font-weight:700;color:#166534;font-size:1rem;margin:0 0 4px">✅ Parfait !</p>
+        <p style="font-size:.85rem;color:#16a34a;margin:0">Notre équipe vous contacte dans les 24h sur WhatsApp ou par email.</p>
+      </div>
+      <div id="modal-form">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:5px">Votre nom *</label>
+            <input id="lead-name" type="text" placeholder="Prénom et nom" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:.875rem;color:#111;outline:none;transition:border .15s" onfocus="this.style.borderColor='#00602a'" onblur="this.style.borderColor='#e5e7eb'"/>
+          </div>
+          <div>
+            <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:5px">Email *</label>
+            <input id="lead-email" type="email" placeholder="vous@universite.cm" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:.875rem;color:#111;outline:none;transition:border .15s" onfocus="this.style.borderColor='#00602a'" onblur="this.style.borderColor='#e5e7eb'"/>
+          </div>
+          <div>
+            <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:5px">Établissement</label>
+            <input id="lead-school" type="text" placeholder="Nom de votre université" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:.875rem;color:#111;outline:none;transition:border .15s" onfocus="this.style.borderColor='#00602a'" onblur="this.style.borderColor='#e5e7eb'"/>
+          </div>
+          <div>
+            <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:5px">Message (optionnel)</label>
+            <textarea id="lead-msg" placeholder="Nombre d'étudiants, questions particulières..." rows="3" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:.875rem;color:#111;outline:none;resize:none;transition:border .15s;font-family:inherit" onfocus="this.style.borderColor='#00602a'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+          </div>
+          <button onclick="submitPricingLead()" id="lead-btn" style="width:100%;padding:13px;background:#00602a;color:#fff;border:none;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s">
+            <span class="material-symbols-outlined" style="font-size:18px">send</span>
+            Être contacté par l'équipe
+          </button>
+          <p style="text-align:center;font-size:.75rem;color:#9ca3af">✅ Essai gratuit 30 jours &nbsp;·&nbsp; ✅ Sans carte bancaire</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes pricingPop{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@media(max-width:900px){.plans-grid{grid-template-columns:1fr !important}}
+</style>
+
+<script>
+// ── Modal pricing ─────────────────────────────────────────────
+const PLAN_INFO = {
+  decouverte: { name:'Découverte',       title:'Plan Découverte',       price:'Gratuit à vie' },
+  starter:    { name:'Starter',          title:'Plan Starter',          price:'19 900 XAF / mois' },
+  pro:        { name:'Université Pro ⭐', title:'Plan Université Pro',   price:'49 000 XAF / mois' },
+  universite: { name:'Université',       title:'Plan Université',       price:'120 000 XAF / mois' },
+  reseau:     { name:'Réseau National',  title:'Plan Réseau National',  price:'350 000 XAF / mois' },
+};
+
+function openModalPricing(plan) {
+  const info = PLAN_INFO[plan] || PLAN_INFO.pro;
+  document.getElementById('modal-plan-name').textContent  = 'Plan sélectionné';
+  document.getElementById('modal-plan-title').textContent = info.title;
+  document.getElementById('modal-plan-price').textContent = info.price;
+  document.getElementById('modal-pricing').dataset.plan   = plan;
+  document.getElementById('modal-success').style.display  = 'none';
+  document.getElementById('modal-form').style.display     = 'block';
+  document.getElementById('modal-pricing').style.display  = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModalPricing() {
+  document.getElementById('modal-pricing').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+async function submitPricingLead() {
+  const name  = document.getElementById('lead-name').value.trim();
+  const email = document.getElementById('lead-email').value.trim();
+  const school = document.getElementById('lead-school').value.trim();
+  const msg   = document.getElementById('lead-msg').value.trim();
+  const plan  = document.getElementById('modal-pricing').dataset.plan;
+  const btn   = document.getElementById('lead-btn');
+
+  if (!name || !email) { alert('Veuillez remplir votre nom et email.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;animation:spin 1s linear infinite">autorenew</span> Envoi...';
+
+  try {
+    const r = await fetch('/api/auth/pricing-interest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, plan, school, message: name + (msg ? ' — ' + msg : '') })
+    });
+    const d = await r.json();
+    if (d.success) {
+      document.getElementById('modal-success').style.display = 'block';
+      document.getElementById('modal-form').style.display    = 'none';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Être contacté par l'équipe';
+      alert(d.message || 'Erreur. Réessayez.');
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Être contacté par l'équipe';
+    alert('Serveur inaccessible. Contactez-nous sur WhatsApp : +237 691 929 394');
+  }
+}
+</script>
+</body>
+</html>

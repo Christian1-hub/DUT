@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Politique des Cookies | CamunoLearn</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00602a",
+                        "on-surface": "#191c1e",
+                        "on-surface-variant": "#3f493f",
+                        "background": "#f8f9fb",
+                        "surface": "#ffffff",
+                        "tertiary": "#a90111"
+                    },
+                    fontFamily: { "headline": ["Manrope"], "body": ["Inter"] }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .fade-up {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .fade-up.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen flex flex-col">
+    <header class="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 h-20 flex justify-between items-center px-6 md:px-12 z-50">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">school</span>
+            <span class="text-2xl font-extrabold tracking-tight text-primary font-headline"><span class="text-on-surface">Camuno</span>Learn</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="indexconnexion.html" class="px-5 py-2 text-primary font-semibold hover:opacity-90 font-body text-sm hidden md:inline-flex">Se connecter</a>
+            <a href="indexInscription.html" class="px-6 py-2 bg-primary text-white rounded-full font-semibold hover:opacity-90 font-body text-sm hidden md:inline-block">S'inscrire</a>
+            <button onclick="window.location.href='indexAccueilPLATEFORME.html'" class="text-slate-500 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">home</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow pt-32 pb-20 px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-primary/5 p-8 border-b border-gray-100">
+                    <h1 class="text-3xl md:text-4xl font-headline font-extrabold text-on-surface flex items-center gap-3 fade-up">
+                        <span class="material-symbols-outlined text-primary text-4xl">cookie</span>
+                        Politique des Cookies
+                    </h1>
+                    <p class="text-on-surface-variant mt-2 fade-up">Dernière mise à jour : 27 avril 2026</p>
+                </div>
+
+                <div class="p-8 space-y-8">
+                    <section class="fade-up">
+                        <h2 class="text-xl font-headline font-bold text-primary mb-3">🍪 Qu'est-ce qu'un cookie ?</h2>
+                        <p class="text-slate-600 leading-relaxed">Un cookie est un petit fichier texte déposé sur votre ordinateur, tablette ou smartphone lorsque vous visitez un site web. Il permet de stocker des informations relatives à votre navigation (pages consultées, préférences, etc.) afin d'améliorer votre expérience et de proposer des services adaptés.</p>
+                    </section>
+
+                    <section class="fade-up">
+                        <h2 class="text-xl font-headline font-bold text-primary mb-3">🔧 Cookies utilisés sur CamunoLearn</h2>
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-primary/30 pl-4 py-2 bg-gray-50 rounded-r-xl">
+                                <h3 class="font-bold">Cookies strictement nécessaires</h3>
+                                <p class="text-sm text-slate-500">Ils sont essentiels pour naviguer sur la plateforme et utiliser ses fonctionnalités de base (connexion, panier, accès aux cours). Sans ces cookies, certaines parties du site ne pourraient pas fonctionner.</p>
+                            </div>
+                            <div class="border-l-4 border-primary/30 pl-4 py-2 bg-gray-50 rounded-r-xl">
+                                <h3 class="font-bold">Cookies de performance et d'analyse</h3>
+                                <p class="text-sm text-slate-500">Ils nous aident à comprendre comment les visiteurs interagissent avec CamunoLearn (pages les plus visitées, temps de chargement, éventuelles erreurs). Ces données anonymes nous permettent d'améliorer continuellement nos services.</p>
+                            </div>
+                            <div class="border-l-4 border-primary/30 pl-4 py-2 bg-gray-50 rounded-r-xl">
+                                <h3 class="font-bold">Cookies fonctionnels</h3>
+                                <p class="text-sm text-slate-500">Ils mémorisent vos choix (langue, préférences d'affichage, progression dans les cours) pour vous offrir une expérience personnalisée lors de vos prochaines visites.</p>
+                            </div>
+                            <div class="border-l-4 border-primary/30 pl-4 py-2 bg-gray-50 rounded-r-xl">
+                                <h3 class="font-bold">Cookies tiers (réseaux sociaux, vidéos)</h3>
+                                <p class="text-sm text-slate-500">Certaines pages peuvent intégrer du contenu externe (partage sur les réseaux, vidéos YouTube). Ces tiers peuvent déposer leurs propres cookies. Nous n'avons pas de contrôle sur ces derniers.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="fade-up">
+                        <h2 class="text-xl font-headline font-bold text-primary mb-3">⏳ Durée de conservation</h2>
+                        <p class="text-slate-600 leading-relaxed">Les cookies déposés sur votre terminal ont une durée de vie maximale de 13 mois à compter de leur premier dépôt. Au-delà, ils sont automatiquement supprimés. Vous pouvez également les effacer à tout moment via les paramètres de votre navigateur.</p>
+                    </section>
+
+                    <section class="fade-up">
+                        <h2 class="text-xl font-headline font-bold text-primary mb-3">🛠️ Gérer vos préférences</h2>
+                        <p class="text-slate-600 leading-relaxed mb-4">Vous pouvez à tout moment modifier ou désactiver l'utilisation des cookies (à l'exception des cookies strictement nécessaires) en cliquant sur le bouton ci-dessous. Vous pouvez également paramétrer votre navigateur pour refuser tous les cookies ou être averti lors de leur dépôt.</p>
+                        <div class="flex flex-wrap gap-4">
+                            <button id="acceptCookiesBtn" class="px-6 py-2 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition">Accepter tous les cookies</button>
+                            <button id="refuseNonEssentialBtn" class="px-6 py-2 border border-primary text-primary rounded-full font-semibold hover:bg-primary/10 transition">Refuser les cookies non essentiels</button>
+                            <button id="showParamsBtn" class="px-6 py-2 border border-gray-300 text-slate-600 rounded-full font-semibold hover:bg-gray-50 transition">Paramétrer</button>
+                        </div>
+                        <div id="cookieParamsPanel" class="hidden mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-200">
+                            <h3 class="font-bold mb-3">Paramètres détaillés</h3>
+                            <label class="flex items-center gap-3 mb-2 cursor-pointer">
+                                <input type="checkbox" id="cookiesNecessary" checked disabled class="rounded text-primary">
+                                <span>Cookies nécessaires (obligatoires)</span>
+                            </label>
+                            <label class="flex items-center gap-3 mb-2 cursor-pointer">
+                                <input type="checkbox" id="cookiesAnalytics" class="rounded text-primary">
+                                <span>Cookies d'analyse de performance</span>
+                            </label>
+                            <label class="flex items-center gap-3 mb-2 cursor-pointer">
+                                <input type="checkbox" id="cookiesFunctional" class="rounded text-primary">
+                                <span>Cookies fonctionnels</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="cookiesThirdParty" class="rounded text-primary">
+                                <span>Cookies tiers (réseaux sociaux, vidéos)</span>
+                            </label>
+                            <button id="saveParamsBtn" class="mt-4 px-4 py-2 bg-primary text-white rounded-full text-sm font-bold">Enregistrer mes préférences</button>
+                        </div>
+                    </section>
+
+                    <section class="fade-up">
+                        <h2 class="text-xl font-headline font-bold text-primary mb-3">📚 Base légale</h2>
+                        <p class="text-slate-600 leading-relaxed">Conformément à la réglementation en vigueur (notamment la loi camerounaise sur la protection des données personnelles et le RGPD pour nos utilisateurs en Europe), nous recueillons votre consentement préalable pour le dépôt de cookies non essentiels. Vous pouvez retirer votre consentement à tout moment via ce bandeau ou les paramètres de votre navigateur.</p>
+                    </section>
+
+                    <section class="fade-up">
+                        <h2 class="text-xl font-headline font-bold text-primary mb-3">📞 Contact</h2>
+                        <p class="text-slate-600">Pour toute question relative à notre politique de cookies ou à la protection de vos données, vous pouvez nous écrire à :</p>
+                        <p class="mt-2 text-primary font-medium">dpo@camunolearn.cm</p>
+                        <p class="text-slate-500 text-sm mt-1">Ou par courrier : CamunoLearn - DPO, 123 avenue de l'Université, Douala, Cameroun</p>
+                    </section>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center text-sm text-slate-400">
+                <p>En continuant à utiliser CamunoLearn, vous acceptez notre <a href="#" class="text-primary hover:underline">Politique de confidentialité</a> et notre <a href="#" class="text-primary hover:underline">Utilisation des cookies</a>.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="w-full py-12 bg-[#0F5C2E] dark:bg-[#08331a]">
+        <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-slate-300 text-sm font-body">© 2026 CamunoLearn — Tous droits réservés</p>
+            <div class="flex gap-6">
+                <a href="indexCookies.html" class="text-slate-300 hover:text-white font-body text-xs">Cookies</a>
+                <a href="indexConfidentialité.html" class="text-slate-300 hover:text-white font-body text-xs">Confidentialité</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.fade-up').forEach((el, i) => {
+                setTimeout(() => el.classList.add('show'), 150 + i * 100);
+            });
+
+            loadCookiePreferences();
+
+            document.getElementById('acceptCookiesBtn').addEventListener('click', () => {
+                setAllCookies(true);
+                alert('Tous les cookies ont été acceptés. Vos préférences sont sauvegardées.');
+                updateCheckboxes(true);
+            });
+
+            document.getElementById('refuseNonEssentialBtn').addEventListener('click', () => {
+                setAllCookies(false);
+                alert('Les cookies non essentiels ont été refusés. Seuls les cookies nécessaires restent actifs.');
+                updateCheckboxes(false);
+            });
+
+            document.getElementById('showParamsBtn').addEventListener('click', () => {
+                const panel = document.getElementById('cookieParamsPanel');
+                panel.classList.toggle('hidden');
+            });
+
+            document.getElementById('saveParamsBtn').addEventListener('click', () => {
+                const analytics = document.getElementById('cookiesAnalytics').checked;
+                const functional = document.getElementById('cookiesFunctional').checked;
+                const thirdParty = document.getElementById('cookiesThirdParty').checked;
+                localStorage.setItem('cookie_analytics', analytics);
+                localStorage.setItem('cookie_functional', functional);
+                localStorage.setItem('cookie_thirdparty', thirdParty);
+                localStorage.setItem('cookie_consent_given', 'true');
+                alert('Vos préférences ont été enregistrées.');
+                document.getElementById('cookieParamsPanel').classList.add('hidden');
+            });
+        });
+
+        function setAllCookies(accept) {
+            localStorage.setItem('cookie_analytics', accept);
+            localStorage.setItem('cookie_functional', accept);
+            localStorage.setItem('cookie_thirdparty', accept);
+            localStorage.setItem('cookie_consent_given', 'true');
+        }
+
+        function updateCheckboxes(checked) {
+            document.getElementById('cookiesAnalytics').checked = checked;
+            document.getElementById('cookiesFunctional').checked = checked;
+            document.getElementById('cookiesThirdParty').checked = checked;
+        }
+
+        function loadCookiePreferences() {
+            const analytics = localStorage.getItem('cookie_analytics');
+            const functional = localStorage.getItem('cookie_functional');
+            const thirdparty = localStorage.getItem('cookie_thirdparty');
+            if (analytics !== null) document.getElementById('cookiesAnalytics').checked = analytics === 'true';
+            if (functional !== null) document.getElementById('cookiesFunctional').checked = functional === 'true';
+            if (thirdparty !== null) document.getElementById('cookiesThirdParty').checked = thirdparty === 'true';
+        }
+    </script>
+</body>
+</html>

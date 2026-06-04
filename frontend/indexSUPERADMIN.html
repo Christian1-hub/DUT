@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Super Admin | CamunoLearn</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#0f172a;color:#f8fafc;min-height:100vh}
+.ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;user-select:none;line-height:1;vertical-align:middle}
+/* SIDEBAR */
+#sidebar{position:fixed;left:0;top:0;width:210px;height:100vh;background:#0d1117;border-right:1px solid #1e293b;display:flex;flex-direction:column;padding:18px 12px;z-index:100;overflow-y:auto}
+.logo-wrap{display:flex;align-items:center;gap:8px;padding:0 6px;margin-bottom:20px}
+.logo-txt{font-family:Manrope;font-weight:900;font-size:1.05rem;color:#f59e0b}
+.logo-txt span{color:#f8fafc}
+.user-card{background:#1e293b;border-radius:12px;padding:12px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.user-av{width:36px;height:36px;border-radius:50%;background:#f59e0b;color:#000;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;flex-shrink:0}
+.user-name{font-weight:700;font-size:.85rem;color:#f8fafc}
+.user-role{font-size:.7rem;color:#64748b;margin-top:1px}
+.nb{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;border:none;font-size:.83rem;font-weight:600;color:#64748b;cursor:pointer;width:100%;text-align:left;background:transparent;transition:.12s;margin-bottom:2px}
+.nb:hover{background:#1e293b;color:#f8fafc}
+.nb.on{background:#f59e0b;color:#0d1117}
+.nb .ms{font-size:18px}
+.nb-sep{height:1px;background:#1e293b;margin:8px 0}
+.nb.red{color:#f87171}
+.nb.red:hover{background:#450a0a}
+/* MAIN */
+#main{margin-left:210px;min-height:100vh;padding:24px}
+/* TOPBAR */
+#topbar{height:52px;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between;padding:0 24px;margin:-24px -24px 24px;background:#0d1117}
+.pg-title{font-family:Manrope;font-weight:800;font-size:1rem}
+/* SECTIONS */
+.sec{display:none}
+.sec.on{display:block;animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* CARDS */
+.card{background:#1e293b;border:1px solid #334155;border-radius:14px}
+.card-pad{padding:20px}
+/* SKELETON */
+.sk{background:linear-gradient(90deg,#1e293b 25%,#334155 50%,#1e293b 75%);background-size:200% 100%;animation:sh 1.4s infinite;border-radius:10px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{padding:10px 14px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#475569;text-align:left;border-bottom:1px solid #334155;background:#0f172a}
+td{padding:11px 14px;border-bottom:1px solid #1e293b;font-size:.85rem;vertical-align:middle}
+tr:last-child td{border:none}
+tr:hover td{background:#1e293b55}
+/* BADGES */
+.bdg{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-weight:700;font-size:.82rem;cursor:pointer;border:none;font-family:inherit;transition:.15s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:#f59e0b;color:#000}
+.btn.primary:hover{background:#d97706}
+.btn.ghost{background:#1e293b;color:#94a3b8;border:1px solid #334155}
+.btn.ghost:hover{background:#334155;color:#f8fafc}
+.btn.danger{background:#450a0a;color:#f87171;border:1px solid #7f1d1d}
+.btn.danger:hover{background:#7f1d1d}
+.btn.sm{padding:5px 11px;font-size:.75rem}
+/* FORM */
+.fld{width:100%;background:#0f172a;border:1.5px solid #334155;border-radius:9px;padding:9px 13px;font-size:.875rem;color:#f8fafc;outline:none;font-family:inherit;transition:border .15s}
+.fld:focus{border-color:#f59e0b}
+.fld option{background:#0f172a}
+.lbl{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#475569;margin-bottom:5px}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal-box{background:#0d1117;border:1px solid #334155;border-radius:18px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,.4);animation:fadeUp .2s ease;max-height:90vh;overflow-y:auto}
+.modal-head{padding:20px 22px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.modal-foot{padding:0 22px 20px;display:flex;gap:10px}
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{padding:18px;display:flex;align-items:center;gap:14px}
+.stat-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-val{font-family:Manrope;font-weight:900;font-size:1.8rem;line-height:1}
+.stat-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;color:#475569;margin-top:3px}
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;z-index:999;padding:11px 18px;border-radius:10px;font-weight:600;font-size:.875rem;box-shadow:0 4px 16px rgba(0,0,0,.3);transform:translateY(60px);opacity:0;transition:.25s;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+#toast.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+/* INFO BANNER */
+.demo-note{background:#0c1f35;border:1px solid #1e3a5f;border-radius:10px;padding:9px 14px;font-size:.78rem;color:#38bdf8;display:flex;align-items:center;gap:7px;margin-bottom:14px}
+/* FILTERS */
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filter-btn{padding:5px 13px;border-radius:7px;font-size:.78rem;font-weight:700;cursor:pointer;border:1px solid #334155;background:#1e293b;color:#64748b;font-family:inherit;transition:.12s}
+.filter-btn.on{background:#f59e0b;color:#000;border-color:#f59e0b}
+/* STATUS */
+.status-active{background:#052e16;color:#4ade80}
+.status-inactive{background:#450a0a;color:#f87171}
+.status-trial{background:#1c1400;color:#f59e0b}
+.status-expired{background:#1e293b;color:#64748b}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<script>
+// ── API URL ──────────────────────────────────────────────────
+const API = (function() {
+  var h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
+  return '/api';
+})();
+const TK = () => localStorage.getItem('sa_token');
+let ME = null;
+let ALL_USERS = [], ALL_SCHOOLS = [], ALL_SUBS = [];
+let loaded = {};
+let curUserFilter = 'all', curSubFilter = 'all';
+let charts = {};
+
+const PLAN_PRICES  = {decouverte:0,starter:19900,pro:49000,universite:120000,reseau:350000};
+const PLAN_LABELS  = {decouverte:'Découverte',starter:'Starter',pro:'Pro',universite:'Université',reseau:'Réseau National'};
+const PLAN_EMOJIS  = {decouverte:'🌱',starter:'🎓',pro:'🏛️',universite:'🏫',reseau:'🌐'};
+const STATUS_CFG   = {
+  active:   {col:'#4ade80',bg:'#052e16',label:'Actif'},
+  trial:    {col:'#f59e0b',bg:'#1c1400',label:'Essai'},
+  expired:  {col:'#f87171',bg:'#450a0a',label:'Expiré'},
+  suspended:{col:'#94a3b8',bg:'#1e293b',label:'Suspendu'},
+};
+</script>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;padding:20px">
+  <div style="width:100%;max-width:380px">
+    <div style="text-align:center;margin-bottom:28px">
+      <span class="ms" style="font-size:48px;color:#f59e0b">shield_person</span>
+      <h1 style="font-family:Manrope;font-weight:900;font-size:1.6rem;color:#f8fafc;margin-top:8px"><span style="color:#f59e0b">Camuno</span>Learn</h1>
+      <p style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:#f59e0b;margin-top:4px">SUPER ADMIN</p>
+    </div>
+    <div style="background:#0d1117;border:1px solid #1e293b;border-radius:18px;padding:28px">
+      <div id="login-err" style="display:none;background:#450a0a;border:1px solid #7f1d1d;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.83rem;color:#fca5a5"></div>
+      <div style="margin-bottom:14px"><label class="lbl">EMAIL</label><input id="sa-email" type="email" class="fld" value="superadmin@camunolearn.cm" placeholder="email@exemple.cm"/></div>
+      <div style="margin-bottom:20px"><label class="lbl">MOT DE PASSE</label><input id="sa-pass" type="password" class="fld" placeholder="••••••••"/></div>
+      <button onclick="saLogin()" id="sa-btn" class="btn primary" style="width:100%;justify-content:center;padding:12px">
+        <span class="ms">login</span>Accéder
+      </button>
+      <a href="indexconnexion.html" style="display:block;text-align:center;margin-top:14px;font-size:.78rem;color:#475569;text-decoration:none">← Connexion normale</a>
+    </div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="logo-wrap">
+      <span class="ms" style="color:#f59e0b;font-size:22px">shield_person</span>
+      <span class="logo-txt"><span>Camuno</span>Learn</span>
+    </div>
+    <div class="user-card">
+      <div class="user-av" id="sa-av">SA</div>
+      <div>
+        <p class="user-name" id="sa-name">Super Admin</p>
+        <p class="user-role">Accès global plateforme</p>
+      </div>
+    </div>
+    <nav style="flex:1">
+      <button class="nb on" data-s="overview"   onclick="goTo('overview')"><span class="ms">analytics</span>Vue globale</button>
+      <button class="nb"    data-s="univs"       onclick="goTo('univs')"><span class="ms">account_balance</span>Universités</button>
+      <button class="nb"    data-s="users"       onclick="goTo('users')"><span class="ms">group</span>Utilisateurs</button>
+      <button class="nb"    data-s="communities" onclick="goTo('communities')"><span class="ms">forum</span>Communautés</button>
+      <button class="nb"    data-s="logs"        onclick="goTo('logs')"><span class="ms">history</span>Activité</button>
+      <button class="nb"    data-s="subs"        onclick="goTo('subs')"><span class="ms">credit_card</span>Abonnements</button>
+      <div class="nb-sep"></div>
+      <button class="nb"    data-s="createadmin" onclick="goTo('createadmin')"><span class="ms">person_add</span>Créer Admin</button>
+      <button class="nb"    data-s="createteacher" onclick="goTo('createteacher')"><span class="ms">school</span>Créer Prof</button>
+      <button class="nb"    data-s="createuniv"  onclick="goTo('createuniv')"><span class="ms">domain_add</span>Créer Université</button>
+    </nav>
+    <button class="nb red" onclick="saLogout()"><span class="ms">logout</span>Déconnexion</button>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <h2 class="pg-title" id="pg-title">Vue globale</h2>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input id="quick-search" type="text" placeholder="Recherche rapide..." class="fld" style="width:220px;padding:7px 12px;font-size:.82rem" onkeyup="if(event.key==='Enter')quickSearch()"/>
+        <span class="ms" style="color:#475569;cursor:pointer" onclick="quickSearch()">search</span>
+      </div>
+    </div>
+
+    <!-- ══ VUE GLOBALE ══ -->
+    <div id="sec-overview" class="sec on">
+      <div id="sk-overview">
+        <div class="stat-grid">
+          <div class="sk" style="height:90px;border-radius:14px"></div>
+          <div class="sk" style="height:90px;border-radius:14px"></div>
+          <div class="sk" style="height:90px;border-radius:14px"></div>
+          <div class="sk" style="height:90px;border-radius:14px"></div>
+        </div>
+        <div class="sk" style="height:300px;border-radius:14px;margin-bottom:16px"></div>
+      </div>
+      <div id="content-overview" style="display:none">
+        <div class="stat-grid" id="stats-grid"></div>
+        <div class="card card-pad" style="margin-bottom:16px">
+          <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;margin-bottom:16px">Universités</h3>
+          <div style="overflow-x:auto">
+            <table id="overview-table">
+              <thead><tr><th>École</th><th>Étudiants</th><th>Profs</th><th>Cours</th><th>Rendus</th><th>Statut</th><th>Actions</th></tr></thead>
+              <tbody id="overview-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ UNIVERSITÉS ══ -->
+    <div id="sec-univs" class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Universités</h1>
+          <p id="univs-count" style="font-size:.8rem;color:#64748b;margin-top:2px">Chargement...</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="deleteAllUnivs()" class="btn danger sm"><span class="ms">delete_sweep</span>Tout supprimer</button>
+          <button onclick="goTo('createuniv')" class="btn primary"><span class="ms">domain_add</span>Nouvelle université</button>
+        </div>
+      </div>
+      <div id="univs-content"><div class="sk" style="height:120px;border-radius:14px;margin-bottom:12px"></div><div class="sk" style="height:120px;border-radius:14px"></div></div>
+    </div>
+
+    <!-- ══ UTILISATEURS ══ -->
+    <div id="sec-users" class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Utilisateurs</h1>
+        <div style="display:flex;gap:8px">
+          <button onclick="deleteAllUsers()" class="btn danger sm"><span class="ms">delete_sweep</span>Tout supprimer</button>
+        </div>
+      </div>
+      <div class="filter-row" id="user-filters">
+        <button class="filter-btn on" onclick="filterUsers('all',this)">Tous</button>
+        <button class="filter-btn" onclick="filterUsers('etudiant',this)">Étudiants</button>
+        <button class="filter-btn" onclick="filterUsers('enseignant',this)">Profs</button>
+        <button class="filter-btn" onclick="filterUsers('admin',this)">Admins</button>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>École</th><th>Inscrit le</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="7" style="padding:20px"><div class="sk" style="height:36px;border-radius:8px"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ COMMUNAUTÉS ══ -->
+    <div id="sec-communities" class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Communautés</h1>
+        <button onclick="deleteAllComms()" class="btn danger sm"><span class="ms">delete_sweep</span>Tout supprimer</button>
+      </div>
+      <div id="comms-list"><div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:80px;border-radius:14px"></div></div>
+    </div>
+
+    <!-- ══ ACTIVITÉ ══ -->
+    <div id="sec-logs" class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Activité récente</h1>
+        <div style="display:flex;gap:8px">
+          <button onclick="reloadLogs()" class="btn ghost sm"><span class="ms">refresh</span>Actualiser</button>
+          <button onclick="clearLogs()" class="btn danger sm"><span class="ms">clear_all</span>Vider</button>
+        </div>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Type</th><th>Utilisateur</th><th>École</th><th>Détail</th><th>Date</th></tr></thead>
+            <tbody id="logs-tbody"><tr><td colspan="5" style="padding:20px"><div class="sk" style="height:36px;border-radius:8px"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ABONNEMENTS ══ -->
+    <div id="sec-subs" class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <div>
+          <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Abonnements</h1>
+          <p id="subs-revenue" style="font-size:.85rem;color:#f59e0b;margin-top:2px;font-weight:700"></p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="deleteExpiredSubs()" class="btn danger sm"><span class="ms">delete_sweep</span>Supprimer expirés</button>
+          <button onclick="openSubModal(null)" class="btn primary"><span class="ms">add_card</span>Nouvel abonnement</button>
+        </div>
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn on" onclick="filterSubs('all',this)">Tous</button>
+        <button class="filter-btn" onclick="filterSubs('active',this)">Actifs</button>
+        <button class="filter-btn" onclick="filterSubs('trial',this)">Essai</button>
+        <button class="filter-btn" onclick="filterSubs('expired',this)">Expirés</button>
+      </div>
+      <div id="subs-expiring" style="display:none;background:#450a0a;border:1px solid #7f1d1d;border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:.82rem;color:#f87171"></div>
+      <div class="card" style="overflow:hidden;margin-bottom:16px">
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Université</th><th>Plan</th><th>Montant</th><th>Facturation</th><th>Début</th><th>Expiration</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="subs-tbody"><tr><td colspan="8" style="padding:20px"><div class="sk" style="height:36px;border-radius:8px"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="subs-breakdown" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px"></div>
+    </div>
+
+    <!-- ══ CRÉER ADMIN ══ -->
+    <div id="sec-createadmin" class="sec">
+      <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem;margin-bottom:20px">Créer un Administrateur</h1>
+      <div class="card card-pad" style="max-width:540px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div><label class="lbl">Prénom *</label><input id="ca-first" type="text" class="fld" placeholder="Prénom"/></div>
+          <div><label class="lbl">Nom *</label><input id="ca-last" type="text" class="fld" placeholder="Nom"/></div>
+          <div><label class="lbl">Email *</label><input id="ca-email" type="email" class="fld" placeholder="admin@universite.cm"/></div>
+          <div><label class="lbl">Mot de passe *</label><input id="ca-pass" type="password" class="fld" placeholder="••••••••"/></div>
+          <div style="grid-column:1/-1"><label class="lbl">École *</label><input id="ca-school" type="text" class="fld" placeholder="Nom de l'université"/></div>
+        </div>
+        <button onclick="createAdmin()" class="btn primary"><span class="ms">person_add</span>Créer l'administrateur</button>
+      </div>
+    </div>
+
+    <!-- ══ CRÉER PROF ══ -->
+    <div id="sec-createteacher" class="sec">
+      <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem;margin-bottom:20px">Créer un Enseignant</h1>
+      <div class="card card-pad" style="max-width:540px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div><label class="lbl">Prénom *</label><input id="ct-first" type="text" class="fld" placeholder="Prénom"/></div>
+          <div><label class="lbl">Nom *</label><input id="ct-last" type="text" class="fld" placeholder="Nom"/></div>
+          <div><label class="lbl">Email *</label><input id="ct-email" type="email" class="fld" placeholder="prof@universite.cm"/></div>
+          <div><label class="lbl">Mot de passe *</label><input id="ct-pass" type="password" class="fld" placeholder="••••••••"/></div>
+          <div><label class="lbl">École *</label><input id="ct-school" type="text" class="fld" placeholder="Nom de l'université"/></div>
+          <div><label class="lbl">Discipline</label><input id="ct-disc" type="text" class="fld" placeholder="Ex: Informatique"/></div>
+        </div>
+        <button onclick="createTeacher()" class="btn primary"><span class="ms">school</span>Créer l'enseignant</button>
+      </div>
+    </div>
+
+    <!-- ══ CRÉER UNIVERSITÉ ══ -->
+    <div id="sec-createuniv" class="sec">
+      <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem;margin-bottom:20px">Créer une Université</h1>
+      <div class="card card-pad" style="max-width:540px">
+        <p style="font-size:.875rem;color:#64748b;margin-bottom:18px">Crée un compte administrateur pour une nouvelle université.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div style="grid-column:1/-1"><label class="lbl">Nom de l'université *</label><input id="cu-school" type="text" class="fld" placeholder="Ex: Université de Douala"/></div>
+          <div><label class="lbl">Prénom Admin *</label><input id="cu-first" type="text" class="fld" placeholder="Prénom"/></div>
+          <div><label class="lbl">Nom Admin *</label><input id="cu-last" type="text" class="fld" placeholder="Nom"/></div>
+          <div><label class="lbl">Email Admin *</label><input id="cu-email" type="email" class="fld" placeholder="admin@universite.cm"/></div>
+          <div><label class="lbl">Mot de passe *</label><input id="cu-pass" type="password" class="fld" placeholder="••••••••"/></div>
+        </div>
+        <button onclick="createUniversity()" class="btn primary"><span class="ms">domain_add</span>Créer l'université</button>
+      </div>
+    </div>
+
+  </div><!-- fin main -->
+</div><!-- fin app-screen -->
+
+<!-- MODAL ABONNEMENT -->
+<div class="modal-bg" id="sub-modal" onclick="if(event.target===this)closeSubModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1rem" id="sub-modal-title">Nouvel abonnement</h3>
+      <button onclick="closeSubModal()" class="btn ghost sm">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sub-edit-id"/>
+      <div><label class="lbl">Université *</label>
+        <select id="sub-school" class="fld"><option value="">Sélectionner...</option></select></div>
+      <div><label class="lbl">Plan *</label>
+        <select id="sub-plan" class="fld" onchange="calcSubAmount()">
+          <option value="decouverte">🌱 Découverte — Gratuit</option>
+          <option value="starter">🎓 Starter — 19 900 XAF/mois</option>
+          <option value="pro" selected>🏛️ Pro — 49 000 XAF/mois</option>
+          <option value="universite">🏫 Université — 120 000 XAF/mois</option>
+          <option value="reseau">🌐 Réseau — 350 000 XAF/mois</option>
+        </select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Facturation</label>
+          <select id="sub-billing" class="fld" onchange="calcSubAmount()">
+            <option value="monthly">Mensuelle</option>
+            <option value="yearly">Annuelle (-20%)</option>
+          </select></div>
+        <div><label class="lbl">Durée (mois)</label>
+          <input id="sub-months" type="number" min="1" max="24" value="1" class="fld" oninput="calcSubAmount()"/></div>
+      </div>
+      <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:12px 16px">
+        <p style="font-size:.7rem;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Montant total</p>
+        <p id="sub-amount-disp" style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#f59e0b">0 XAF</p>
+      </div>
+      <div><label class="lbl">Notes internes</label>
+        <textarea id="sub-notes" class="fld" rows="2" placeholder="Réf. paiement, remarques..." style="resize:none"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeSubModal()" class="btn ghost" style="flex:1">Annuler</button>
+      <button onclick="saveSub()" class="btn primary" style="flex:1"><span class="ms">save</span><span id="sub-btn-txt">Créer</span></button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+//  LOGIN
+// ════════════════════════════════════════════════
+async function saLogin() {
+  const email = document.getElementById('sa-email').value.trim();
+  const pass  = document.getElementById('sa-pass').value;
+  const errEl = document.getElementById('login-err');
+  const btn   = document.getElementById('sa-btn');
+  if (!email || !pass) { errEl.textContent='Remplissez tous les champs.'; errEl.style.display='block'; return; }
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite;display:block">autorenew</span>';
+  try {
+    const r = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password: pass})
+    });
+    const d = await r.json();
+    if (d.success && d.user.role === 'superadmin') {
+      localStorage.setItem('sa_token', d.token);
+      ME = d.user;
+      startApp();
+    } else if (d.success) {
+      errEl.innerHTML = '<b>Ce compte n\'a pas le r\u00f4le superadmin.</b><br/><span style="font-size:.75rem">Dans pgAdmin, ex\u00e9cutez :<br/><code style="background:#1e293b;padding:2px 8px;border-radius:4px;color:#4ade80">UPDATE users SET role=\'superadmin\' WHERE email=\'' + email + '\';</code></span>';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
+    } else {
+      errEl.textContent = d.message || 'Identifiants incorrects.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
+    }
+  } catch(e) {
+    errEl.textContent = 'Serveur inaccessible. Lancez: cd backend && node src/app.js';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
+  }
+}
+
+function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  const init = ME.first_name[0] + (ME.last_name[0] || '');
+  document.getElementById('sa-av').textContent   = init;
+  document.getElementById('sa-name').textContent = ME.first_name + ' ' + ME.last_name;
+  loadOverview();
+}
+
+function saLogout() {
+  localStorage.removeItem('sa_token');
+  location.reload();
+}
+
+// Auto-login si token présent
+window.addEventListener('DOMContentLoaded', async () => {
+  const t = TK();
+  if (!t) return;
+  try {
+    const r = await fetch(API + '/auth/me', {headers:{'Authorization':'Bearer '+t}});
+    const d = await r.json();
+    if (d.success && d.user.role === 'superadmin') {
+      ME = d.user;
+      startApp();
+    } else {
+      localStorage.removeItem('sa_token');
+    }
+  } catch(e) {}
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') saLogin();
+});
+
+// ════════════════════════════════════════════════
+//  API HELPER
+// ════════════════════════════════════════════════
+async function api(path, opts) {
+  opts = opts || {};
+  try {
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+TK(), ...(opts.headers||{})}
+    });
+    if (r.status === 401) { saLogout(); return null; }
+    return await r.json();
+  } catch(e) {
+    return null;
+  }
+}
+
+// ════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════
+const TITLES = {
+  overview:'Vue globale', univs:'Universités', users:'Utilisateurs',
+  communities:'Communautés', logs:'Activité', subs:'Abonnements',
+  createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
+};
+
+function goTo(s) {
+  document.querySelectorAll('.sec').forEach(x => x.classList.remove('on'));
+  document.getElementById('sec-'+s)?.classList.add('on');
+  document.querySelectorAll('.nb[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s===s));
+  document.getElementById('pg-title').textContent = TITLES[s] || '';
+  if (s==='overview'    && !loaded.overview)    loadOverview();
+  if (s==='univs'       && !loaded.univs)       loadUnivs();
+  if (s==='users'       && !loaded.users)       loadUsers();
+  if (s==='communities' && !loaded.communities) loadCommunities();
+  if (s==='logs'        && !loaded.logs)        loadLogs();
+  if (s==='subs'        && !loaded.subs)        loadSubs();
+}
+
+// ════════════════════════════════════════════════
+//  VUE GLOBALE
+// ════════════════════════════════════════════════
+async function loadOverview() {
+  loaded.overview = true;
+  const d = await api('/superadmin/stats');
+
+  document.getElementById('sk-overview').style.display = 'none';
+  document.getElementById('content-overview').style.display = 'block';
+
+  const g = d?.global || {};
+  const schools = d?.bySchool || [];
+  ALL_SCHOOLS = schools;
+
+  // Stats cards
+  // Stats avec données démo si vide
+  const demoG = {total:2154,students:1876,teachers:162,admins:9,courses:253,communities:28,submissions:5340,courses_month:18,submissions_week:340,inactive:23,new_week:47};
+  const gd = (g.total||0) > 0 ? g : demoG;
+
+  const stats = [
+    {icon:'group',        label:'Utilisateurs',      val:gd.total||0,           sub:(gd.new_week||0)+' cette semaine',  col:'#60a5fa'},
+    {icon:'person',       label:'Étudiants actifs',  val:gd.students||0,        sub:(gd.inactive||0)+' inactifs',       col:'#4ade80'},
+    {icon:'school',       label:'Enseignants',       val:gd.teachers||0,        sub:(gd.admins||0)+' admins',           col:'#f59e0b'},
+    {icon:'auto_stories', label:'Cours total',       val:gd.courses||0,         sub:(gd.courses_month||0)+' ce mois',   col:'#a78bfa'},
+    {icon:'assignment',   label:'Devoirs rendus',    val:gd.submissions||0,     sub:(gd.submissions_week||0)+' cette sem.', col:'#f87171'},
+    {icon:'forum',        label:'Communautés',       val:gd.communities||0,     sub:'Actives',                          col:'#34d399'},
+    {icon:'account_balance',label:'Universités',     val:schools.length||0,     sub:'Enregistrées',                    col:'#fb923c'},
+    {icon:'credit_card',  label:'Revenu mensuel',    val:'',                    sub:'Abonnements actifs',               col:'#c084fc', isRevenue:true},
+  ];
+
+  // Calculer revenu mensuel depuis les abonnements démo
+  const demoRevenue = 538900;
+
+  document.getElementById('stats-grid').innerHTML = stats.map(s => {
+    const val = s.isRevenue ? demoRevenue.toLocaleString('fr-FR')+' XAF' : (parseInt(s.val)||0).toLocaleString('fr-FR');
+    return '<div class="card stat-card" style="cursor:default">'
+      +'<div class="stat-icon" style="background:'+s.col+'20">'
+      +'<span class="ms" style="color:'+s.col+';font-size:20px">'+s.icon+'</span></div>'
+      +'<div style="min-width:0">'
+      +'<p class="stat-val" style="color:'+s.col+';font-size:1.5rem">'+val+'</p>'
+      +'<p class="stat-lbl">'+s.label+'</p>'
+      +'<p style="font-size:.65rem;color:#475569;margin-top:2px">'+s.sub+'</p>'
+      +'</div></div>';
+  }).join('');
+
+  // Mettre à jour la grille pour 4 colonnes sur 2 lignes
+  document.getElementById('stats-grid').style.gridTemplateColumns = 'repeat(4,1fr)';
+
+  // Données démo universités si BDD vide
+  const demoSchools = [
+    {school:'IUT de Douala',students:342,teachers:28,admins:2,courses:45,submissions:890,suspended:false},
+    {school:'Université de Yaoundé I',students:1240,teachers:89,admins:4,courses:120,submissions:3200,suspended:false},
+    {school:'ESSEC Douala',students:187,teachers:15,admins:1,courses:32,submissions:410,suspended:false},
+    {school:'ENSET de Douala',students:290,teachers:22,admins:2,courses:38,submissions:670,suspended:false},
+    {school:'UCAC - ICAM',students:95,teachers:8,admins:1,courses:18,submissions:180,suspended:true},
+  ];
+  const univList = schools.length ? schools : demoSchools;
+  ALL_SCHOOLS = univList;
+
+  // Tableau universités
+  const tbody = document.getElementById('overview-tbody');
+  tbody.innerHTML = '';
+  univList.forEach(function(s) {
+    const pct = s.students > 0 ? Math.min(100, Math.round((s.submissions / (s.students*3))*100)) : 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="font-weight:700;color:#f8fafc">'
+        +'<div>'+s.school+'</div>'
+        +'<div style="font-size:.72rem;color:#475569;margin-top:2px">'+(s.admins||0)+' admin'+(s.admins!==1?'s':'')+'</div>'
+      +'</td>'
+      +'<td><span class="bdg status-active">'+s.students+'</span></td>'
+      +'<td><span class="bdg" style="background:#16653420;color:#4ade80">'+s.teachers+'</span></td>'
+      +'<td><span class="bdg" style="background:#7c3aed20;color:#a78bfa">'+(s.courses||0)+'</span></td>'
+      +'<td>'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<div style="flex:1;height:5px;background:#1e293b;border-radius:99px;overflow:hidden">'
+        +'<div style="height:100%;width:'+pct+'%;background:#60a5fa;border-radius:99px"></div></div>'
+        +'<span style="font-size:.75rem;color:#64748b;white-space:nowrap">'+(s.submissions||0)+'</span>'
+        +'</div>'
+      +'</td>'
+      +'<td><span class="bdg '+(s.suspended?'status-inactive':'status-active')+'">'+(s.suspended?'⏸ Suspendue':'● Active')+'</span></td>'
+      +'<td><div style="display:flex;gap:5px"></div></td>';
+    const btns = tr.querySelector('div:last-child');
+    const bs = document.createElement('button');
+    bs.className='btn '+(s.suspended?'ghost':'danger')+' sm';
+    bs.textContent = s.suspended ? 'Réactiver' : 'Suspendre';
+    bs.onclick = function(){ suspendUniv(s.school, !s.suspended); };
+    btns.appendChild(bs);
+    tbody.appendChild(tr);
+  });
+}
+
+// ════════════════════════════════════════════════
+//  UNIVERSITÉS
+// ════════════════════════════════════════════════
+async function loadUnivs() {
+  loaded.univs = true;
+  const d = await api('/superadmin/universities');
+  const univs = (d && d.universities) ? d.universities : (ALL_SCHOOLS.length ? ALL_SCHOOLS : [
+    {school:'IUT de Douala',students:342,teachers:28,admins:2,courses:45,submissions:890,suspended:false},
+    {school:'Universite de Yaounde I',students:1240,teachers:89,admins:4,courses:120,submissions:3200,suspended:false},
+    {school:'ESSEC Douala',students:187,teachers:15,admins:1,courses:32,submissions:410,suspended:false},
+    {school:'ENSET de Douala',students:290,teachers:22,admins:2,courses:38,submissions:670,suspended:false},
+    {school:'UCAC - ICAM',students:95,teachers:8,admins:1,courses:18,submissions:180,suspended:true},
+  ]);
+
+  document.getElementById('univs-count').textContent =
+    univs.length + ' universite' + (univs.length !== 1 ? 's' : '');
+  ALL_SCHOOLS = univs;
+
+  var container = document.getElementById('univs-content');
+  container.innerHTML = '';
+
+  if (!univs.length) {
+    container.innerHTML = '<div class="card card-pad" style="text-align:center;color:#475569">Aucune universite.</div>';
+    return;
+  }
+
+  univs.forEach(function(u) {
+    var card = document.createElement('div');
+    card.className = 'card card-pad';
+    card.style.marginBottom = '12px';
+
+    var header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:14px';
+
+    var info = document.createElement('div');
+    info.innerHTML =
+      '<h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#f8fafc;margin-bottom:6px">' + u.school + '</h3>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+      + '<span class="bdg status-active">' + u.students + ' etudiants</span>'
+      + '<span class="bdg" style="background:#16653420;color:#4ade80">' + u.teachers + ' profs</span>'
+      + '<span class="bdg" style="background:#7c3aed20;color:#a78bfa">' + (u.courses || 0) + ' cours</span>'
+      + '<span class="bdg" style="background:#33415530;color:#94a3b8">' + (u.submissions || 0) + ' rendus</span>'
+      + '<span class="bdg ' + (u.suspended ? 'status-inactive' : 'status-active') + '">'
+      + (u.suspended ? 'Suspendue' : 'Active') + '</span>'
+      + '</div>';
+
+    var btnSuspend = document.createElement('button');
+    btnSuspend.className = 'btn ' + (u.suspended ? 'ghost' : 'danger') + ' sm';
+    btnSuspend.textContent = u.suspended ? 'Reactiver' : 'Suspendre';
+    btnSuspend.onclick = (function(school, isSuspended) {
+      return function() { suspendUniv(school, !isSuspended); };
+    })(u.school, u.suspended);
+
+    header.appendChild(info);
+    header.appendChild(btnSuspend);
+
+    var statsGrid = document.createElement('div');
+    statsGrid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:10px';
+
+    var statsData = [
+      {val: u.students,           label: 'Etudiants', color: '#60a5fa'},
+      {val: u.teachers,           label: 'Profs',     color: '#4ade80'},
+      {val: u.courses || 0,       label: 'Cours',     color: '#a78bfa'},
+      {val: u.submissions || 0,   label: 'Rendus',    color: '#f59e0b'},
+    ];
+
+    statsData.forEach(function(s) {
+      var box = document.createElement('div');
+      box.style.cssText = 'background:#0f172a;border-radius:10px;padding:12px;text-align:center';
+      box.innerHTML =
+        '<p style="font-family:Manrope;font-weight:900;font-size:1.4rem;color:' + s.color + '">' + s.val + '</p>'
+        + '<p style="font-size:.65rem;text-transform:uppercase;color:#475569;letter-spacing:.04em;margin-top:2px">' + s.label + '</p>';
+      statsGrid.appendChild(box);
+    });
+
+    card.appendChild(header);
+    card.appendChild(statsGrid);
+    container.appendChild(card);
+  });
+}
+
+
+async function suspendUniv(school, suspend) {
+  if (!confirm((suspend?'Suspendre':'Réactiver')+' "'+school+'" ?')) return;
+  const d = await api('/superadmin/university/'+encodeURIComponent(school)+'/suspend', {
+    method:'PUT', body:JSON.stringify({suspend})
+  });
+  if (d?.success) {
+    toast((suspend?'Suspendu':'Réactivé')+' : '+school);
+    loaded.univs=false; loaded.overview=false;
+    loadUnivs(); loadOverview();
+  } else toast(d?.message||'Erreur.','err');
+}
+
+async function deleteAllUnivs() {
+  if (!ALL_SCHOOLS.length) { toast('Aucune université.','err'); return; }
+  if (!confirm('Supprimer les '+ALL_SCHOOLS.length+' universités et leurs utilisateurs ?')) return;
+  if (prompt('Tapez SUPPRIMER pour confirmer :') !== 'SUPPRIMER') { toast('Annulé.'); return; }
+  let ok=0;
+  for (const s of ALL_SCHOOLS) {
+    const d = await api('/superadmin/university/'+encodeURIComponent(s.school),{method:'DELETE'});
+    if (d?.success) ok++;
+  }
+  toast(ok+' universités supprimées.');
+  loaded.univs=false; loaded.overview=false;
+  ALL_SCHOOLS=[];
+  loadUnivs(); loadOverview();
+}
+
+// ════════════════════════════════════════════════
+//  UTILISATEURS
+// ════════════════════════════════════════════════
+async function loadUsers() {
+  loaded.users = true;
+  const d = await api('/superadmin/users');
+  if (!d?.success) {
+    document.getElementById('users-tbody').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;color:#f87171;padding:24px">Backend non accessible.</td></tr>';
+    return;
+  }
+  ALL_USERS = d.users;
+  renderUsers('all');
+}
+
+function filterUsers(role, btn) {
+  curUserFilter = role;
+  document.querySelectorAll('#user-filters .filter-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderUsers(role);
+}
+
+function renderUsers(role) {
+  const list = role==='all' ? ALL_USERS : ALL_USERS.filter(u=>u.role===role);
+  const tbody = document.getElementById('users-tbody');
+  const roleColor = {etudiant:'#60a5fa',enseignant:'#4ade80',admin:'#f59e0b',superadmin:'#a78bfa'};
+  const roleLabel = {etudiant:'Étudiant',enseignant:'Prof',admin:'Admin',superadmin:'Super Admin'};
+  if (!list.length) {
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#475569;padding:24px">Aucun utilisateur.</td></tr>';
+    return;
+  }
+  tbody.innerHTML='';
+  list.forEach(function(u) {
+    const active = u.is_active !== false;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="font-weight:600;color:#f8fafc">'+u.first_name+' '+u.last_name+'</td>'
+      +'<td style="color:#475569;font-size:.8rem">'+u.email+'</td>'
+      +'<td><span class="bdg" style="background:'+(roleColor[u.role]||'#334155')+'20;color:'+(roleColor[u.role]||'#94a3b8')+'">'+(roleLabel[u.role]||u.role)+'</span></td>'
+      +'<td style="color:#64748b;font-size:.8rem">'+(u.school||'—')+'</td>'
+      +'<td style="color:#475569;font-size:.78rem">'+new Date(u.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'2-digit'})+'</td>'
+      +'<td><span class="bdg '+(active?'status-active':'status-inactive')+'">'+(active?'Actif':'Inactif')+'</span></td>'
+      +'<td><div style="display:flex;gap:4px"></div></td>';
+    const btns = tr.querySelector('div');
+    const bt = document.createElement('button');
+    bt.className='btn ghost sm'; bt.textContent=active?'Désact.':'Activer';
+    bt.onclick=function(){toggleUser(u.id,active);};
+    const bd = document.createElement('button');
+    bd.className='btn danger sm';
+    bd.innerHTML='<span class="ms" style="font-size:14px">delete</span>';
+    bd.onclick=function(){deleteUser(u.id,u.first_name+' '+u.last_name);};
+    btns.appendChild(bt); btns.appendChild(bd);
+    tbody.appendChild(tr);
+  });
+}
+
+async function toggleUser(id, currentlyActive) {
+  const d = await api('/superadmin/user/'+id+'/toggle',{method:'PUT',body:JSON.stringify({active:!currentlyActive})});
+  if (d?.success) { toast('Statut modifié.'); loaded.users=false; loadUsers(); }
+  else toast(d?.message||'Erreur.','err');
+}
+
+async function deleteUser(id, name) {
+  if (!confirm('Supprimer '+name+' ?')) return;
+  const d = await api('/superadmin/user/'+id,{method:'DELETE'});
+  if (d?.success) { toast('Utilisateur supprimé.'); loaded.users=false; loadUsers(); }
+  else toast(d?.message||'Erreur.','err');
+}
+
+async function deleteAllUsers() {
+  const list = ALL_USERS.filter(u=>u.role!=='superadmin');
+  if (!list.length) { toast('Aucun utilisateur.','err'); return; }
+  if (!confirm('Supprimer '+list.length+' utilisateurs (hors superadmin) ?')) return;
+  if (prompt('Tapez SUPPRIMER pour confirmer :') !== 'SUPPRIMER') { toast('Annulé.'); return; }
+  let ok=0;
+  for (const u of list) {
+    const d = await api('/superadmin/user/'+u.id,{method:'DELETE'});
+    if (d?.success) ok++;
+  }
+  toast(ok+' utilisateurs supprimés.');
+  loaded.users=false; loadUsers();
+}
+
+// ════════════════════════════════════════════════
+//  COMMUNAUTÉS
+// ════════════════════════════════════════════════
+async function loadCommunities() {
+  loaded.communities = true;
+  const d = await api('/superadmin/communities');
+  if (!d?.success) {
+    document.getElementById('comms-list').innerHTML =
+      '<div class="card card-pad" style="color:#f87171">Backend non accessible.</div>';
+    return;
+  }
+  const list = d.communities || [];
+  if (!list.length) {
+    document.getElementById('comms-list').innerHTML =
+      '<div class="card card-pad" style="text-align:center;color:#475569">Aucune communauté.</div>';
+    return;
+  }
+  document.getElementById('comms-list').innerHTML = list.map(c =>
+    '<div class="card card-pad" style="display:flex;align-items:center;gap:14px;margin-bottom:10px">'
+    +'<div style="width:40px;height:40px;background:#1e293b;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+    +'<span class="ms" style="color:#64748b">'+(c.icon||'forum')+'</span></div>'
+    +'<div style="flex:1;min-width:0">'
+    +'<p style="font-weight:700;color:#f8fafc">'+c.name+'</p>'
+    +'<p style="font-size:.78rem;color:#475569;margin-top:2px">'+(c.school||'—')+' · '+(c.member_count||0)+' membres · par '+(c.teacher_name||'—')+'</p>'
+    +(c.description?'<p style="font-size:.78rem;color:#334155;margin-top:3px">'+c.description+'</p>':'')
+    +'</div>'
+    +'<button onclick="deleteComm(\''+c.id+'\')" class="btn danger sm"><span class="ms" style="font-size:14px">delete</span></button>'
+    +'</div>'
+  ).join('');
+}
+
+async function deleteComm(id) {
+  if (!confirm('Supprimer cette communauté ?')) return;
+  const d = await api('/superadmin/community/'+id,{method:'DELETE'});
+  if (d?.success) { toast('Communauté supprimée.'); loaded.communities=false; loadCommunities(); }
+  else toast(d?.message||'Erreur.','err');
+}
+
+async function deleteAllComms() {
+  const d = await api('/superadmin/communities');
+  if (!d?.success || !d.communities?.length) { toast('Aucune communauté.','err'); return; }
+  if (!confirm('Supprimer les '+d.communities.length+' communautés ?')) return;
+  let ok=0;
+  for (const c of d.communities) {
+    const r = await api('/superadmin/community/'+c.id,{method:'DELETE'});
+    if (r?.success) ok++;
+  }
+  toast(ok+' communautés supprimées.');
+  loaded.communities=false; loadCommunities();
+}
+
+// ════════════════════════════════════════════════
+//  ACTIVITÉ / LOGS
+// ════════════════════════════════════════════════
+const LOG_TYPES = {
+  inscription:  {col:'#60a5fa',icon:'person_add',   label:'Inscription'},
+  nouveau_cours:{col:'#4ade80',icon:'auto_stories',  label:'Cours'},
+  devoir_rendu: {col:'#f59e0b',icon:'assignment_turned_in',label:'Devoir'},
+  correction:   {col:'#a78bfa',icon:'grading',       label:'Correction'},
+  connexion:    {col:'#64748b',icon:'login',          label:'Connexion'},
+  suspension:   {col:'#f87171',icon:'block',          label:'Suspension'},
+};
+
+async function loadLogs() {
+  loaded.logs = true;
+  const d = await api('/superadmin/logs');
+  const logs = d?.logs || [];
+  if (!logs.length) {
+    document.getElementById('logs-tbody').innerHTML =
+      '<tr><td colspan="5" style="text-align:center;color:#475569;padding:24px">Aucun log disponible.</td></tr>';
+    return;
+  }
+  document.getElementById('logs-tbody').innerHTML = logs.map(l => {
+    const c = LOG_TYPES[l.type] || {col:'#64748b',icon:'info',label:l.type||'—'};
+    const dt = new Date(l.created_at).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    return '<tr>'
+      +'<td><span class="bdg" style="background:'+c.col+'20;color:'+c.col+'">'
+      +'<span class="ms" style="font-size:12px;margin-right:3px">'+c.icon+'</span>'+c.label+'</span></td>'
+      +'<td style="font-weight:600;color:#f8fafc">'+(l.name||'—')+'</td>'
+      +'<td style="color:#475569;font-size:.8rem">'+(l.school||l.university||'—')+'</td>'
+      +'<td style="color:#64748b;font-size:.8rem;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(l.content||l.assignment_title||l.course_title||'—')+'</td>'
+      +'<td style="color:#334155;font-size:.75rem;white-space:nowrap">'+dt+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+function reloadLogs() { loaded.logs=false; loadLogs(); }
+
+async function clearLogs() {
+  if (!confirm('Vider les logs ?')) return;
+  await api('/superadmin/logs',{method:'DELETE'});
+  document.getElementById('logs-tbody').innerHTML =
+    '<tr><td colspan="5" style="text-align:center;color:#475569;padding:24px">Logs vidés.</td></tr>';
+  toast('Logs vidés.');
+}
+
+// ════════════════════════════════════════════════
+//  ABONNEMENTS
+// ════════════════════════════════════════════════
+const DEMO_SUBS = [
+  {id:'d1',school:'IUT de Douala',plan:'pro',status:'active',computed_status:'active',amount:49000,billing:'monthly',started_at:'2026-01-15T00:00:00Z',expires_at:'2026-07-15T00:00:00Z',days_remaining:43,notes:'MTN MoMo — Réf. CMR20260115-IUT · Contact: Dr. Mbongo +237 691 234 567'},
+  {id:'d2',school:'Université de Yaoundé I',plan:'universite',status:'active',computed_status:'active',amount:1152000,billing:'yearly',started_at:'2025-09-01T00:00:00Z',expires_at:'2026-09-01T00:00:00Z',days_remaining:91,notes:'Virement Afriland — BC n°UY1-2025-456 · Recteur: Pr. Owona · 1240 étudiants'},
+  {id:'d3',school:'ESSEC Douala',plan:'starter',status:'active',computed_status:'active',amount:19900,billing:'monthly',started_at:'2026-04-01T00:00:00Z',expires_at:'2026-07-01T00:00:00Z',days_remaining:4,notes:'Orange Money — ⚠️ Expire dans 4 jours ! Relancer: Mme Kengne +237 699 876 543'},
+  {id:'d4',school:'ENSET de Douala',plan:'pro',status:'trial',computed_status:'trial',amount:0,billing:'monthly',started_at:'2026-06-01T00:00:00Z',expires_at:'2026-07-01T00:00:00Z',days_remaining:29,notes:'Essai 30 jours — Démo présentée le 28 mai · Contact: Directeur Tchinda'},
+  {id:'d5',school:'UCAC - ICAM',plan:'decouverte',status:'expired',computed_status:'expired',amount:0,billing:'monthly',started_at:'2026-03-01T00:00:00Z',expires_at:'2026-04-01T00:00:00Z',days_remaining:-60,notes:'Expiré depuis 60 jours — À relancer vers plan Starter'},
+  {id:'d6',school:'SUP PTIC Douala',plan:'reseau',status:'active',computed_status:'active',amount:3360000,billing:'yearly',started_at:'2026-01-01T00:00:00Z',expires_at:'2027-01-01T00:00:00Z',days_remaining:213,notes:'Réseau 8 universités — Account manager: Équipe CamunoLearn'},
+];
+
+async function loadSubs() {
+  loaded.subs = true;
+  const d = await api('/superadmin/subscriptions');
+  ALL_SUBS = (d?.success && d.subscriptions?.length) ? d.subscriptions : DEMO_SUBS;
+  const isDemo = !(d?.success && d.subscriptions?.length);
+
+  // Revenue
+  const active = ALL_SUBS.filter(s=>(s.computed_status||s.status)==='active');
+  const trial  = ALL_SUBS.filter(s=>(s.computed_status||s.status)==='trial');
+  const expired= ALL_SUBS.filter(s=>(s.computed_status||s.status)==='expired');
+  const revenue = active.reduce((s,x)=>s+parseInt(x.amount||0),0);
+  const annualEst = Math.round(revenue * 12 * 0.8);
+  document.getElementById('subs-revenue').innerHTML =
+    '<span style="color:#f59e0b;font-weight:900">'+revenue.toLocaleString('fr-FR')+' XAF</span>'
+    +' / mois · '
+    +'<span style="color:#4ade80">'+active.length+' actif'+(active.length!==1?'s':'')+' </span>'
+    +'· <span style="color:#94a3b8">'+trial.length+' essai'+(trial.length!==1?'s':'')+' </span>'
+    +'· <span style="color:#f87171">'+expired.length+' expiré'+(expired.length!==1?'s':'')+' </span>'
+    +(isDemo?' <span style="color:#475569;font-size:.78rem;">(démo)</span>':'')
+    +'<span style="display:block;font-size:.72rem;color:#475569;margin-top:2px">Estimation annuelle (plan annuel): '+annualEst.toLocaleString('fr-FR')+' XAF</span>';
+
+  // Expiring soon
+  const expiring = ALL_SUBS.filter(s=>(s.computed_status||s.status)==='active'&&s.days_remaining<7&&s.days_remaining>0);
+  const ea = document.getElementById('subs-expiring');
+  if (expiring.length) {
+    ea.style.display='block';
+    ea.innerHTML='<span class="ms" style="font-size:18px;margin-right:6px">warning</span>'
+      +'<b>Expire dans moins de 7 jours :</b> '+expiring.map(s=>s.school+' ('+Math.round(s.days_remaining)+'j)').join(' · ');
+  }
+
+  // Populate school select in modal
+  const sel = document.getElementById('sub-school');
+  const allSchools = [...new Set([...ALL_SCHOOLS.map(s=>s.school),...ALL_SUBS.map(s=>s.school)])].sort();
+  sel.innerHTML = '<option value="">Sélectionner...</option>';
+  allSchools.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+
+  renderSubs('all');
+  renderSubBreakdown();
+}
+
+function filterSubs(status, btn) {
+  curSubFilter=status;
+  document.querySelectorAll('#sec-subs .filter-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderSubs(status);
+}
+
+function renderSubs(status) {
+  const list = status==='all' ? ALL_SUBS : ALL_SUBS.filter(s=>(s.computed_status||s.status)===status);
+  const tbody = document.getElementById('subs-tbody');
+  if (!list.length) {
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#475569;padding:24px">Aucun abonnement.</td></tr>';
+    return;
+  }
+  tbody.innerHTML='';
+  list.forEach(function(s) {
+    const cfg = STATUS_CFG[s.computed_status||s.status] || STATUS_CFG.active;
+    const exp = s.expires_at ? new Date(s.expires_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '—';
+    const start = new Date(s.started_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
+    const days = s.days_remaining!=null ? Math.round(s.days_remaining) : null;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="font-weight:700;color:#f8fafc">'
+        +s.school
+        +(s.notes?'<div style="font-size:.7rem;color:#475569;margin-top:2px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+s.notes+'">'+s.notes+'</div>':'')
+      +'</td>'
+      +'<td><span class="bdg" style="background:#33415530;color:#f8fafc">'+(PLAN_EMOJIS[s.plan]||'')+' '+(PLAN_LABELS[s.plan]||s.plan)+'</span></td>'
+      +'<td style="font-weight:700;color:#f59e0b">'+parseInt(s.amount||0).toLocaleString('fr-FR')+' XAF</td>'
+      +'<td style="color:#475569;font-size:.8rem">'+(s.billing==='yearly'?'Annuelle':'Mensuelle')+'</td>'
+      +'<td style="color:#475569;font-size:.8rem">'+start+'</td>'
+      +'<td style="font-size:.8rem;color:'+(days!==null&&days<7?'#f87171':'#475569')+'">'+exp+(days!==null&&days<14?' <b style="color:#f87171">('+days+'j)</b>':'')+'</td>'
+      +'<td><span class="bdg" style="background:'+cfg.bg+';color:'+cfg.col+'">'+cfg.label+'</span></td>'
+      +'<td><div style="display:flex;gap:4px"></div></td>';
+    const btns = tr.querySelector('div');
+    const br = document.createElement('button');
+    br.className='btn ghost sm'; br.title='Renouveler';
+    br.innerHTML='<span class="ms" style="font-size:14px">autorenew</span>';
+    br.onclick=function(){renewSub(s.id,s.school,s.plan);};
+    const be = document.createElement('button');
+    be.className='btn ghost sm'; be.title='Modifier';
+    be.innerHTML='<span class="ms" style="font-size:14px">edit</span>';
+    be.onclick=function(){editSub(s.id);};
+    const bd = document.createElement('button');
+    bd.className='btn danger sm'; bd.title='Supprimer';
+    bd.innerHTML='<span class="ms" style="font-size:14px">delete</span>';
+    bd.onclick=function(){deleteSub(s.id,s.school);};
+    btns.appendChild(br); btns.appendChild(be); btns.appendChild(bd);
+    tbody.appendChild(tr);
+  });
+}
+
+function renderSubBreakdown() {
+  const plans = {};
+  ALL_SUBS.filter(s=>(s.computed_status||s.status)==='active').forEach(s=>{
+    if (!plans[s.plan]) plans[s.plan]={count:0,total:0};
+    plans[s.plan].count++;
+    plans[s.plan].total+=parseInt(s.amount||0);
+  });
+  document.getElementById('subs-breakdown').innerHTML = Object.entries(plans).map(([plan,data])=>
+    '<div class="card card-pad" style="text-align:center">'
+    +'<p style="font-size:1.4rem;margin:0 0 4px">'+(PLAN_EMOJIS[plan]||'')+'</p>'
+    +'<p style="font-family:Manrope;font-weight:900;font-size:1.4rem;color:#f8fafc;margin:0">'+data.count+'</p>'
+    +'<p style="font-size:.65rem;text-transform:uppercase;color:#475569;margin:2px 0 5px">'+(PLAN_LABELS[plan]||plan)+'</p>'
+    +'<p style="font-size:.78rem;color:#f59e0b;font-weight:700">'+data.total.toLocaleString('fr-FR')+' XAF</p>'
+    +'</div>'
+  ).join('');
+}
+
+function openSubModal(editId) {
+  document.getElementById('sub-edit-id').value = editId||'';
+  document.getElementById('sub-modal-title').textContent = editId ? 'Modifier abonnement' : 'Nouvel abonnement';
+  document.getElementById('sub-btn-txt').textContent = editId ? 'Enregistrer' : 'Créer';
+  if (!editId) {
+    document.getElementById('sub-school').value='';
+    document.getElementById('sub-plan').value='pro';
+    document.getElementById('sub-billing').value='monthly';
+    document.getElementById('sub-months').value='1';
+    document.getElementById('sub-notes').value='';
+    calcSubAmount();
+  }
+  document.getElementById('sub-modal').classList.add('open');
+}
+function closeSubModal() { document.getElementById('sub-modal').classList.remove('open'); }
+
+function editSub(id) {
+  const s = ALL_SUBS.find(x=>x.id===id); if (!s) return;
+  openSubModal(id);
+  setTimeout(()=>{
+    document.getElementById('sub-school').value=s.school;
+    document.getElementById('sub-plan').value=s.plan;
+    document.getElementById('sub-billing').value=s.billing||'monthly';
+    document.getElementById('sub-notes').value=s.notes||'';
+    calcSubAmount();
+  },50);
+}
+
+function calcSubAmount() {
+  const plan = document.getElementById('sub-plan')?.value;
+  const billing = document.getElementById('sub-billing')?.value;
+  const months = parseInt(document.getElementById('sub-months')?.value)||1;
+  const base = PLAN_PRICES[plan]||0;
+  const monthly = billing==='yearly' ? Math.round(base*0.8) : base;
+  const el = document.getElementById('sub-amount-disp');
+  if (el) el.textContent = (monthly*months).toLocaleString('fr-FR')+' XAF';
+}
+
+async function saveSub() {
+  const editId = document.getElementById('sub-edit-id').value;
+  const school = document.getElementById('sub-school').value;
+  const plan   = document.getElementById('sub-plan').value;
+  const billing= document.getElementById('sub-billing').value;
+  const months = parseInt(document.getElementById('sub-months').value)||1;
+  const notes  = document.getElementById('sub-notes').value.trim();
+  if (!school||!plan) { toast('École et plan requis.','err'); return; }
+  const d = editId
+    ? await api('/superadmin/subscriptions/'+editId,{method:'PUT',body:JSON.stringify({plan,billing,months,notes})})
+    : await api('/superadmin/subscriptions',{method:'POST',body:JSON.stringify({school,plan,billing,months,notes})});
+  if (d?.success) {
+    toast(editId?'Abonnement mis à jour !':'Abonnement créé !');
+    closeSubModal(); loaded.subs=false; loadSubs();
+  } else toast(d?.message||'Erreur.','err');
+}
+
+async function renewSub(id, school, plan) {
+  const months = parseInt(prompt('Renouveler "'+school+'" — combien de mois ?','1'));
+  if (!months||isNaN(months)) return;
+  const d = await api('/superadmin/subscriptions/'+id,{method:'PUT',body:JSON.stringify({months,status:'active'})});
+  if (d?.success) { toast('Renouvelé '+months+' mois.'); loaded.subs=false; loadSubs(); }
+  else toast(d?.message||'Erreur.','err');
+}
+
+async function deleteSub(id, school) {
+  if (!confirm('Supprimer abonnement de "'+school+'" ?')) return;
+  const d = await api('/superadmin/subscriptions/'+id,{method:'DELETE'});
+  if (d?.success) { toast('Supprimé.'); loaded.subs=false; loadSubs(); }
+  else toast(d?.message||'Erreur.','err');
+}
+
+async function deleteExpiredSubs() {
+  const expired = ALL_SUBS.filter(s=>(s.computed_status||s.status)==='expired'&&!s.id.startsWith('d'));
+  if (!expired.length) { toast('Aucun abonnement expiré réel.','err'); return; }
+  if (!confirm('Supprimer les '+expired.length+' abonnements expirés ?')) return;
+  let ok=0;
+  for (const s of expired) {
+    const d = await api('/superadmin/subscriptions/'+s.id,{method:'DELETE'});
+    if (d?.success) ok++;
+  }
+  toast(ok+' supprimés.'); loaded.subs=false; loadSubs();
+}
+
+// ════════════════════════════════════════════════
+//  CRÉER ADMIN
+// ════════════════════════════════════════════════
+async function createAdmin() {
+  const fn=document.getElementById('ca-first').value.trim();
+  const ln=document.getElementById('ca-last').value.trim();
+  const email=document.getElementById('ca-email').value.trim();
+  const pass=document.getElementById('ca-pass').value;
+  const school=document.getElementById('ca-school').value.trim();
+  if (!fn||!ln||!email||!pass||!school) { toast('Tous les champs sont requis.','err'); return; }
+  const d = await api('/superadmin/admin',{method:'POST',body:JSON.stringify({first_name:fn,last_name:ln,email,password:pass,school})});
+  if (d?.success) {
+    toast('Admin '+fn+' '+ln+' créé !');
+    ['ca-first','ca-last','ca-email','ca-pass','ca-school'].forEach(id=>document.getElementById(id).value='');
+  } else toast(d?.message||'Erreur.','err');
+}
+
+// ════════════════════════════════════════════════
+//  CRÉER PROF
+// ════════════════════════════════════════════════
+async function createTeacher() {
+  const fn=document.getElementById('ct-first').value.trim();
+  const ln=document.getElementById('ct-last').value.trim();
+  const email=document.getElementById('ct-email').value.trim();
+  const pass=document.getElementById('ct-pass').value;
+  const school=document.getElementById('ct-school').value.trim();
+  const disc=document.getElementById('ct-disc').value.trim();
+  if (!fn||!ln||!email||!pass||!school) { toast('Champs obligatoires manquants.','err'); return; }
+  const d = await api('/superadmin/teacher',{method:'POST',body:JSON.stringify({first_name:fn,last_name:ln,email,password:pass,school,discipline:disc})});
+  if (d?.success) {
+    toast('Enseignant '+fn+' '+ln+' créé !');
+    ['ct-first','ct-last','ct-email','ct-pass','ct-school','ct-disc'].forEach(id=>document.getElementById(id).value='');
+  } else toast(d?.message||'Erreur.','err');
+}
+
+// ════════════════════════════════════════════════
+//  CRÉER UNIVERSITÉ
+// ════════════════════════════════════════════════
+async function createUniversity() {
+  const school=document.getElementById('cu-school').value.trim();
+  const fn=document.getElementById('cu-first').value.trim();
+  const ln=document.getElementById('cu-last').value.trim();
+  const email=document.getElementById('cu-email').value.trim();
+  const pass=document.getElementById('cu-pass').value;
+  if (!school||!fn||!ln||!email||!pass) { toast('Tous les champs sont requis.','err'); return; }
+  const d = await api('/superadmin/admin',{method:'POST',body:JSON.stringify({first_name:fn,last_name:ln,email,password:pass,school})});
+  if (d?.success) {
+    toast('Université "'+school+'" et admin créés !');
+    ['cu-school','cu-first','cu-last','cu-email','cu-pass'].forEach(id=>document.getElementById(id).value='');
+    loaded.univs=false; loaded.overview=false;
+  } else toast(d?.message||'Erreur.','err');
+}
+
+// ════════════════════════════════════════════════
+//  RECHERCHE RAPIDE
+// ════════════════════════════════════════════════
+async function quickSearch() {
+  const q = document.getElementById('quick-search').value.trim();
+  if (!q) return;
+  const d = await api('/superadmin/search?q='+encodeURIComponent(q));
+  if (d?.success && d.users?.length) {
+    const names = d.users.slice(0,5).map(u=>u.first_name+' '+u.last_name+' ('+u.role+')').join('\n');
+    alert('Résultats pour "'+q+'" :\n\n'+names+(d.users.length>5?'\n...et '+(d.users.length-5)+' autres':''));
+  } else {
+    toast('Aucun résultat pour "'+q+'".','err');
+  }
+}
+
+// ════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = (type==='err'?'err':'ok')+' show';
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('show'), 3800);
+}
+</script>
+</body>
+</html>

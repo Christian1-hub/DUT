@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Activation Compte Professeur | CamunoLearn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+*{font-family:'DM Sans',sans-serif;box-sizing:border-box}
+.ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;user-select:none;line-height:1;vertical-align:middle}
+.ms.f{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+.fld{width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:12px 16px;font-size:.95rem;color:#111;outline:none;transition:border .15s;font-family:inherit}
+.fld:focus{border-color:#00602a;box-shadow:0 0 0 3px rgba(0,96,42,.1)}
+/* PIN boxes */
+.pin-box{width:52px;height:64px;border:2px solid #e5e7eb;border-radius:12px;text-align:center;font-size:1.8rem;font-weight:900;font-family:Manrope,sans-serif;color:#111;outline:none;background:#f9fafb;transition:all .15s;caret-color:transparent}
+.pin-box:focus{border-color:#00602a;background:#f0fdf4;box-shadow:0 0 0 3px rgba(0,96,42,.1)}
+.pin-box.filled{border-color:#00602a;background:#f0fdf4;color:#00602a}
+.btn-main{width:100%;background:#00602a;color:#fff;border:none;padding:15px;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
+.btn-main:hover{background:#004d21}
+.btn-main:disabled{opacity:.5;cursor:not-allowed}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.shake{animation:shake .3s ease}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:up .3s ease both}
+</style>
+</head>
+<body style="background:linear-gradient(135deg,#f0fdf4 0%,#f8f9fb 50%,#eff6ff 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+
+<div style="width:100%;max-width:440px" class="anim">
+
+  <!-- Logo -->
+  <div style="text-align:center;margin-bottom:28px">
+    <div style="display:inline-flex;align-items:center;gap:10px">
+      <span class="ms f" style="color:#00602a;font-size:32px">school</span>
+      <span style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#00602a"><span style="color:#111">Camuno</span>Learn</span>
+    </div>
+  </div>
+
+  <!-- Card -->
+  <div style="background:#fff;border-radius:20px;border:1px solid #f0f0f0;box-shadow:0 8px 40px rgba(0,0,0,.08);overflow:hidden">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#00602a,#16a34a);padding:28px 28px 24px;text-align:center">
+      <div style="width:60px;height:60px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+        <span class="ms f" style="color:#fff;font-size:30px">lock_person</span>
+      </div>
+      <h1 style="font-family:Manrope;font-weight:900;font-size:1.4rem;color:#fff;margin:0 0 6px">Activation Compte Professeur</h1>
+      <p style="font-size:.85rem;color:rgba(255,255,255,.8);margin:0">Saisissez le code PIN transmis par votre administrateur</p>
+    </div>
+
+    <div style="padding:28px">
+
+      <!-- Étape 1 : Email -->
+      <div id="step-email">
+        <div style="margin-bottom:20px">
+          <label style="display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:6px">Votre email professionnel</label>
+          <input id="email-input" type="email" class="fld" placeholder="prenom.nom@universite.cm"
+                 onkeydown="if(event.key==='Enter')goToPin()"/>
+        </div>
+        <button onclick="goToPin()" class="btn-main">
+          Continuer <span class="ms">arrow_forward</span>
+        </button>
+      </div>
+
+      <!-- Étape 2 : PIN -->
+      <div id="step-pin" style="display:none">
+        <div style="margin-bottom:8px">
+          <p style="font-size:.875rem;color:#6b7280;margin-bottom:4px">Code envoyé pour :</p>
+          <p id="email-display" style="font-weight:700;color:#111;font-size:.875rem;background:#f9fafb;padding:8px 14px;border-radius:8px;border:1px solid #e5e7eb"></p>
+        </div>
+
+        <div style="margin-bottom:24px">
+          <label style="display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:16px;text-align:center">Votre PIN d'activation (6 chiffres)</label>
+          <div style="display:flex;justify-content:center;gap:8px" id="pin-boxes">
+            <input class="pin-box" maxlength="1" type="tel" id="pin0" oninput="onPin(this,0)" onkeydown="onPinKey(event,0)"/>
+            <input class="pin-box" maxlength="1" type="tel" id="pin1" oninput="onPin(this,1)" onkeydown="onPinKey(event,1)"/>
+            <input class="pin-box" maxlength="1" type="tel" id="pin2" oninput="onPin(this,2)" onkeydown="onPinKey(event,2)"/>
+            <input class="pin-box" maxlength="1" type="tel" id="pin3" oninput="onPin(this,3)" onkeydown="onPinKey(event,3)"/>
+            <input class="pin-box" maxlength="1" type="tel" id="pin4" oninput="onPin(this,4)" onkeydown="onPinKey(event,4)"/>
+            <input class="pin-box" maxlength="1" type="tel" id="pin5" oninput="onPin(this,5)" onkeydown="onPinKey(event,5)"/>
+          </div>
+        </div>
+
+        <!-- Message d'erreur -->
+        <div id="pin-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:.8rem;color:#991b1b;text-align:center"></div>
+
+        <button onclick="activateAccount()" id="activate-btn" class="btn-main" disabled>
+          <span class="ms">verified_user</span> Activer mon compte
+        </button>
+
+        <button onclick="backToEmail()" style="width:100%;margin-top:10px;background:none;border:none;color:#9ca3af;font-size:.8rem;cursor:pointer;padding:8px">
+          ← Changer d'email
+        </button>
+      </div>
+
+      <!-- Succès -->
+      <div id="step-success" style="display:none;text-align:center">
+        <div style="width:72px;height:72px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+          <span class="ms f" style="color:#00602a;font-size:36px">check_circle</span>
+        </div>
+        <h2 style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#111;margin-bottom:8px">Compte activé !</h2>
+        <p id="success-name" style="font-size:.875rem;color:#6b7280;margin-bottom:20px"></p>
+        <div style="background:#f0fdf4;border-radius:12px;padding:14px;margin-bottom:20px;text-align:left">
+          <p style="font-size:.78rem;color:#166534;font-weight:600;margin:0 0 4px">✅ Votre accès est prêt</p>
+          <p style="font-size:.75rem;color:#4ade80;margin:0">Vous allez être redirigé vers votre espace enseignant...</p>
+        </div>
+        <div id="redirect-bar" style="height:4px;background:#e5e7eb;border-radius:99px;overflow:hidden">
+          <div id="redirect-fill" style="height:100%;background:#00602a;width:0%;transition:width 3s linear"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div style="text-align:center;margin-top:16px">
+    <p style="font-size:.78rem;color:#9ca3af">Votre PIN vous a été transmis par votre administrateur d'université via WhatsApp.</p>
+    <p style="font-size:.78rem;color:#9ca3af;margin-top:4px">Problème ? Contactez votre administrateur ou écrivez à <span style="color:#00602a">support@camunolearn.cm</span></p>
+  </div>
+
+</div>
+
+<script>
+const API = (function() {
+  var h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
+  return '/api';
+})();
+let userEmail = '';
+
+function goToPin() {
+  const email = document.getElementById('email-input').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('email-input').style.borderColor = '#dc2626';
+    return;
+  }
+  userEmail = email;
+  document.getElementById('email-display').textContent = email;
+  document.getElementById('step-email').style.display = 'none';
+  document.getElementById('step-pin').style.display   = 'block';
+  setTimeout(() => document.getElementById('pin0').focus(), 100);
+}
+
+function backToEmail() {
+  document.getElementById('step-pin').style.display   = 'none';
+  document.getElementById('step-email').style.display = 'block';
+  clearPin();
+}
+
+function onPin(el, idx) {
+  el.value = el.value.replace(/\D/g,'');
+  if (el.value) {
+    el.classList.add('filled');
+    if (idx < 5) document.getElementById(`pin${idx+1}`).focus();
+  } else {
+    el.classList.remove('filled');
+  }
+  checkPinComplete();
+}
+
+function onPinKey(e, idx) {
+  if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+    const prev = document.getElementById(`pin${idx-1}`);
+    prev.value = '';
+    prev.classList.remove('filled');
+    prev.focus();
+    checkPinComplete();
+  }
+  if (e.key === 'Enter') activateAccount();
+}
+
+function checkPinComplete() {
+  const pin = getPin();
+  document.getElementById('activate-btn').disabled = pin.length < 6;
+}
+
+function getPin() {
+  return Array.from({length:6},(_,i) => document.getElementById(`pin${i}`).value).join('');
+}
+
+function clearPin() {
+  for (let i=0;i<6;i++) {
+    const el = document.getElementById(`pin${i}`);
+    el.value = '';
+    el.classList.remove('filled');
+  }
+  document.getElementById('activate-btn').disabled = true;
+  document.getElementById('pin-error').style.display = 'none';
+}
+
+async function activateAccount() {
+  const pin = getPin();
+  if (pin.length < 6) return;
+
+  const btn = document.getElementById('activate-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite">autorenew</span> Vérification...';
+
+  try {
+    const r = await fetch(`${API}/auth/activate`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email: userEmail, pin })
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      // Sauvegarder le token
+      localStorage.setItem('camunolearn_token', d.token);
+      localStorage.setItem('camunolearn_user',  JSON.stringify(d.user));
+      // Afficher le succès
+      document.getElementById('step-pin').style.display     = 'none';
+      document.getElementById('step-success').style.display = 'block';
+      document.getElementById('success-name').textContent   =
+        `Bienvenue ${d.user.first_name} ${d.user.last_name} ! Votre compte est maintenant actif.`;
+      // Barre de progression + redirection
+      setTimeout(() => {
+        document.getElementById('redirect-fill').style.width = '100%';
+      }, 100);
+      setTimeout(() => location.href = 'indexSélectionEcole.html', 3200);
+    } else {
+      // Erreur PIN
+      const errEl = document.getElementById('pin-error');
+      errEl.textContent = d.message || 'PIN incorrect. Vérifiez le code transmis par votre administrateur.';
+      errEl.style.display = 'block';
+      // Animation shake
+      document.getElementById('pin-boxes').classList.add('shake');
+      setTimeout(() => document.getElementById('pin-boxes').classList.remove('shake'), 300);
+      clearPin();
+      document.getElementById('pin0').focus();
+      btn.disabled = false;
+      btn.innerHTML = '<span class="ms">verified_user</span> Activer mon compte';
+    }
+  } catch(e) {
+    document.getElementById('pin-error').textContent = 'Serveur inaccessible. Vérifiez votre connexion.';
+    document.getElementById('pin-error').style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<span class="ms">verified_user</span> Activer mon compte';
+  }
+}
+
+// Animation spin
+const s=document.createElement('style');
+s.textContent='@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}';
+document.head.appendChild(s);
+</script>
+</body>
+</html>

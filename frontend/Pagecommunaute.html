@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Communauté | CamunoLearn</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#00602a",
+            "primary-light": "#e8f5ed",
+            "on-surface": "#191c1e",
+            danger: "#a90111",
+          },
+          fontFamily: { headline: ["Manrope"], body: ["DM Sans"] }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'DM Sans', sans-serif; }
+    .msymbol { font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+    .msymbol.filled { font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+    @keyframes fadeUp    { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeIn    { from{opacity:0} to{opacity:1} }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes shimmer   { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    @keyframes likePop   { 0%{transform:scale(1)} 50%{transform:scale(1.4)} 100%{transform:scale(1)} }
+
+    .fade-up    { animation: fadeUp .35s ease both; }
+    .fade-in    { animation: fadeIn .25s ease both; }
+    .slide-down { animation: slideDown .2s ease both; }
+    .like-pop   { animation: likePop .3s ease; }
+
+    .skeleton {
+      background: linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 12px;
+    }
+
+    .post-card { transition: box-shadow .2s; }
+    .post-card:hover { box-shadow: 0 4px 24px rgba(0,96,42,.08); }
+
+    .like-btn.liked { color: #e2483a; }
+    .like-btn.liked .msymbol { font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+    textarea { resize: none; overflow: hidden; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
+
+    .avatar-circle {
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .75rem; border-radius: 50%;
+      flex-shrink: 0; background: #e8f5ed; color: #00602a;
+    }
+    .composer:focus-within { box-shadow: 0 0 0 2px rgba(0,96,42,.2); }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<script>const API = (function() {
+  var h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
+  return '/api';
+})();</script>
+
+<!-- TOPBAR -->
+<header class="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 z-40 flex items-center px-4 md:px-8 gap-4">
+  <button onclick="goBack()" class="flex items-center gap-2 text-gray-500 hover:text-primary transition font-medium text-sm">
+    <span class="msymbol text-xl">arrow_back</span>
+    <span class="hidden sm:inline">Communautés</span>
+  </button>
+
+  <div class="flex-grow flex items-center gap-3 min-w-0">
+    <div id="headerIcon" class="w-9 h-9 rounded-xl bg-primary-light text-primary flex items-center justify-center flex-shrink-0">
+      <span class="msymbol text-lg">forum</span>
+    </div>
+    <div class="min-w-0">
+      <h1 id="communityName" class="font-headline font-bold text-base truncate">Chargement...</h1>
+      <p id="communityMeta" class="text-xs text-gray-400">— membres</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 flex-shrink-0">
+    <button id="joinBtn" onclick="toggleJoin()" class="hidden px-4 py-2 rounded-full text-sm font-bold border border-primary text-primary hover:bg-primary hover:text-white transition">
+      Rejoindre
+    </button>
+    <div class="relative">
+      <button onclick="toggleUserMenu()" class="w-9 h-9 rounded-full ring-2 ring-primary overflow-hidden">
+        <img id="avatarImg" src="https://ui-avatars.com/api/?name=?&background=00602a&color=fff" class="w-full h-full object-cover" alt="avatar"/>
+      </button>
+      <div id="userMenu" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 slide-down">
+        <a href="indexETUDIANT.html" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
+          <span class="msymbol text-lg">dashboard</span> Dashboard
+        </a>
+        <div class="border-t border-gray-100 my-1"></div>
+        <button onclick="confirmLogout()" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-danger font-bold hover:bg-red-50">
+          <span class="msymbol text-lg">logout</span> Déconnexion
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="pt-20 pb-10 px-4 md:px-0 max-w-2xl mx-auto">
+
+  <!-- Banner communauté -->
+  <div id="communityBanner" class="hidden bg-white rounded-2xl border border-gray-100 p-5 mb-6 fade-up">
+    <div class="flex items-start gap-4">
+      <div id="bannerIcon" class="w-12 h-12 rounded-xl bg-primary-light text-primary flex items-center justify-center flex-shrink-0">
+        <span class="msymbol text-2xl">forum</span>
+      </div>
+      <div class="flex-grow min-w-0">
+        <h2 id="bannerName" class="font-headline font-bold text-lg"></h2>
+        <p id="bannerDesc" class="text-sm text-gray-500 mt-1"></p>
+        <div class="flex items-center gap-4 mt-3">
+          <span id="bannerMembers" class="text-xs text-gray-400 flex items-center gap-1">
+            <span class="msymbol text-base">group</span> — membres
+          </span>
+          <span id="bannerCategory" class="text-xs bg-primary-light text-primary px-2 py-0.5 rounded-full font-bold"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Composer (membre seulement) -->
+  <div id="composerWrap" class="hidden mb-6 fade-up">
+    <div class="bg-white rounded-2xl border border-gray-100 p-4 composer transition">
+      <div class="flex gap-3">
+        <img id="composerAvatar" src="https://ui-avatars.com/api/?name=?&background=00602a&color=fff"
+             class="w-9 h-9 rounded-full flex-shrink-0" alt="avatar"/>
+        <div class="flex-grow">
+          <textarea id="postInput" rows="2" placeholder="Partagez quelque chose avec la communauté..."
+                    class="w-full bg-transparent border-none focus:ring-0 text-sm text-gray-700 placeholder-gray-400 resize-none p-0"
+                    oninput="autoResize(this)"></textarea>
+          <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+            <span id="charCount" class="text-xs text-gray-400">0 / 1000</span>
+            <button onclick="submitPost()" id="postBtn"
+                    class="px-5 py-2 bg-primary text-white rounded-full text-sm font-bold hover:bg-primary/90 transition">
+              Publier
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Non-membre -->
+  <div id="guestBanner" class="hidden mb-6 bg-primary-light rounded-2xl p-4 flex items-center gap-4 fade-up">
+    <span class="msymbol text-primary text-2xl">info</span>
+    <div class="flex-grow">
+      <p class="text-sm font-bold text-primary">Rejoignez cette communauté pour participer</p>
+      <p class="text-xs text-green-700 mt-0.5">Vous pourrez poster et répondre aux discussions.</p>
+    </div>
+    <button onclick="toggleJoin()" class="px-4 py-2 bg-primary text-white rounded-full text-sm font-bold flex-shrink-0">
+      Rejoindre
+    </button>
+  </div>
+
+  <!-- Filtre -->
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="font-headline font-bold text-base text-gray-700">
+      <span id="postCount">—</span> discussion<span id="postCountS"></span>
+    </h3>
+    <select id="sortSelect" onchange="sortPosts()" class="text-xs border border-gray-200 rounded-full px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+      <option value="recent">Plus récents</option>
+      <option value="popular">Plus aimés</option>
+      <option value="discussed">Plus discutés</option>
+    </select>
+  </div>
+
+  <!-- Liste posts -->
+  <div id="postsList" class="space-y-4">
+    <div class="bg-white rounded-2xl border border-gray-100 p-5">
+      <div class="flex gap-3">
+        <div class="skeleton w-9 h-9 rounded-full flex-shrink-0"></div>
+        <div class="flex-grow space-y-2">
+          <div class="skeleton h-4 w-32"></div>
+          <div class="skeleton h-3 w-full"></div>
+          <div class="skeleton h-3 w-3/4"></div>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-100 p-5">
+      <div class="flex gap-3">
+        <div class="skeleton w-9 h-9 rounded-full flex-shrink-0"></div>
+        <div class="flex-grow space-y-2">
+          <div class="skeleton h-4 w-40"></div>
+          <div class="skeleton h-3 w-full"></div>
+          <div class="skeleton h-3 w-1/2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty -->
+  <div id="emptyState" class="hidden text-center py-16">
+    <span class="msymbol text-6xl text-gray-200">forum</span>
+    <p class="font-headline font-bold text-gray-400 mt-4 text-lg">Aucune discussion pour l'instant</p>
+    <p class="text-sm text-gray-400 mt-1">Soyez le premier à lancer une discussion !</p>
+  </div>
+
+</main>
+
+<!-- MODAL RÉPONSES -->
+<div id="repliesModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4">
+  <div class="bg-white w-full md:max-w-lg md:rounded-3xl rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+      <h3 class="font-headline font-bold text-base">Réponses</h3>
+      <button onclick="closeReplies()" class="p-1 rounded-full hover:bg-gray-100 transition">
+        <span class="msymbol text-gray-400">close</span>
+      </button>
+    </div>
+    <div id="modalOriginalPost" class="px-5 py-4 bg-gray-50 border-b border-gray-100 flex-shrink-0"></div>
+    <div id="repliesList" class="flex-grow overflow-y-auto px-5 py-4 space-y-4"></div>
+    <!-- Composer réponse -->
+    <div id="replyComposerWrap" class="px-5 py-4 border-t border-gray-100 flex-shrink-0">
+      <div class="flex gap-3">
+        <img id="replyAvatar" src="https://ui-avatars.com/api/?name=?&background=00602a&color=fff"
+             class="w-8 h-8 rounded-full flex-shrink-0" alt="avatar"/>
+        <div class="flex-grow bg-gray-50 rounded-2xl px-4 py-2 flex items-center gap-2">
+          <input id="replyInput" type="text" placeholder="Écrire une réponse..."
+                 class="flex-grow bg-transparent border-none focus:ring-0 text-sm placeholder-gray-400"
+                 onkeydown="if(event.key==='Enter')submitReply()"/>
+          <button onclick="submitReply()" class="text-primary font-bold text-sm hover:text-primary/70 transition flex-shrink-0">
+            <span class="msymbol">send</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="replyGuestMsg" class="hidden px-5 py-4 border-t border-gray-100 flex-shrink-0">
+      <p class="text-center text-sm text-gray-400">Rejoignez la communauté pour répondre.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const token      = localStorage.getItem('camunolearn_token');
+const params     = new URLSearchParams(location.search);
+const communityId = params.get('id');
+
+let currentUser  = null;
+let community    = null;
+let posts        = [];
+let isMember     = false;
+let activePostId = null;
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!token)        { location.href = 'indexconnexion.html'; return; }
+  if (!communityId)  { location.href = 'indexETUDIANT.html';  return; }
+  await loadUser();
+  await loadCommunity();
+  await loadPosts();
+  document.getElementById('postInput').addEventListener('input', e => {
+    document.getElementById('charCount').textContent = `${e.target.value.length} / 1000`;
+  });
+  // Rafraîchir toutes les 30s
+  setInterval(loadPosts, 30000);
+});
+
+// ══════════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════════
+async function apiFetch(path, options = {}) {
+  try {
+    const res = await fetch(API + path, {
+      ...options,
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}`, ...(options.headers||{}) },
+    });
+    if (res.status === 401) { confirmLogout(); return null; }
+    return res.json();
+  } catch(e) { console.error('API error:', e); return null; }
+}
+
+// ══════════════════════════════════════════════
+//  UTILISATEUR
+// ══════════════════════════════════════════════
+async function loadUser() {
+  // Essayer /auth/me (fonctionne pour prof ET étudiant)
+  const data = await apiFetch('/auth/me');
+  if (!data?.success) return;
+  currentUser = data.user;
+  const url = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.first_name+' '+currentUser.last_name)}&background=00602a&color=fff`;
+  document.getElementById('avatarImg').src      = url;
+  document.getElementById('composerAvatar').src = url;
+  document.getElementById('replyAvatar').src    = url + '&size=64';
+}
+
+// ══════════════════════════════════════════════
+//  COMMUNAUTÉ — route partagée /forum/communities
+// ══════════════════════════════════════════════
+async function loadCommunity() {
+  // ✅ CORRECTION : utiliser /forum/communities (partagé prof+étudiant)
+  const data = await apiFetch('/forum/communities');
+  if (!data?.success) return;
+
+  community = data.communities.find(c => c.id === communityId);
+  if (!community) {
+    // Essayer directement par ID
+    const d2 = await apiFetch(`/forum/community/${communityId}`);
+    if (d2?.success) community = d2.community;
+    else return;
+  }
+
+  isMember = community.is_member;
+
+  document.getElementById('communityName').textContent = community.name;
+  document.getElementById('communityMeta').textContent = `${community.member_count} membre${community.member_count > 1 ? 's' : ''}`;
+  document.title = `${community.name} | CamunoLearn`;
+  document.getElementById('headerIcon').querySelector('.msymbol').textContent = community.icon || 'forum';
+
+  document.getElementById('bannerName').textContent     = community.name;
+  document.getElementById('bannerDesc').textContent     = community.description || '';
+  document.getElementById('bannerMembers').innerHTML    = `<span class="msymbol text-base">group</span> ${community.member_count} membre${community.member_count > 1 ? 's' : ''}`;
+  document.getElementById('bannerCategory').textContent = community.category || 'Général';
+  document.getElementById('bannerIcon').querySelector('.msymbol').textContent = community.icon || 'forum';
+  document.getElementById('communityBanner').classList.remove('hidden');
+
+  document.getElementById('joinBtn').classList.remove('hidden');
+  updateJoinBtn();
+
+  if (isMember) {
+    document.getElementById('composerWrap').classList.remove('hidden');
+    document.getElementById('guestBanner').classList.add('hidden');
+  } else {
+    document.getElementById('composerWrap').classList.add('hidden');
+    document.getElementById('guestBanner').classList.remove('hidden');
+  }
+}
+
+function updateJoinBtn() {
+  const btn = document.getElementById('joinBtn');
+  btn.textContent = isMember ? 'Membre ✓' : 'Rejoindre';
+  btn.className = isMember
+    ? 'px-4 py-2 rounded-full text-sm font-bold bg-primary-light text-primary transition'
+    : 'px-4 py-2 rounded-full text-sm font-bold border border-primary text-primary hover:bg-primary hover:text-white transition';
+}
+
+// ══════════════════════════════════════════════
+//  JOIN / LEAVE — route /forum/
+// ══════════════════════════════════════════════
+async function toggleJoin() {
+  const action = isMember ? 'leave' : 'join';
+  const method = isMember ? 'DELETE' : 'POST';
+  // ✅ CORRECTION : /forum/communities/:id/leave ou /join
+  const data = await apiFetch(`/forum/communities/${communityId}/${action}`, { method });
+  if (!data?.success) return;
+
+  isMember = !isMember;
+  updateJoinBtn();
+
+  if (isMember) {
+    document.getElementById('composerWrap').classList.remove('hidden');
+    document.getElementById('guestBanner').classList.add('hidden');
+    document.getElementById('replyComposerWrap').classList.remove('hidden');
+    document.getElementById('replyGuestMsg').classList.add('hidden');
+  } else {
+    document.getElementById('composerWrap').classList.add('hidden');
+    document.getElementById('guestBanner').classList.remove('hidden');
+    document.getElementById('replyComposerWrap').classList.add('hidden');
+    document.getElementById('replyGuestMsg').classList.remove('hidden');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  POSTS
+// ══════════════════════════════════════════════
+async function loadPosts() {
+  const data = await apiFetch(`/forum/${communityId}/posts`);
+  if (!data?.success) { renderPosts([]); return; }
+  posts = data.posts;
+  renderPosts(posts);
+}
+
+function sortPosts() {
+  const val    = document.getElementById('sortSelect').value;
+  let sorted   = [...posts];
+  // ✅ CORRECTION : notre API retourne "likes" (pas "like_count")
+  if (val === 'popular')   sorted.sort((a,b) => (b.likes||0) - (a.likes||0));
+  if (val === 'discussed')  sorted.sort((a,b) => (b.reply_count||0) - (a.reply_count||0));
+  if (val === 'recent')     sorted.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  renderPosts(sorted);
+}
+
+function renderPosts(list) {
+  const el     = document.getElementById('postsList');
+  const empty  = document.getElementById('emptyState');
+  document.getElementById('postCount').textContent  = list.length;
+  document.getElementById('postCountS').textContent = list.length > 1 ? 's' : '';
+
+  if (!list.length) { el.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  el.innerHTML = list.map(p => postHTML(p)).join('');
+}
+
+function postHTML(p) {
+  const initials  = (p.author_name||'??').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  const time      = timeAgo(p.created_at);
+  const isOwner   = currentUser && p.author_id === currentUser.id;
+  const isTeacher = p.author_role === 'enseignant' || p.author_role === 'admin';
+  // ✅ CORRECTION : utiliser p.likes (notre API) au lieu de p.like_count
+  const likeCount  = p.likes || 0;
+  const replyCount = p.reply_count || 0;
+
+  return `
+    <div class="post-card bg-white rounded-2xl border border-gray-100 p-5 fade-up" id="post-${p.id}">
+      <div class="flex gap-3">
+        <div class="avatar-circle w-9 h-9 text-sm ${isTeacher?'bg-orange-50 text-orange-600':'bg-primary-light text-primary'} flex-shrink-0">${initials}</div>
+        <div class="flex-grow min-w-0">
+          <div class="flex items-center justify-between gap-2 mb-1 flex-wrap">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-bold text-sm">${p.author_name}</span>
+              ${isTeacher ? '<span class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold">Professeur</span>' : ''}
+              <span class="text-gray-400 text-xs">${time}</span>
+            </div>
+            ${isOwner ? `
+              <button onclick="deletePost('${p.id}')" class="text-gray-300 hover:text-danger transition p-1 rounded-full hover:bg-red-50 flex-shrink-0">
+                <span class="msymbol text-base">delete</span>
+              </button>` : ''}
+          </div>
+          <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words">${escapeHtml(p.content)}</p>
+          <div class="flex items-center gap-4 mt-4">
+            <button onclick="toggleLike('${p.id}', this)" class="like-btn flex items-center gap-1.5 text-sm text-gray-400 hover:text-red-400 transition ${p.liked_by_me ? 'liked' : ''}">
+              <span class="msymbol text-lg">favorite</span>
+              <span class="like-count">${likeCount}</span>
+            </button>
+            <button onclick="openReplies('${p.id}')" class="flex items-center gap-1.5 text-sm text-gray-400 hover:text-primary transition">
+              <span class="msymbol text-lg">chat_bubble</span>
+              <span>${replyCount} réponse${replyCount !== 1 ? 's' : ''}</span>
+            </button>
+            <button onclick="sharePost('${p.id}')" class="flex items-center gap-1.5 text-sm text-gray-400 hover:text-primary transition ml-auto">
+              <span class="msymbol text-lg">share</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
+//  CRÉER UN POST
+// ══════════════════════════════════════════════
+async function submitPost() {
+  const input   = document.getElementById('postInput');
+  const content = input.value.trim();
+  if (!content) return;
+  if (content.length > 1000) { alert('Maximum 1000 caractères.'); return; }
+
+  const btn = document.getElementById('postBtn');
+  btn.disabled = true; btn.textContent = 'Publication...';
+
+  const data = await apiFetch(`/forum/${communityId}/posts`, {
+    method: 'POST',
+    body:   JSON.stringify({ content }),
+  });
+
+  btn.disabled = false; btn.textContent = 'Publier';
+
+  if (!data?.success) { alert(data?.message || 'Erreur.'); return; }
+
+  input.value = ''; input.style.height = '';
+  document.getElementById('charCount').textContent = '0 / 1000';
+
+  const newPost = {
+    ...data.post,
+    author_name:  currentUser ? `${currentUser.first_name} ${currentUser.last_name}` : 'Vous',
+    author_id:    currentUser?.id,
+    author_role:  currentUser?.role,
+    likes:        0,
+    reply_count:  0,
+    liked_by_me:  false,
+  };
+  posts.unshift(newPost);
+  renderPosts(posts);
+}
+
+// ══════════════════════════════════════════════
+//  LIKE
+// ══════════════════════════════════════════════
+async function toggleLike(postId, btn) {
+  if (!isMember) { alert('Rejoignez la communauté pour réagir.'); return; }
+
+  const data = await apiFetch(`/forum/posts/${postId}/like`, { method: 'POST' });
+  if (!data?.success) return;
+
+  const countEl = btn.querySelector('.like-count');
+  const current = parseInt(countEl.textContent) || 0;
+
+  if (data.liked) {
+    btn.classList.add('liked');
+    countEl.textContent = current + 1;
+  } else {
+    btn.classList.remove('liked');
+    countEl.textContent = Math.max(0, current - 1);
+  }
+
+  btn.classList.add('like-pop');
+  btn.addEventListener('animationend', () => btn.classList.remove('like-pop'), { once: true });
+
+  const post = posts.find(p => p.id === postId);
+  if (post) { post.liked_by_me = data.liked; post.likes = (post.likes||0) + (data.liked ? 1 : -1); }
+}
+
+// ══════════════════════════════════════════════
+//  SUPPRIMER POST
+// ══════════════════════════════════════════════
+async function deletePost(postId) {
+  if (!confirm('Supprimer ce post ?')) return;
+  const data = await apiFetch(`/forum/posts/${postId}`, { method: 'DELETE' });
+  if (!data?.success) { alert(data?.message || 'Erreur.'); return; }
+
+  posts = posts.filter(p => p.id !== postId);
+  const el = document.getElementById(`post-${postId}`);
+  if (el) {
+    el.style.opacity = '0'; el.style.transform = 'scale(.95)'; el.style.transition = 'all .2s';
+    setTimeout(() => renderPosts(posts), 200);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  RÉPONSES (modal)
+// ══════════════════════════════════════════════
+async function openReplies(postId) {
+  activePostId = postId;
+  const post   = posts.find(p => p.id === postId);
+  if (!post) return;
+
+  const initials = (post.author_name||'??').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('modalOriginalPost').innerHTML = `
+    <div class="flex gap-3">
+      <div class="avatar-circle w-8 h-8 text-xs flex-shrink-0">${initials}</div>
+      <div>
+        <p class="font-bold text-sm">${post.author_name} <span class="text-gray-400 font-normal text-xs ml-1">${timeAgo(post.created_at)}</span></p>
+        <p class="text-sm text-gray-600 mt-1 leading-relaxed whitespace-pre-wrap">${escapeHtml(post.content)}</p>
+      </div>
+    </div>`;
+
+  if (isMember) {
+    document.getElementById('replyComposerWrap').classList.remove('hidden');
+    document.getElementById('replyGuestMsg').classList.add('hidden');
+  } else {
+    document.getElementById('replyComposerWrap').classList.add('hidden');
+    document.getElementById('replyGuestMsg').classList.remove('hidden');
+  }
+
+  document.getElementById('repliesModal').classList.remove('hidden');
+  document.getElementById('replyInput').value = '';
+  await loadReplies(postId);
+}
+
+function closeReplies() {
+  document.getElementById('repliesModal').classList.add('hidden');
+  activePostId = null;
+}
+
+async function loadReplies(postId) {
+  const data = await apiFetch(`/forum/posts/${postId}/replies`);
+  const el   = document.getElementById('repliesList');
+
+  if (!data?.success || !data.replies.length) {
+    el.innerHTML = `
+      <div class="text-center py-10">
+        <span class="msymbol text-4xl text-gray-200">chat_bubble</span>
+        <p class="text-gray-400 text-sm mt-2">Aucune réponse. Soyez le premier !</p>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = data.replies.map(r => {
+    const ini    = (r.author_name||'??').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const isOwn  = currentUser && r.author_id === currentUser.id;
+    const isTeach = r.author_role==='enseignant'||r.author_role==='admin';
+    return `
+      <div class="flex gap-3 fade-in" id="reply-${r.id}">
+        <div class="avatar-circle w-8 h-8 text-xs flex-shrink-0 ${isTeach?'bg-orange-50 text-orange-600':''}">${ini}</div>
+        <div class="flex-grow bg-gray-50 rounded-2xl px-4 py-3">
+          <div class="flex justify-between items-start">
+            <p class="font-bold text-sm">
+              ${r.author_name}
+              ${isTeach?'<span class="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full ml-1">Prof</span>':''}
+              <span class="text-gray-400 font-normal text-xs ml-1">${timeAgo(r.created_at)}</span>
+            </p>
+            ${isOwn ? `<button onclick="deleteReply('${r.id}')" class="text-gray-300 hover:text-danger transition ml-2"><span class="msymbol text-sm">delete</span></button>` : ''}
+          </div>
+          <p class="text-sm text-gray-600 mt-1 leading-relaxed whitespace-pre-wrap">${escapeHtml(r.content)}</p>
+        </div>
+      </div>`;
+  }).join('');
+
+  el.scrollTop = el.scrollHeight;
+}
+
+async function submitReply() {
+  if (!activePostId) return;
+  const input   = document.getElementById('replyInput');
+  const content = input.value.trim();
+  if (!content) return;
+
+  const data = await apiFetch(`/forum/posts/${activePostId}/replies`, {
+    method: 'POST',
+    body:   JSON.stringify({ content }),
+  });
+
+  if (!data?.success) { alert(data?.message || 'Erreur.'); return; }
+
+  input.value = '';
+  const post = posts.find(p => p.id === activePostId);
+  if (post) {
+    post.reply_count = (post.reply_count||0) + 1;
+    const span = document.querySelector(`#post-${activePostId} button[onclick*="openReplies"] span:last-child`);
+    if (span) span.textContent = `${post.reply_count} réponse${post.reply_count !== 1 ? 's' : ''}`;
+  }
+  await loadReplies(activePostId);
+}
+
+// ✅ CORRECTION : route /forum/replies/:id (ajoutée dans forum.js)
+async function deleteReply(replyId) {
+  if (!confirm('Supprimer cette réponse ?')) return;
+  const data = await apiFetch(`/forum/replies/${replyId}`, { method: 'DELETE' });
+  if (!data?.success) return;
+  await loadReplies(activePostId);
+}
+
+// ══════════════════════════════════════════════
+//  PARTAGER
+// ══════════════════════════════════════════════
+function sharePost(postId) {
+  const url = `${location.origin}${location.pathname}?id=${communityId}#post-${postId}`;
+  if (navigator.share) {
+    navigator.share({ title: community?.name, url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => alert('Lien copié !'));
+  }
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60000), h = Math.floor(diff / 3600000), d = Math.floor(diff / 86400000);
+  if (m < 1)  return 'À l\'instant';
+  if (m < 60) return `Il y a ${m} min`;
+  if (h < 24) return `Il y a ${h}h`;
+  if (d < 7)  return `Il y a ${d}j`;
+  return new Date(dateStr).toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
+}
+
+function escapeHtml(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function goBack() {
+  if (document.referrer.includes('indexEnseignant')) location.href = 'indexEnseignant.html';
+  else location.href = 'indexETUDIANT.html';
+}
+
+function confirmLogout() {
+  localStorage.clear();
+  location.href = 'indexconnexion.html';
+}
+
+function toggleUserMenu() {
+  document.getElementById('userMenu').classList.toggle('hidden');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#userMenu') && !e.target.closest('button[onclick="toggleUserMenu()"]'))
+    document.getElementById('userMenu').classList.add('hidden');
+  if (e.target === document.getElementById('repliesModal'))
+    closeReplies();
+});
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReplies(); });
+</script>
+</body>
+</html>

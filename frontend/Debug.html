@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>Debug CamunoLearn</title>
+<style>
+body{font-family:monospace;padding:20px;background:#111;color:#0f0;max-width:900px;margin:0 auto}
+h2{color:#ff0;border-bottom:1px solid #333;padding-bottom:8px}
+.ok{color:#0f0}.err{color:#f00}.warn{color:#ff0}
+pre{background:#222;padding:12px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;font-size:12px}
+button{background:#333;color:#0f0;border:1px solid #0f0;padding:8px 16px;border-radius:4px;cursor:pointer;margin:4px;font-family:monospace}
+button:hover{background:#0f0;color:#111}
+.section{margin:20px 0;padding:16px;background:#1a1a1a;border-radius:8px;border:1px solid #333}
+</style>
+</head>
+<body>
+<h2>🔍 CamunoLearn Debug Tool</h2>
+
+<div class="section">
+  <h3 class="warn">1. localStorage</h3>
+  <pre id="ls-output">Chargement...</pre>
+</div>
+
+<div class="section">
+  <h3 class="warn">2. Token JWT décodé</h3>
+  <pre id="token-output">Chargement...</pre>
+</div>
+
+<div class="section">
+  <h3 class="warn">3. Test API /auth/me</h3>
+  <button onclick="testMe()">Tester /api/auth/me</button>
+  <pre id="me-output">Cliquer le bouton...</pre>
+</div>
+
+<div class="section">
+  <h3 class="warn">4. Test API /teacher/dashboard</h3>
+  <button onclick="testDash()">Tester /api/teacher/dashboard</button>
+  <pre id="dash-output">Cliquer le bouton...</pre>
+</div>
+
+<div class="section">
+  <h3 class="warn">5. Test API /teacher/classes</h3>
+  <button onclick="testClasses()">Tester /api/teacher/classes</button>
+  <pre id="classes-output">Cliquer le bouton...</pre>
+</div>
+
+<div class="section">
+  <h3 class="warn">6. Forcer refresh du rôle enseignant</h3>
+  <button onclick="forceRole()">Forcer rôle=enseignant + nouveau token</button>
+  <pre id="role-output">Cliquer le bouton...</pre>
+</div>
+
+<div class="section">
+  <h3 class="warn">7. Actions rapides</h3>
+  <button onclick="clearAll()">⚠️ Vider localStorage (logout)</button>
+  <button onclick="goTeacher()">→ Aller dashboard prof</button>
+  <button onclick="goLogin()">→ Aller connexion</button>
+</div>
+
+<script>
+const API = 'http://localhost:3000/api';
+
+// 1. Afficher localStorage
+function showLS() {
+  const token = localStorage.getItem('camunolearn_token');
+  const user  = localStorage.getItem('camunolearn_user');
+  const role  = localStorage.getItem('userRole');
+  const school= localStorage.getItem('userSchool');
+  document.getElementById('ls-output').innerHTML =
+    `Token: ${token ? token.substring(0,50)+'...' : '<span class="err">ABSENT</span>'}\n` +
+    `User: ${user || '<span class="err">ABSENT</span>'}\n` +
+    `Role: ${role  || '<span class="err">ABSENT</span>'}\n` +
+    `School: ${school || 'ABSENT'}`;
+}
+
+// 2. Décoder le token JWT
+function decodeToken() {
+  const token = localStorage.getItem('camunolearn_token');
+  if (!token) { document.getElementById('token-output').innerHTML = '<span class="err">Pas de token dans localStorage</span>'; return; }
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) { document.getElementById('token-output').innerHTML = '<span class="err">Format token invalide</span>'; return; }
+    const payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+    const exp = new Date(payload.exp * 1000);
+    const now = new Date();
+    const expired = exp < now;
+    document.getElementById('token-output').innerHTML =
+      `ID: ${payload.id}\n` +
+      `Email: ${payload.email}\n` +
+      `<span class="${payload.role==='enseignant'?'ok':'err'}">Rôle: ${payload.role} ${payload.role!=='enseignant'?'← ⚠️ PROBLÈME ICI':''}</span>\n` +
+      `School: ${payload.school || 'null'}\n` +
+      `Expire: ${exp.toLocaleString()} <span class="${expired?'err':'ok'}">${expired?'EXPIRÉ':'OK'}</span>`;
+  } catch(e) {
+    document.getElementById('token-output').innerHTML = `<span class="err">Erreur décodage: ${e.message}</span>`;
+  }
+}
+
+// 3. Test /auth/me
+async function testMe() {
+  const token = localStorage.getItem('camunolearn_token');
+  const el = document.getElementById('me-output');
+  el.textContent = 'En cours...';
+  try {
+    const r = await fetch(`${API}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const d = await r.json();
+    if (d.token) { localStorage.setItem('camunolearn_token', d.token); }
+    el.innerHTML = r.ok ? `<span class="ok">✓ ${r.status}</span>\n${JSON.stringify(d, null, 2)}` : `<span class="err">✗ ${r.status}</span>\n${JSON.stringify(d, null, 2)}`;
+    if (r.ok) { decodeToken(); showLS(); }
+  } catch(e) {
+    el.innerHTML = `<span class="err">ERREUR RÉSEAU: ${e.message}\n→ Le serveur Node.js tourne sur localhost:3000 ?</span>`;
+  }
+}
+
+// 4. Test /teacher/dashboard
+async function testDash() {
+  const token = localStorage.getItem('camunolearn_token');
+  const el = document.getElementById('dash-output');
+  el.textContent = 'En cours...';
+  try {
+    const r = await fetch(`${API}/teacher/dashboard`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const d = await r.json();
+    el.innerHTML = r.ok ? `<span class="ok">✓ ${r.status} — Dashboard OK</span>\n${JSON.stringify(d, null, 2)}` : `<span class="err">✗ ${r.status} — ${d.message}</span>\n${JSON.stringify(d, null, 2)}`;
+  } catch(e) {
+    el.innerHTML = `<span class="err">ERREUR RÉSEAU: ${e.message}</span>`;
+  }
+}
+
+// 5. Test /teacher/classes
+async function testClasses() {
+  const token = localStorage.getItem('camunolearn_token');
+  const el = document.getElementById('classes-output');
+  el.textContent = 'En cours...';
+  try {
+    const r = await fetch(`${API}/teacher/classes`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const d = await r.json();
+    el.innerHTML = r.ok ? `<span class="ok">✓ ${r.status} — ${d.classes?.length || 0} classes</span>\n${JSON.stringify(d, null, 2)}` : `<span class="err">✗ ${r.status} — ${d.message}</span>`;
+  } catch(e) {
+    el.innerHTML = `<span class="err">ERREUR: ${e.message}</span>`;
+  }
+}
+
+// 6. Forcer rôle enseignant
+async function forceRole() {
+  const token = localStorage.getItem('camunolearn_token');
+  const el = document.getElementById('role-output');
+  el.textContent = 'Mise à jour du rôle...';
+  try {
+    const r = await fetch(`${API}/auth/role`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ role: 'enseignant' })
+    });
+    const d = await r.json();
+    if (r.ok && d.token) {
+      localStorage.setItem('camunolearn_token', d.token);
+      localStorage.setItem('userRole', 'enseignant');
+      const user = JSON.parse(localStorage.getItem('camunolearn_user') || '{}');
+      user.role = 'enseignant';
+      localStorage.setItem('camunolearn_user', JSON.stringify(user));
+      el.innerHTML = `<span class="ok">✓ Rôle mis à jour ! Nouveau token sauvegardé.\nRedirection dans 2s...</span>`;
+      decodeToken();
+      setTimeout(() => { window.location.href = 'indexEnseignant.html'; }, 2000);
+    } else {
+      el.innerHTML = `<span class="err">✗ Erreur: ${JSON.stringify(d)}</span>`;
+    }
+  } catch(e) {
+    el.innerHTML = `<span class="err">ERREUR RÉSEAU: ${e.message}\n→ Le serveur tourne sur localhost:3000 ?</span>`;
+  }
+}
+
+function clearAll() { localStorage.clear(); alert('localStorage vidé. Redirection...'); window.location.href = 'indexconnexion.html'; }
+function goTeacher() { window.location.href = 'indexEnseignant.html'; }
+function goLogin() { window.location.href = 'indexconnexion.html'; }
+
+// Init
+showLS();
+decodeToken();
+</script>
+</body>
+</html>

@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Détail cours | CamunoLearn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;font-family:'DM Sans',sans-serif}
+.ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;user-select:none;line-height:1;vertical-align:middle}
+.ms.f{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+.tab{padding:8px 18px;border-radius:8px;font-size:.875rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:#6b7280;transition:.15s}
+.tab.on{background:#fff;color:#111;border:1px solid #f0f0f0}
+.card{background:#fff;border:1px solid #f0f0f0;border-radius:14px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-weight:700;font-size:.875rem;cursor:pointer;border:none;transition:.15s}
+.btn:active{transform:scale(.97)}
+.bp{background:#ea580c;color:#fff}.bp:hover{background:#c2410c}
+.bg{background:#f3f4f6;color:#374151}.bg:hover{background:#e5e7eb}
+.fld{width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:9px;padding:9px 13px;font-size:.875rem;color:#111;outline:none;transition:border .15s}
+.fld:focus{border-color:#ea580c;box-shadow:0 0 0 3px rgba(234,88,12,.1)}
+.sk{background:linear-gradient(90deg,#f5f5f5 25%,#ebebeb 50%,#f5f5f5 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:10px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+#toast{position:fixed;bottom:20px;right:20px;z-index:999;padding:11px 18px;border-radius:10px;font-weight:600;font-size:.875rem;box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateY(60px);opacity:0;transition:all .28s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:360px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+#toast.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.bdg{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:.68rem;font-weight:700}
+.pbar{height:5px;background:#f3f4f6;border-radius:99px;overflow:hidden}
+.pfill{height:100%;background:#ea580c;border-radius:99px;transition:width .5s ease}
+</style>
+</head>
+<body style="background:#f8f9fb;min-height:100vh">
+
+<script>
+const API = 'http://localhost:3000/api';
+const TK  = () => localStorage.getItem('camunolearn_token');
+</script>
+
+<!-- TOPBAR -->
+<header style="position:sticky;top:0;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-bottom:1px solid #f0f0f0;z-index:40;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px">
+  <div style="display:flex;align-items:center;gap:10px;min-width:0">
+    <button onclick="history.back()" style="padding:6px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#6b7280;display:flex;align-items:center" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+      <span class="ms">arrow_back</span>
+    </button>
+    <span style="font-size:.8rem;color:#9ca3af">Mes Cours</span>
+    <span class="ms" style="font-size:14px;color:#d1d5db">chevron_right</span>
+    <span id="hdr-title" style="font-family:Manrope;font-weight:700;font-size:.95rem;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Chargement...</span>
+  </div>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button onclick="editCourse()" class="btn bg" style="padding:7px 14px;font-size:.8rem"><span class="ms" style="font-size:16px">edit</span>Modifier</button>
+    <button onclick="openNewAssign()" class="btn bp" style="padding:7px 14px;font-size:.8rem"><span class="ms" style="font-size:16px">add</span>Nouveau devoir</button>
+  </div>
+</header>
+
+<main style="max-width:900px;margin:0 auto;padding:24px 16px;display:flex;flex-direction:column;gap:16px">
+
+  <!-- Carte cours -->
+  <div class="card" style="overflow:hidden" id="course-card">
+    <div style="height:5px;background:#ea580c" id="course-bar"></div>
+    <div style="padding:20px 24px;display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:220px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <span id="course-filiere" class="bdg" style="background:#fff7ed;color:#c2410c">—</span>
+          <span id="course-class" class="bdg" style="background:#f3f4f6;color:#6b7280"></span>
+        </div>
+        <h1 id="course-title" style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#111;margin:0 0 6px">Chargement...</h1>
+        <p id="course-desc" style="font-size:.875rem;color:#9ca3af;margin:0 0 14px"></p>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <span id="inf-students" style="display:flex;align-items:center;gap:5px;font-size:.75rem;color:#6b7280"><span class="ms" style="font-size:15px">person</span>—</span>
+          <span id="inf-assign"   style="display:flex;align-items:center;gap:5px;font-size:.75rem;color:#6b7280"><span class="ms" style="font-size:15px">assignment</span>—</span>
+          <span id="inf-date"     style="display:flex;align-items:center;gap:5px;font-size:.75rem;color:#6b7280"><span class="ms" style="font-size:15px">calendar_today</span>—</span>
+        </div>
+      </div>
+      <!-- PDF -->
+      <div id="pdf-zone" style="display:none;flex-shrink:0">
+        <a id="pdf-link" href="#" target="_blank" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;text-decoration:none;cursor:pointer">
+          <span class="ms f" style="font-size:28px;color:#ea580c">picture_as_pdf</span>
+          <div>
+            <p style="font-size:.75rem;font-weight:700;color:#c2410c;margin:0">Support de cours</p>
+            <p id="pdf-name" style="font-size:.72rem;color:#9a3412;margin:0">Télécharger le PDF</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px" id="stats-grid">
+    <div class="card" style="padding:16px;text-align:center"><div class="sk" style="height:32px;margin-bottom:6px"></div><div class="sk" style="height:12px;width:60%;margin:0 auto"></div></div>
+    <div class="card" style="padding:16px;text-align:center"><div class="sk" style="height:32px;margin-bottom:6px"></div><div class="sk" style="height:12px;width:60%;margin:0 auto"></div></div>
+    <div class="card" style="padding:16px;text-align:center"><div class="sk" style="height:32px;margin-bottom:6px"></div><div class="sk" style="height:12px;width:60%;margin:0 auto"></div></div>
+    <div class="card" style="padding:16px;text-align:center"><div class="sk" style="height:32px;margin-bottom:6px"></div><div class="sk" style="height:12px;width:60%;margin:0 auto"></div></div>
+  </div>
+
+  <!-- Onglets -->
+  <div style="background:#f3f4f6;padding:4px;border-radius:10px;display:inline-flex;gap:2px">
+    <button class="tab on" id="tab-devoirs" onclick="switchTab('devoirs')">Devoirs & Quiz</button>
+    <button class="tab" id="tab-etudiants" onclick="switchTab('etudiants')">Étudiants</button>
+    <button class="tab" id="tab-supports" onclick="switchTab('supports')">Supports</button>
+  </div>
+
+  <!-- Contenu onglets -->
+  <div id="pane-devoirs">
+    <div id="devoirs-list" style="display:flex;flex-direction:column;gap:10px">
+      <div class="sk" style="height:100px"></div>
+      <div class="sk" style="height:100px"></div>
+    </div>
+    <div id="devoirs-empty" style="display:none;text-align:center;padding:40px 20px" class="card">
+      <span class="ms" style="font-size:44px;color:#d1d5db">assignment</span>
+      <p style="font-weight:700;color:#6b7280;margin-top:10px">Aucun devoir créé pour ce cours</p>
+      <button onclick="openNewAssign()" class="btn bp" style="margin-top:14px"><span class="ms">add</span>Créer un devoir</button>
+    </div>
+  </div>
+
+  <div id="pane-etudiants" style="display:none">
+    <div id="etudiants-list" style="display:flex;flex-direction:column;gap:8px">
+      <div class="sk" style="height:54px"></div>
+      <div class="sk" style="height:54px"></div>
+    </div>
+    <div id="etudiants-empty" style="display:none;text-align:center;padding:40px 20px" class="card">
+      <span class="ms" style="font-size:44px;color:#d1d5db">person</span>
+      <p style="font-weight:700;color:#6b7280;margin-top:10px">Aucun étudiant inscrit</p>
+      <p style="font-size:.875rem;color:#9ca3af;margin-top:4px">Les étudiants de la classe liée sont inscrits automatiquement</p>
+    </div>
+  </div>
+
+  <div id="pane-supports" style="display:none">
+    <div id="supports-content">
+      <!-- Rempli dynamiquement depuis COURSE -->
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL NOUVEAU DEVOIR -->
+<div id="m-assign" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:18px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,.15);max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <div>
+        <h3 id="m-as-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Nouveau devoir</h3>
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <button class="tab on" id="tab-d" onclick="switchAsTab('devoir')" style="padding:6px 14px;font-size:.8rem">📄 Devoir</button>
+          <button class="tab" id="tab-q" onclick="switchAsTab('quiz')" style="padding:6px 14px;font-size:.8rem">🧠 Quiz</button>
+        </div>
+      </div>
+      <button onclick="closeAssign()" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label style="display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:5px">Titre *</label><input id="as-ttl" type="text" placeholder="Ex: TP Grafcet — Séance 3" class="fld"/></div>
+      <div><label style="display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:5px">Date limite</label><input id="as-due" type="datetime-local" class="fld"/></div>
+      <div><label style="display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:5px">Instructions</label><textarea id="as-inst" rows="2" placeholder="Consignes pour les étudiants..." class="fld" style="resize:none"></textarea></div>
+      <div id="d-section">
+        <label style="display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:5px">Énoncé PDF (optionnel)</label>
+        <div onclick="document.getElementById('as-file').click()" style="border:2px dashed #e5e7eb;border-radius:12px;padding:18px;text-align:center;cursor:pointer" onmouseover="this.style.borderColor='#ea580c';this.style.background='#fff7ed'" onmouseout="this.style.borderColor='#e5e7eb';this.style.background='transparent'">
+          <span class="ms" style="font-size:26px;color:#d1d5db">upload_file</span>
+          <p style="font-size:.8rem;color:#6b7280;margin-top:5px" id="as-file-label">Choisir un PDF</p>
+        </div>
+        <input type="file" id="as-file" accept=".pdf" style="display:none" onchange="onFC('as-file','as-file-label')"/>
+      </div>
+      <div id="q-section" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af">Questions *</label>
+          <button onclick="addQ()" class="btn bp" style="padding:6px 12px;font-size:.8rem"><span class="ms" style="font-size:15px">add</span>Question</button>
+        </div>
+        <div id="quiz-qs" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:10px"></div>
+        <p style="font-size:.72rem;color:#9ca3af;margin-top:6px">💡 Sélectionnez la bonne réponse avec le bouton radio</p>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="closeAssign()" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitAssign()" id="as-btn" class="btn bp" style="flex:1">Créer le devoir</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let COURSE_ID = null;
+let COURSE    = null;
+let ASSIGNS   = [];
+let asMode    = 'devoir';
+let qCount    = 0;
+
+// Upload.io — mêmes valeurs que indexEnseignant.html
+const UPLOADIO_KEY        = 'public_W23MTdC4sM22hJB8SGp22Q4b8hFW';   // ← ligne 188
+const UPLOADIO_ACCOUNT_ID = 'W23MTdC';         // ← ligne 189
+
+// ── Init ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(location.search);
+  COURSE_ID = params.get('id');
+  if (!COURSE_ID || !TK()) { location.href = 'indexEnseignant.html'; return; }
+  await loadCourse();
+  await loadAssignments();
+});
+
+async function api(path, opts = {}) {
+  try {
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${TK()}`, ...(opts.headers||{}) }
+    });
+    if (r.status === 401) { location.href = 'indexconnexion.html'; return null; }
+    return r.json();
+  } catch(e) { toast('Erreur réseau.','err'); return null; }
+}
+
+// ── Chargement cours ─────────────────────────────────────
+async function loadCourse() {
+  // Détecter le rôle depuis le token
+  const meRes = await api('/auth/me');
+  const role  = meRes?.user?.role || 'etudiant';
+
+  if (role === 'etudiant') {
+    // Étudiant : charger via ses cours (inclut inter-univ accordés)
+    const d = await api('/student/courses');
+    if (!d?.success) return;
+    COURSE = d.courses.find(c => c.id === COURSE_ID);
+    if (!COURSE) {
+      toast('Accès non autorisé à ce cours.', 'err');
+      setTimeout(() => location.href = 'indexETUDIANT.html', 1500);
+      return;
+    }
+    // Mode lecture seule pour les étudiants
+    IS_STUDENT = true;
+    document.getElementById('student-mode-banner')?.style.removeProperty('display');
+  } else {
+    // Prof/Admin : charger via les cours du prof
+    const d = await api('/teacher/courses');
+    if (!d?.success) return;
+    COURSE = d.courses.find(c => c.id === COURSE_ID);
+    if (!COURSE) { location.href = 'indexEnseignant.html'; return; }
+    IS_STUDENT = false;
+  }
+
+  // Remplir l'UI
+  document.title = `${COURSE.title} | CamunoLearn`;
+  document.getElementById('hdr-title').textContent    = COURSE.title;
+  document.getElementById('course-title').textContent = COURSE.title;
+  document.getElementById('course-desc').textContent  = COURSE.description || '';
+  document.getElementById('course-filiere').textContent = COURSE.filiere || 'Cours';
+  if (COURSE.class_name) {
+    document.getElementById('course-class').textContent = COURSE.class_name;
+    document.getElementById('course-class').style.display = 'inline-flex';
+  } else {
+    document.getElementById('course-class').style.display = 'none';
+  }
+
+  // Barre couleur
+  const colors = { orange:'#ea580c', green:'#22c55e', blue:'#3b82f6', purple:'#8b5cf6' };
+  document.getElementById('course-bar').style.background = colors[COURSE.color] || '#ea580c';
+
+  // Infos
+  document.getElementById('inf-students').innerHTML = `<span class="ms" style="font-size:15px">person</span> ${COURSE.student_count} étudiant${COURSE.student_count!=1?'s':''}`;
+  document.getElementById('inf-assign').innerHTML   = `<span class="ms" style="font-size:15px">assignment</span> ${COURSE.assignment_count} devoir${COURSE.assignment_count!=1?'s':''}`;
+  document.getElementById('inf-date').innerHTML     = `<span class="ms" style="font-size:15px">calendar_today</span> Créé le ${new Date(COURSE.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}`;
+
+  // PDF
+  if (COURSE.file_url) {
+    document.getElementById('pdf-zone').style.display = 'block';
+    document.getElementById('pdf-link').href = COURSE.file_url;
+    const name = COURSE.file_url.split('/').pop().split('?')[0];
+    document.getElementById('pdf-name').textContent = name.length > 30 ? name.substring(0,30)+'...' : name;
+  }
+
+  // Stats (on chargera les stats après les devoirs)
+  renderStats(COURSE.student_count, COURSE.assignment_count, 0, '—');
+}
+
+function renderStats(students, devoirs, aCorreger, moyenne) {
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="card" style="padding:16px;text-align:center">
+      <p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#111;margin:0">${students}</p>
+      <p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin:4px 0 0">Étudiants</p>
+    </div>
+    <div class="card" style="padding:16px;text-align:center">
+      <p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#111;margin:0">${devoirs}</p>
+      <p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin:4px 0 0">Devoirs</p>
+    </div>
+    <div class="card" style="padding:16px;text-align:center">
+      <p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:${aCorreger>0?'#d97706':'#111'};margin:0">${aCorreger}</p>
+      <p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin:4px 0 0">À corriger</p>
+    </div>
+    <div class="card" style="padding:16px;text-align:center">
+      <p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:${moyenne!=='—'?'#16a34a':'#111'};margin:0">${moyenne}</p>
+      <p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin:4px 0 0">Moy. classe</p>
+    </div>`;
+}
+
+// ── Chargement devoirs ────────────────────────────────────
+async function loadAssignments() {
+  const d = await api('/teacher/assignments');
+  if (!d?.success) return;
+  ASSIGNS = d.assignments.filter(a => a.course_id === COURSE_ID || 
+    (COURSE && a.course_title === COURSE.title));
+  
+  // Recalculer stats
+  const totalToGrade = ASSIGNS.reduce((s,a) => s + parseInt(a.to_grade||0), 0);
+  renderStats(COURSE?.student_count||0, ASSIGNS.length, totalToGrade, '—');
+
+  renderDevoirs();
+
+  // Charger aussi les étudiants si classe liée
+  if (COURSE?.class_id) loadEtudiants();
+}
+
+function renderDevoirs() {
+  const el    = document.getElementById('devoirs-list');
+  const empty = document.getElementById('devoirs-empty');
+  if (!ASSIGNS.length) { el.style.display='none'; empty.style.display='block'; return; }
+  el.style.display='flex'; empty.style.display='none';
+
+  el.innerHTML = ASSIGNS.map(a => {
+    const due    = a.due_date ? new Date(a.due_date) : null;
+    const urgent = due && due < new Date() && a.status === 'pending';
+    const pct    = a.total_students > 0 ? Math.round((a.submissions_count/a.total_students)*100) : 0;
+    const dueStr = due ? due.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : 'Pas de date limite';
+    const ng     = parseInt(a.to_grade||0);
+    const scoreColor = ng > 0 ? '#d97706' : (a.submissions_count > 0 ? '#16a34a' : '#9ca3af');
+
+    return `
+    <div class="card" style="padding:18px${urgent?';border-left:4px solid #dc2626':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:7px">
+            ${urgent?'<span class="bdg" style="background:#fef2f2;color:#dc2626">⚠️ Urgent</span>':''}
+            <span class="bdg" style="background:${a.is_quiz?'#faf5ff':'#f3f4f6'};color:${a.is_quiz?'#7c3aed':'#6b7280'}">${a.is_quiz?'🧠 Quiz':'📄 Devoir'}</span>
+            ${ng>0?`<span class="bdg" style="background:#fffbeb;color:#92400e">${ng} à corriger</span>`:''}
+          </div>
+          <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111;margin:0 0 4px">${a.title}</h3>
+          <p style="font-size:.72rem;color:#9ca3af;margin:0">Limite : ${dueStr}</p>
+          ${a.instructions?`<p style="font-size:.75rem;color:#6b7280;margin-top:4px;font-style:italic">${a.instructions}</p>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:${scoreColor};margin:0">${a.submissions_count}/${a.total_students||COURSE?.student_count||'?'}</p>
+          <p style="font-size:.7rem;color:#9ca3af;font-weight:600;margin-bottom:8px">rendus</p>
+          <button onclick="goToCorrections('${a.id}','${esc(a.title)}')" class="btn bp" style="padding:6px 14px;font-size:.8rem">
+            Voir copies${ng>0?' · '+ng:''}
+          </button>
+        </div>
+      </div>
+      <div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>
+      ${a.file_url?`<a href="${a.file_url}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:700;color:#ea580c;text-decoration:none;margin-top:10px"><span class="ms" style="font-size:14px">download</span>Voir l'énoncé PDF</a>`:''}
+    </div>`;
+  }).join('');
+}
+
+async function loadEtudiants() {
+  // Charger les étudiants inscrits à CE cours (par enrollments)
+  const el    = document.getElementById('etudiants-list');
+  const empty = document.getElementById('etudiants-empty');
+
+  // Vider skeletons
+  el.style.display = 'flex';
+  empty.style.display = 'none';
+
+  const d = await api(`/teacher/courses/${COURSE_ID}/students`);
+  if (!d?.success) {
+    el.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:20px">Erreur de chargement.</p>';
+    return;
+  }
+
+  if (!d.students.length) {
+    el.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+
+  el.innerHTML = d.students.map(s => {
+    const avg   = s.avg_grade ? parseFloat(s.avg_grade) : null;
+    const done  = parseInt(s.submitted_count) || 0;
+    const total = parseInt(s.total_assignments) || 0;
+    const pct   = total > 0 ? Math.round((done / total) * 100) : 0;
+    const col   = avg ? (avg >= 14 ? '#16a34a' : avg >= 10 ? '#d97706' : '#dc2626') : '#9ca3af';
+    const initials = (s.first_name[0] || '') + (s.last_name[0] || '');
+    const school = s.school === COURSE?.school ? '' : ` · <span style="color:#004a77">${s.school||''}</span>`;
+
+    return `<div class="card" style="padding:14px 18px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:50%;background:${s.avatar_url?'transparent':'#ea580c'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;overflow:hidden">
+          ${s.avatar_url
+            ? `<img src="${s.avatar_url}" style="width:100%;height:100%;object-fit:cover"/>`
+            : initials}
+        </div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:.875rem;font-weight:700;color:#111;margin:0">${s.first_name} ${s.last_name}</p>
+          <p style="font-size:.72rem;color:#9ca3af;margin:2px 0 0">${s.email}${school}</p>
+          ${s.filiere ? `<span class="bdg" style="background:#f0fdf4;color:#166534;margin-top:4px">${s.filiere}</span>` : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          ${avg !== null
+            ? `<p style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:${col};margin:0">${avg}/20</p>
+               <p style="font-size:.65rem;color:#9ca3af;margin:0">moyenne</p>`
+            : `<p style="font-size:.75rem;color:#9ca3af;margin:0">Pas de note</p>`}
+        </div>
+      </div>
+      ${total > 0 ? `
+      <div style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:.72rem;color:#9ca3af">${done}/${total} devoir${total>1?'s':''} rendus</span>
+          <span style="font-size:.72rem;font-weight:700;color:${pct===100?'#16a34a':'#9ca3af'}">${pct}%</span>
+        </div>
+        <div style="height:4px;background:#f3f4f6;border-radius:99px;overflow:hidden">
+          <div style="height:100%;background:${pct===100?'#16a34a':'#ea580c'};width:${pct}%;border-radius:99px;transition:width .5s"></div>
+        </div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── Navigation ────────────────────────────────────────────
+function renderSupports() {
+  const el = document.getElementById('supports-content');
+  if (!COURSE) return;
+
+  if (!COURSE.file_url) {
+    el.innerHTML = `<div class="card" style="padding:40px 24px;text-align:center">
+      <span class="ms" style="font-size:44px;color:#d1d5db">upload_file</span>
+      <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucun support de cours</p>
+      <p style="font-size:.875rem;color:#9ca3af;margin-top:4px">Le professeur n'a pas encore uploadé de PDF pour ce cours.</p>
+    </div>`;
+    return;
+  }
+
+  // Extraire le nom du fichier depuis l'URL
+  const fileName = decodeURIComponent(COURSE.file_url.split('/').pop().split('?')[0]) || 'Support de cours';
+  const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(COURSE.file_url);
+  const isPDF = /\.pdf$/i.test(COURSE.file_url) || COURSE.file_url.includes('upload.io') || COURSE.file_url.includes('cloudinary');
+
+  el.innerHTML = `
+    <div class="card" style="padding:20px">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111;margin-bottom:16px">Supports de cours</h3>
+      <div style="display:flex;align-items:center;gap:14px;padding:16px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0">
+        <div style="width:48px;height:48px;background:#00602a;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span class="ms" style="color:#fff;font-size:24px">${isPDF?'picture_as_pdf':'description'}</span>
+        </div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:.875rem;font-weight:700;color:#111;margin-bottom:2px">${COURSE.title} — Support principal</p>
+          <p style="font-size:.75rem;color:#9ca3af">Publié par le professeur · Cours ${COURSE.filiere||''}</p>
+        </div>
+        <a href="${COURSE.file_url}" target="_blank"
+           style="display:flex;align-items:center;gap:6px;padding:9px 16px;background:#00602a;color:#fff;border-radius:9px;font-size:.8rem;font-weight:700;text-decoration:none;flex-shrink:0">
+          <span class="ms" style="font-size:16px">download</span>Télécharger
+        </a>
+      </div>
+      <!-- Aperçu si possible -->
+      ${isPDF && !isImg ? `
+      <div style="margin-top:16px">
+        <p style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em;margin-bottom:8px">Aperçu</p>
+        <iframe src="${COURSE.file_url}" style="width:100%;height:500px;border-radius:10px;border:1px solid #f0f0f0" title="Support de cours"></iframe>
+      </div>` : ''}
+    </div>`;
+}
+
+let _etudiantsLoaded = false;
+function switchTab(t) {
+  ['devoirs','etudiants','supports'].forEach(n => {
+    document.getElementById(`pane-${n}`).style.display = n===t?'block':'none';
+    const btn = document.getElementById(`tab-${n}`);
+    if (btn) { btn.classList.toggle('on', n===t); }
+  });
+  if (t==='supports')   renderSupports();
+  if (t==='etudiants' && !_etudiantsLoaded) {
+    _etudiantsLoaded = true;
+    loadEtudiants();
+  }
+}
+
+function goToCorrections(assignId, title) {
+  location.href = `pageCorrections.html?id=${assignId}&title=${encodeURIComponent(title)}&courseId=${COURSE_ID}`;
+}
+
+function editCourse() {
+  location.href = `indexEnseignant.html?edit=${COURSE_ID}#courses`;
+}
+
+// ── Nouveau devoir ────────────────────────────────────────
+function openNewAssign() {
+  document.getElementById('as-ttl').value='';
+  document.getElementById('as-due').value='';
+  document.getElementById('as-inst').value='';
+  document.getElementById('as-file').value='';
+  document.getElementById('as-file-label').textContent='Choisir un PDF';
+  document.getElementById('quiz-qs').innerHTML='';
+  qCount=0;
+  switchAsTab('devoir');
+  document.getElementById('m-assign').style.display='flex';
+}
+
+function closeAssign() { document.getElementById('m-assign').style.display='none'; }
+
+function switchAsTab(mode) {
+  asMode=mode;
+  document.getElementById('d-section').style.display=mode==='devoir'?'block':'none';
+  document.getElementById('q-section').style.display=mode==='quiz'?'block':'none';
+  document.getElementById('tab-d').classList.toggle('on',mode==='devoir');
+  document.getElementById('tab-q').classList.toggle('on',mode==='quiz');
+  document.getElementById('m-as-title').textContent=mode==='quiz'?'Nouveau quiz':'Nouveau devoir';
+  document.getElementById('as-btn').textContent=mode==='quiz'?'Créer le quiz':'Créer le devoir';
+}
+
+function addQ() {
+  const i=++qCount;
+  const div=document.createElement('div');
+  div.style.cssText='background:#f9fafb;border:1px solid #f0f0f0;border-radius:12px;padding:14px';
+  div.id=`qb-${i}`;
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <p style="font-size:.8rem;font-weight:700;color:#374151;margin:0">Question ${i}</p>
+      <button onclick="document.getElementById('qb-${i}').remove()" style="border:none;background:none;cursor:pointer;color:#d1d5db" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#d1d5db'"><span class="ms" style="font-size:15px">delete</span></button>
+    </div>
+    <input type="text" placeholder="Texte de la question..." class="fld" id="qq-${i}" style="margin-bottom:10px"/>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      ${[1,2,3,4].map(n=>`<div style="display:flex;align-items:center;gap:8px"><input type="radio" name="c-${i}" value="${n}" style="accent-color:#ea580c;flex-shrink:0"/><input type="text" placeholder="Option ${n}" class="fld" id="opt-${i}-${n}" style="flex:1"/></div>`).join('')}
+    </div>`;
+  document.getElementById('quiz-qs').appendChild(div);
+}
+
+async function submitAssign() {
+  const title = document.getElementById('as-ttl').value.trim();
+  const due   = document.getElementById('as-due').value;
+  const inst  = document.getElementById('as-inst').value.trim();
+  if (!title) { toast('Le titre est obligatoire.','err'); return; }
+
+  const btn=document.getElementById('as-btn');
+  btn.disabled=true;btn.textContent='Enregistrement...';
+
+  let file_url=null,quiz_data=null;
+  if (asMode==='devoir') {
+    const file=document.getElementById('as-file').files[0];
+    if (file) file_url=await uploadCDN(file);
+  } else {
+    const qs=[];
+    document.querySelectorAll('[id^="qb-"]').forEach(block=>{
+      const idx=block.id.split('-')[1];
+      const q=document.getElementById(`qq-${idx}`)?.value.trim();if(!q)return;
+      const opts=[];let correct=0;
+      for(let n=1;n<=4;n++){const v=document.getElementById(`opt-${idx}-${n}`)?.value.trim();if(v)opts.push(v);if(document.querySelector(`input[name="c-${idx}"][value="${n}"]`)?.checked)correct=opts.length-1;}
+      if(opts.length>=2)qs.push({question:q,options:opts,correct:Math.max(0,correct)});
+    });
+    if(!qs.length){toast('Ajoutez au moins une question.','err');btn.disabled=false;btn.textContent=asMode==='quiz'?'Créer le quiz':'Créer le devoir';return;}
+    quiz_data=JSON.stringify(qs);
+  }
+
+  const d=await api('/teacher/assignments',{method:'POST',body:JSON.stringify({title,course_id:COURSE_ID,due_date:due||null,instructions:inst,is_quiz:asMode==='quiz',file_url,quiz_data})});
+  btn.disabled=false;btn.textContent=asMode==='quiz'?'Créer le quiz':'Créer le devoir';
+
+  if(d?.success){
+    closeAssign();
+    await loadAssignments();
+    toast(`✅ "${title}" créé ! Visible par vos étudiants.`);
+  } else if(d) toast(d.message||'Erreur.','err');
+}
+
+async function uploadCDN(file) {
+  try {
+    const r = await fetch(
+      `https://api.upload.io/v2/accounts/${UPLOADIO_ACCOUNT_ID}/uploads/binary`,
+      { method:'POST', headers:{ 'Authorization':`Bearer ${UPLOADIO_KEY}`, 'Content-Type':file.type }, body:file }
+    );
+    if (r.ok) { const d = await r.json(); return d.fileUrl; }
+    else { toast('Erreur Upload.io. Vérifiez UPLOADIO_KEY et UPLOADIO_ACCOUNT_ID.','err'); return null; }
+  } catch(e) {
+    toast('Upload.io non accessible. Devoir créé sans PDF.','err');
+    return null;
+  }
+}
+
+function onFC(inputId,labelId){const f=document.getElementById(inputId).files[0];if(f)document.getElementById(labelId).textContent=`${f.name} (${(f.size/1024/1024).toFixed(1)}MB)`;}
+function esc(s){return(s||'').replace(/'/g,"\\'");}
+function toast(msg,type='ok'){const el=document.getElementById('toast');el.textContent=msg;el.className=type==='ok'?'ok show':'err show';setTimeout(()=>el.classList.remove('show'),4000);}
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Aide - CamunoLearn</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00602a",
+                        "on-surface": "#191c1e",
+                        "on-surface-variant": "#3f493f",
+                        "background": "#f8f9fb",
+                        "tertiary": "#a90111"
+                    },
+                    fontFamily: { "headline": ["Manrope"], "body": ["Inter"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-up {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .fade-up.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen flex flex-col">
+
+    <header class="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 h-20 flex justify-between items-center px-6 md:px-12 z-50">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">school</span>
+            <span class="text-2xl font-extrabold tracking-tight text-primary font-headline"><span class="text-on-surface">Camuno</span>Learn</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="indexconnexion.html" class="px-5 py-2 text-primary font-semibold hover:opacity-90 font-body text-sm hidden md:inline-flex">Se connecter</a>
+            <a href="indexInscription.html" class="px-6 py-2 bg-primary text-white rounded-full font-semibold hover:opacity-90 font-body text-sm hidden md:inline-block">S'inscrire</a>
+            <a href="indexAccueilPLATEFORME.html" class="text-slate-500 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">home</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-grow pt-32 pb-20 px-6">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-primary/5 p-8 border-b border-gray-100 text-center">
+                    <span class="material-symbols-outlined text-primary text-5xl mb-2">help_center</span>
+                    <h1 class="text-3xl md:text-4xl font-headline font-extrabold text-on-surface">Besoin d'aide ?</h1>
+                    <p class="text-on-surface-variant mt-2">Nous sommes là pour vous accompagner.</p>
+                </div>
+
+                <div class="p-8 space-y-8">
+                    <div class="bg-green-50 rounded-2xl p-6 border border-green-100 text-center fade-up">
+                        <span class="material-symbols-outlined text-green-600 text-4xl">chat</span>
+                        <h2 class="text-xl font-bold mt-2">Contactez-nous sur WhatsApp</h2>
+                        <p class="text-slate-600 text-sm mt-1">Réponse rapide, 7j/7 de 8h à 20h.</p>
+                        <a href="https://wa.me/237691929394?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20sur%20CamunoLearn" 
+                           target="_blank"
+                           class="inline-flex items-center gap-2 mt-4 px-6 py-3 bg-green-600 text-white rounded-full font-bold hover:bg-green-700 transition">
+                            <span class="material-symbols-outlined">whatsapp</span>
+                            Écrire sur WhatsApp
+                        </a>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200 fade-up">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="material-symbols-outlined text-primary">mail</span>
+                            <h2 class="text-xl font-bold">Ou laissez-nous un message</h2>
+                        </div>
+                        <form id="helpForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Votre email</label>
+                                <input type="email" id="helpEmail" required class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="nom@exemple.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Message</label>
+                                <textarea id="helpMessage" rows="4" required class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Décrivez votre problème ou votre question..."></textarea>
+                            </div>
+                            <button type="submit" class="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined">send</span>
+                                Envoyer
+                            </button>
+                        </form>
+                        <p class="text-xs text-slate-400 mt-3 text-center">Nous vous répondrons dans les 24h.</p>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-6 text-center fade-up">
+                        <p class="text-sm text-slate-500">Consultez aussi notre <a href="#" class="text-primary font-semibold">Centre d'aide</a> ou notre <a href="#" class="text-primary font-semibold">FAQ</a>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="w-full py-8 bg-white border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-slate-400 text-sm">© 2026 CamunoLearn — Tous droits réservés</p>
+            <div class="flex gap-6">
+                <a href="cookies.html" class="text-slate-400 hover:text-primary text-xs">Cookies</a>
+                <a href="#" class="text-slate-400 hover:text-primary text-xs">Confidentialité</a>
+                <a href="#" class="text-slate-400 hover:text-primary text-xs">Mentions légales</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.fade-up').forEach((el, i) => {
+                setTimeout(() => el.classList.add('show'), 150 + i * 100);
+            });
+        });
+
+        const form = document.getElementById('helpForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('helpEmail').value;
+            const message = document.getElementById('helpMessage').value;
+            if (!email || !message) {
+                alert('Veuillez remplir tous les champs.');
+                return;
+            }
+            alert(`Merci ${email}, votre message a bien été envoyé. Nous vous répondrons rapidement.`);
+            form.reset();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: camunolearn_db
+    restart: always
+    environment:
+      POSTGRES_DB: camunolearn
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: CamunoLearnDB2025!
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: camunolearn_api
+    restart: always
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: camunolearn
+      DB_USER: postgres
+      DB_PASSWORD: CamunoLearnDB2025!
+      JWT_SECRET: 70bbc305e168c14d916da026e8be9229e6d886e246f818fb082842dd5fc62d4868101906d75e687160a47d494c3903c1975435f62ac22ae42d5f6ebab73c9
+      JWT_EXPIRES_IN: 7d
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    image: nginx:alpine
+    container_name: camunolearn_web
+    restart: always
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

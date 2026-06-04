@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Cours IUT de Douala - CamunoLearn</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#00602a",
+                        "primary-container": "#e0f2e9",
+                        "on-surface": "#191c1e",
+                        "background": "#f8f9fb",
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fb; }
+        .hero-gradient { background: linear-gradient(135deg, #00602a 0%, #1a7a3c 100%); }
+        .course-card { transition: all 0.3s ease; border: 1px solid #f1f5f9; height: 100%; display: flex; flex-direction: column; }
+        .course-card:hover { transform: translateY(-4px); border-color: #00602a; box-shadow: 0 12px 30px -10px rgba(0, 96, 42, 0.15); }
+        .filter-btn.active { background-color: #00602a; color: white; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <nav class="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-20 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">school</span>
+            <span class="text-2xl font-bold tracking-tight text-primary font-headline">CamunoLearn</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2">
+                <span class="material-symbols-outlined text-gray-400 text-sm mr-2">search</span>
+                <input type="text" id="courseSearch" placeholder="Rechercher une matière..." class="bg-transparent border-none focus:ring-0 text-sm w-48 font-body">
+            </div>
+            <button class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                <span class="material-symbols-outlined">person</span>
+            </button>
+        </div>
+    </nav>
+
+    <header class="pt-32 pb-12 bg-white">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <nav class="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+                        <a href="indexAccueilPLATEFORME.html">Plateforme</a>
+                        <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+                        <span class="text-primary">IUT de Douala</span>
+                    </nav>
+                    <h1 class="text-4xl font-headline font-extrabold text-on-surface">Bibliothèque de Cours</h1>
+                    <p class="text-gray-500 font-body mt-2">Explorez les ressources académiques de l'IUT.</p>
+                </div>
+                
+                <div class="flex bg-gray-100 p-1 rounded-xl">
+                    <button class="filter-btn active px-6 py-2.5 rounded-lg text-sm font-bold transition-all" onclick="filterLevel('all', this)">Tous</button>
+                    <button class="filter-btn px-6 py-2.5 rounded-lg text-sm font-bold transition-all" onclick="filterLevel('DUT', this)">DUT</button>
+                    <button class="filter-btn px-6 py-2.5 rounded-lg text-sm font-bold transition-all" onclick="filterLevel('Licence', this)">Licence</button>
+                    <button class="filter-btn px-6 py-2.5 rounded-lg text-sm font-bold transition-all" onclick="filterLevel('Master', this)">Master</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-8 py-12 w-full">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="courseContainer">
+            
+            <div class="course-card bg-white rounded-2xl p-6" data-level="DUT">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-blue-50 text-blue-600 text-[10px] font-bold uppercase">Génie Info</span>
+                    <span class="text-gray-400 text-xs font-mono">INF120</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Algorithmique et C++</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">JP</div>
+                    <span class="text-xs text-gray-500 font-body">Dr. Jean-Paul Ebanda</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">12 Supports</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="DUT">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-green-50 text-green-600 text-[10px] font-bold uppercase">Génie Thermique</span>
+                    <span class="text-gray-400 text-xs font-mono">THM201</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Thermodynamique I</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">PA</div>
+                    <span class="text-xs text-gray-500 font-body">M. Paul Atangana</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">8 Chapitres</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="DUT">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-orange-50 text-orange-600 text-[10px] font-bold uppercase">Génie Electrique</span>
+                    <span class="text-gray-400 text-xs font-mono">ELE105</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Électronique Analogique</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">ST</div>
+                    <span class="text-xs text-gray-500 font-body">M. Samuel Tagne</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">5 TPs Corrigés</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="DUT">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-red-50 text-red-600 text-[10px] font-bold uppercase">Gestion (GEA)</span>
+                    <span class="text-gray-400 text-xs font-mono">GEA110</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Comptabilité Générale I</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">MK</div>
+                    <span class="text-xs text-gray-500 font-body">Mme Marie Kamdem</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">15 Exercices</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="Licence">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase">Licence Pro</span>
+                    <span class="text-gray-400 text-xs font-mono">LPRO402</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Réseaux Mobiles et 5G</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">DF</div>
+                    <span class="text-xs text-gray-500 font-body">Dr. David Foka</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">Vidéo + PDF</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="Licence">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-yellow-50 text-yellow-600 text-[10px] font-bold uppercase">Logistique</span>
+                    <span class="text-gray-400 text-xs font-mono">LOG301</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Gestion des Stocks et Flux</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">BN</div>
+                    <span class="text-xs text-gray-500 font-body">M. Bertrand Nana</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">Études de cas</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="Licence">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-pink-50 text-pink-600 text-[10px] font-bold uppercase">Marketing</span>
+                    <span class="text-gray-400 text-xs font-mono">MKT350</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Marketing Digital & SEO</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">AS</div>
+                    <span class="text-xs text-gray-500 font-body">Mme Alice Salla</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">6 Projets</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="Licence">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-slate-50 text-slate-600 text-[10px] font-bold uppercase">Mécanique</span>
+                    <span class="text-gray-400 text-xs font-mono">MEC412</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Résistance des Matériaux</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">TE</div>
+                    <span class="text-xs text-gray-500 font-body">Dr. Thomas Esso</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">Abaques inclus</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="Master">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-purple-50 text-purple-600 text-[10px] font-bold uppercase">Management</span>
+                    <span class="text-gray-400 text-xs font-mono">MGT501</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Gouvernance d'Entreprise</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">NB</div>
+                    <span class="text-xs text-gray-500 font-body">Pr. Ngo Bayi</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">Conférence PDF</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="Master">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-cyan-50 text-cyan-600 text-[10px] font-bold uppercase">Data Science</span>
+                    <span class="text-gray-400 text-xs font-mono">DSC510</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Big Data et Hadoop</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">EM</div>
+                    <span class="text-xs text-gray-500 font-body">Dr. Eric Mve</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">4 Labos</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="Master">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-teal-50 text-teal-600 text-[10px] font-bold uppercase">Énergie</span>
+                    <span class="text-gray-400 text-xs font-mono">ENR520</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Audit Énergétique Industriel</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">LK</div>
+                    <span class="text-xs text-gray-500 font-body">Pr. Louis Kengne</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">Logiciels Pro</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+            <div class="course-card bg-white rounded-2xl p-6" data-level="Master">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase">Cybersécurité</span>
+                    <span class="text-gray-400 text-xs font-mono">SEC550</span>
+                </div>
+                <h3 class="font-headline font-bold text-lg text-on-surface mb-2 leading-tight">Cryptographie Appliquée</h3>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold">AN</div>
+                    <span class="text-xs text-gray-500 font-body">M. Alain Ndocko</span>
+                </div>
+                <div class="mt-auto pt-4 border-t border-gray-50 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-primary uppercase">Secret Key Labs</span>
+                    <button class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg">Accéder</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-auto w-full py-8 bg-white border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-8 flex justify-between items-center text-gray-400 text-xs font-body">
+            <p>© 2026 CamunoLearn — Douala</p>
+            <div class="flex gap-4">
+                <a href="politique.html" class="hover:text-primary">Conditions</a>
+                <a href="#" class="hover:text-primary">Aide</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function filterLevel(level, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.course-card');
+            cards.forEach(card => {
+                if (level === 'all' || card.getAttribute('data-level') === level) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        document.getElementById('courseSearch').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.course-card');
+            cards.forEach(card => {
+                const title = card.querySelector('h3').innerText.toLowerCase();
+                if(title.includes(term)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Politique de Confidentialité - CamunoLearn</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#00602a",
+                        "on-primary": "#ffffff",
+                        "background": "#f8f9fb",
+                        "on-surface": "#191c1e",
+                        "on-surface-variant": "#3f493f",
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fb; color: #191c1e; }
+        .hero-gradient { background: linear-gradient(135deg, #00602a 0%, #1a7a3c 100%); }
+        .tonal-elevation { box-shadow: 0px 12px 32px rgba(25, 28, 30, 0.08); }
+        .content-card { background: white; border-radius: 1.5rem; border: 1px solid #f1f5f9; padding: 2.5rem; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <nav class="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-20 bg-white/80 backdrop-blur-md shadow-sm">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">school</span>
+            <span class="text-2xl font-bold tracking-tight text-primary font-headline">CamunoLearn</span>
+        </div>
+        <a href="indexAccueilPLATEFORME.html" class="text-sm font-bold text-primary hover:underline flex items-center gap-2 font-body">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Retour à l'accueil
+        </a>
+    </nav>
+
+    <header class="pt-32 pb-16 hero-gradient relative overflow-hidden">
+        <div class="max-w-4xl mx-auto px-8 relative z-10 text-center">
+            <h1 class="text-4xl md:text-5xl font-headline font-extrabold text-white mb-4">Politique de Confidentialité</h1>
+            <p class="text-white/80 font-body text-lg">Dernière mise à jour : 22 Avril 2026</p>
+        </div>
+        <div class="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12 transform translate-x-1/2"></div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-8 py-16">
+        <div class="content-card tonal-elevation space-y-12">
+            
+            <section class="space-y-4">
+                <div class="flex items-center gap-3 text-primary">
+                    <span class="material-symbols-outlined">shield_person</span>
+                    <h2 class="text-2xl font-headline font-bold">1. Collecte des données</h2>
+                </div>
+                <p class="text-on-surface-variant leading-relaxed font-body">
+                    Pour vous offrir une expérience d'apprentissage optimale sur <strong>CamunoLearn</strong>, nous collectons les informations suivantes lors de votre inscription :
+                </p>
+                <ul class="list-disc list-inside space-y-2 text-on-surface-variant font-body ml-4">
+                    <li>Votre nom et prénom</li>
+                    <li>Votre adresse email académique</li>
+                    <li>Vos données de progression dans les cours</li>
+                </ul>
+            </section>
+
+            <section class="space-y-4">
+                <div class="flex items-center gap-3 text-primary">
+                    <span class="material-symbols-outlined">visibility_lock</span>
+                    <h2 class="text-2xl font-headline font-bold">2. Utilisation des informations</h2>
+                </div>
+                <p class="text-on-surface-variant leading-relaxed font-body">
+                    Vos données sont utilisées exclusivement pour :
+                </p>
+                <ul class="list-disc list-inside space-y-2 text-on-surface-variant font-body ml-4">
+                    <li>Personnaliser votre tableau de bord étudiant.</li>
+                    <li>Générer vos attestations de réussite.</li>
+                    <li>Vous envoyer des notifications importantes concernant vos cours.</li>
+                </ul>
+            </section>
+
+            <section class="space-y-4">
+                <div class="flex items-center gap-3 text-primary">
+                    <span class="material-symbols-outlined">security</span>
+                    <h2 class="text-2xl font-headline font-bold">3. Protection des données</h2>
+                </div>
+                <p class="text-on-surface-variant leading-relaxed font-body">
+                    Nous mettons en œuvre des mesures de sécurité de pointe, incluant le chiffrement SSL et le hachage sécurisé de vos mots de passe, pour protéger vos informations contre tout accès non autorisé.
+                </p>
+            </section>
+
+            <section class="space-y-4">
+                <div class="flex items-center gap-3 text-primary">
+                    <span class="material-symbols-outlined">gavel</span>
+                    <h2 class="text-2xl font-headline font-bold">4. Vos droits</h2>
+                </div>
+                <p class="text-on-surface-variant leading-relaxed font-body">
+                    Conformément à la réglementation, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Pour exercer ces droits, contactez-nous à : <span class="text-primary font-bold">privacy@camunolearn.cm</span>
+                </p>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="w-full py-12 bg-[#0F5C2E] text-white">
+        <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <span class="text-xl font-bold font-headline block mb-2">CamunoLearn</span>
+                <p class="text-white/60 text-sm font-body">© 2026 Douala, Cameroun. Tous droits réservés.</p>
+            </div>
+            <div class="flex gap-8 text-sm font-body text-white/80">
+                <a href="IndexAIDE.html" class="hover:text-white transition-colors">Aide</a>
+                <a href="indexConfidentialité.html" class="hover:text-white transition-colors underline">Confidentialité</a>
+                <a href="indexConditions.html" class="hover:text-white transition-colors">Conditions</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
