@@ -1,22 +1,11 @@
-// src/db/pool.js
 const { Pool } = require('pg');
-require('dotenv').config();
 
+// Sur Render, DATABASE_URL est toujours défini
+// On force SSL en production
 const pool = new Pool({
-  host:     process.env.DB_HOST     || 'localhost',
-  port:     process.env.DB_PORT     || 5432,
-  database: process.env.DB_NAME     || 'camunolearn',
-  user:     process.env.DB_USER     || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-});
-
-// Test de connexion au démarrage
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('❌ Erreur PostgreSQL :', err.message);
-  } else {
-    console.log('✅ Connecté à PostgreSQL :', res.rows[0].now);
-  }
+  connectionString: process.env.DATABASE_URL || 
+    `postgresql://${process.env.DB_USER||'postgres'}:${process.env.DB_PASSWORD||'1234'}@${process.env.DB_HOST||'localhost'}:${process.env.DB_PORT||5432}/${process.env.DB_NAME||'camunolearn'}`,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
 });
 
 module.exports = pool;
