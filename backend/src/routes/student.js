@@ -118,7 +118,7 @@ router.get('/courses', async (req, res) => {
 router.get('/assignments', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT a.id, a.title, a.due_date, NULL AS instructions, false AS is_quiz, a.quiz_data, a.file_url,
+      `SELECT a.id, a.title, a.due_date, a.instructions, a.is_quiz, a.quiz_data, a.file_url,
               c.title AS course_title, c.filiere,
               u.first_name||' '||u.last_name AS teacher_name,
               sub.id AS submission_id, sub.grade, sub.feedback,
