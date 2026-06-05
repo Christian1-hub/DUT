@@ -89,12 +89,11 @@ router.get('/:communityId/posts', async (req, res) => {
              u.first_name||' '||u.last_name AS author_name,
              u.role AS author_role,
              u.id AS author_id,
-             COUNT(DISTINCT pl.user_id) AS likes,
-             EXISTS(SELECT 1 FROM post_likes WHERE post_id=p.id AND user_id=$2) AS liked_by_me,
+             COALESCE(p.likes_count, 0) AS likes,
+             EXISTS(SELECT 1 FROM community_posts_likes WHERE post_id=p.id AND user_id=$2) AS liked_by_me,
              COUNT(DISTINCT rep.id) AS reply_count
       FROM community_posts p
       JOIN users u ON p.author_id=u.id
-      LEFT JOIN post_likes pl ON pl.post_id=p.id
       LEFT JOIN community_replies rep ON rep.post_id=p.id
       WHERE p.community_id=$1
       GROUP BY p.id, u.first_name, u.last_name, u.role, u.id
@@ -141,17 +140,27 @@ router.delete('/posts/:id', async (req, res) => {
 // ── POST /api/forum/posts/:id/like
 router.post('/posts/:id/like', async (req, res) => {
   try {
+    // Vérifier si déjà liké
     const exists = await pool.query(
-      'SELECT 1 FROM post_likes WHERE post_id=$1 AND user_id=$2',
+      `SELECT 1 FROM community_posts_likes WHERE post_id=$1 AND user_id=$2`,
       [req.params.id, req.user.id]
     );
     if (exists.rows.length) {
-      await pool.query('DELETE FROM post_likes WHERE post_id=$1 AND user_id=$2', [req.params.id, req.user.id]);
-      // likes calculé dynamiquement depuis post_likes, pas besoin de UPDATE
+      await pool.query(`DELETE FROM community_posts_likes WHERE post_id=$1 AND user_id=$2`, [req.params.id, req.user.id]);
+      // Décrémenter le compteur
+      await pool.query(`UPDATE community_posts SET likes_count = GREATEST(0, likes_count - 1) WHERE id=$1`, [req.params.id]);
       return res.json({ success: true, liked: false });
     }
-    await pool.query('INSERT INTO post_likes (post_id, user_id) VALUES ($1,$2)', [req.params.id, req.user.id]);
-    // likes calculé dynamiquement depuis post_likes, pas besoin de UPDATE
+    // Créer la table si elle n'existe pas
+    await pool.query(`CREATE TABLE IF NOT EXISTS community_posts_likes (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      post_id UUID REFERENCES community_posts(id) ON DELETE CASCADE,
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(post_id, user_id)
+    )`);
+    await pool.query(`INSERT INTO community_posts_likes (post_id, user_id) VALUES ($1,$2)`, [req.params.id, req.user.id]);
+    await pool.query(`UPDATE community_posts SET likes_count = likes_count + 1 WHERE id=$1`, [req.params.id]);
     res.json({ success: true, liked: true });
   } catch(e) {
     console.error('[LIKE]', e.message);
