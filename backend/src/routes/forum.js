@@ -93,7 +93,7 @@ router.get('/:communityId/posts', async (req, res) => {
              EXISTS(SELECT 1 FROM post_likes WHERE post_id=p.id AND user_id=$2) AS liked_by_me,
              COUNT(DISTINCT rep.id) AS reply_count
       FROM community_posts p
-      JOIN users u ON p.user_id=u.id
+      JOIN users u ON p.author_id=u.id
       LEFT JOIN post_likes pl ON pl.post_id=p.id
       LEFT JOIN community_replies rep ON rep.post_id=p.id
       WHERE p.community_id=$1
@@ -114,7 +114,7 @@ router.post('/:communityId/posts', async (req, res) => {
     const { content } = req.body;
     if (!content?.trim()) return res.status(400).json({ success: false, message: 'Contenu requis.' });
     const r = await pool.query(
-      'INSERT INTO community_posts (community_id, user_id, content) VALUES ($1,$2,$3) RETURNING *',
+      'INSERT INTO community_posts (community_id, author_id, content) VALUES ($1,$2,$3) RETURNING *',
       [req.params.communityId, req.user.id, content.trim()]
     );
     res.status(201).json({ success: true, post: r.rows[0] });
@@ -128,7 +128,7 @@ router.post('/:communityId/posts', async (req, res) => {
 router.delete('/posts/:id', async (req, res) => {
   try {
     await pool.query(
-      'DELETE FROM community_posts WHERE id=$1 AND user_id=$2',
+      'DELETE FROM community_posts WHERE id=$1 AND author_id=$2',
       [req.params.id, req.user.id]
     );
     res.json({ success: true });
@@ -167,7 +167,7 @@ router.get('/posts/:id/replies', async (req, res) => {
              u.first_name||' '||u.last_name AS author_name,
              u.role AS author_role, u.id AS author_id
       FROM community_replies rep
-      JOIN users u ON rep.user_id=u.id
+      JOIN users u ON rep.author_id=u.id
       WHERE rep.post_id=$1 ORDER BY rep.created_at ASC`,
       [req.params.id]
     );
@@ -184,7 +184,7 @@ router.post('/posts/:id/replies', async (req, res) => {
     const { content } = req.body;
     if (!content?.trim()) return res.status(400).json({ success: false, message: 'Contenu requis.' });
     const r = await pool.query(
-      'INSERT INTO community_replies (post_id, user_id, content) VALUES ($1,$2,$3) RETURNING *',
+      'INSERT INTO community_replies (post_id, author_id, content) VALUES ($1,$2,$3) RETURNING *',
       [req.params.id, req.user.id, content.trim()]
     );
     res.status(201).json({ success: true, reply: r.rows[0] });
@@ -198,7 +198,7 @@ router.post('/posts/:id/replies', async (req, res) => {
 router.delete('/replies/:id', async (req, res) => {
   try {
     await pool.query(
-      'DELETE FROM community_replies WHERE id=$1 AND user_id=$2',
+      'DELETE FROM community_replies WHERE id=$1 AND author_id=$2',
       [req.params.id, req.user.id]
     );
     res.json({ success: true });
