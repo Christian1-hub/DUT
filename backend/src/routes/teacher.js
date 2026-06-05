@@ -242,6 +242,7 @@ router.post('/courses', async (req, res) => {
 router.put('/courses/:id', async (req, res) => {
   try {
     const { title, description, filiere, color, file_url } = req.body;
+    console.log('[COURSE PUT] file_url recu:', file_url, 'color:', color);
     const r = await pool.query(
       `UPDATE courses SET title=$1, description=$2, filiere=$3, color=$4, file_url=COALESCE($5, file_url)
        WHERE id=$6 AND teacher_id=$7 RETURNING *`,
