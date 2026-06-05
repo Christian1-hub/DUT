@@ -126,7 +126,7 @@ router.post('/classes', async (req, res) => {
     const r = await pool.query(
       `INSERT INTO classes (name, filiere, niveau, description, school, teacher_id)
        VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [name.trim(), filiere||null, level||null, description||null, school, req.user.id, academic_year||'2025/2026']
+      [name.trim(), filiere||null, level||null, description||null, school, req.user.id]
     );
     res.status(201).json({ success: true, class: r.rows[0] });
   } catch(e) {
