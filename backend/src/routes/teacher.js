@@ -173,16 +173,15 @@ router.get('/classes/:id/students', async (req, res) => {
 router.get('/courses', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT c.id, c.title, c.description, c.filiere, '#4ade80' AS color, NULL AS file_url, c.class_id, c.created_at,
-              cl.name AS class_name, cl.level AS class_level,
+      `SELECT c.id, c.title, c.description, c.filiere, '#4ade80' AS color, NULL AS file_url, NULL AS class_id, c.created_at,
+              NULL AS class_name, NULL AS class_level,
               COUNT(DISTINCT e.student_id) AS student_count,
               COUNT(DISTINCT a.id)         AS assignment_count
        FROM courses c
-       LEFT JOIN classes cl    ON c.class_id  = cl.id
        LEFT JOIN enrollments e ON e.course_id = c.id
        LEFT JOIN assignments a ON a.course_id = c.id
        WHERE c.teacher_id=$1
-       GROUP BY c.id, cl.name, cl.level
+       GROUP BY c.id
        ORDER BY c.created_at DESC`,
       [req.user.id]
     );
