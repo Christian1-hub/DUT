@@ -124,9 +124,9 @@ router.post('/classes', async (req, res) => {
     const u = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
     const school = u.rows[0]?.school || 'Non défini';
     const r = await pool.query(
-      `INSERT INTO classes (name, filiere, level, description, school, teacher_id, academic_year)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [name.trim(), filiere.trim(), level||null, description||null, school, req.user.id, academic_year||'2025/2026']
+      `INSERT INTO classes (name, filiere, niveau, description, school, teacher_id)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [name.trim(), filiere||null, level||null, description||null, school, req.user.id, academic_year||'2025/2026']
     );
     res.status(201).json({ success: true, class: r.rows[0] });
   } catch(e) {
@@ -200,9 +200,9 @@ router.post('/courses', async (req, res) => {
     const u = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
     const school = u.rows[0]?.school || null;
     const r = await pool.query(
-      `INSERT INTO courses (title, description, filiere, color, class_id, teacher_id, school, file_url)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-      [title.trim(), description||null, filiere||null, color||'orange', class_id||null, req.user.id, school, file_url||null]
+      `INSERT INTO courses (title, description, filiere, teacher_id, school)
+       VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+      [title.trim(), description||null, filiere||null, req.user.id, school]
     );
     const courseId = r.rows[0].id;
 
@@ -244,9 +244,9 @@ router.put('/courses/:id', async (req, res) => {
   try {
     const { title, description, filiere, color, file_url } = req.body;
     const r = await pool.query(
-      `UPDATE courses SET title=$1, description=$2, filiere=$3, color=$4, file_url=COALESCE($5, file_url)
-       WHERE id=$6 AND teacher_id=$7 RETURNING *`,
-      [title, description||null, filiere||null, color||'orange', file_url||null, req.params.id, req.user.id]
+      `UPDATE courses SET title=$1, description=$2, filiere=$3
+       WHERE id=$4 AND teacher_id=$5 RETURNING *`,
+      [title, description||null, filiere||null, req.params.id, req.user.id]
     );
     if (!r.rows.length) return res.status(404).json({ success: false, message: 'Cours introuvable.' });
     res.json({ success: true, course: r.rows[0] });
