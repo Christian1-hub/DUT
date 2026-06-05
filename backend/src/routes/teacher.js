@@ -347,7 +347,7 @@ router.get('/assignments/:id/submissions', async (req, res) => {
     const r = await pool.query(
       `SELECT sub.id, sub.submitted_at, sub.grade, sub.feedback, sub.content, sub.file_url,
               u.first_name||' '||u.last_name AS student_name, u.email AS student_email,
-              a.title AS assignment_title, false AS is_quiz, a.quiz_data
+              a.title AS assignment_title, a.is_quiz, a.quiz_data
        FROM assignment_submissions sub
        JOIN users u       ON sub.student_id    = u.id
        JOIN assignments a ON sub.assignment_id = a.id
