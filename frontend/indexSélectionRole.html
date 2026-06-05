@@ -69,7 +69,11 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased">
 
-<script>const API_BASE = 'http://localhost:3000/api';</script>
+<script>const API_BASE = (function() {
+  var h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
+  return 'https://camunolearn-api.onrender.com/api';
+})();</script>
 
 <!-- Background -->
 <div class="fixed inset-0 -z-10 overflow-hidden">
