@@ -199,9 +199,9 @@ router.post('/courses', async (req, res) => {
     const u = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
     const school = u.rows[0]?.school || null;
     const r = await pool.query(
-      `INSERT INTO courses (title, description, filiere, teacher_id, school)
-       VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [title.trim(), description||null, filiere||null, req.user.id, school]
+      `INSERT INTO courses (title, description, filiere, teacher_id, school, file_url, color)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [title.trim(), description||null, filiere||null, req.user.id, school, file_url||null, color||'orange']
     );
     const courseId = r.rows[0].id;
 
