@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+    <div class="hero-mobile-bg-slider md:hidden">
+        <div class="mobile-slide active" style="background-image:url('Images/Ecole1.jpg')"></div>
+        <div class="mobile-slide" style="background-image:url('Images/Etudiant1.jpg')"></div>
+        <div class="mobile-slide" style="background-image:url('Images/Ecole2.jpg')"></div>
+        <div class="mobile-slide" style="background-image:url('Images/Etudiant2.jpg')"></div>
+        <div class="mobile-slide" style="background-image:url('Images/EtudiantUnivDouala.jpeg')"></div>
+        <div class="hero-mobile-overlay"></div>
+    </div>
 <html class="light" lang="fr">
 <head>
 <meta charset="utf-8"/>
@@ -7,6 +15,8 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700&display=swap" rel="stylesheet">
 
 <!-- ══ ROUTING AUTOMATIQUE ══════════════════════════════ -->
 <script>
@@ -106,6 +116,28 @@ body{font-family:'Inter',sans-serif;background-color:#f8f9fb;color:#191c1e}
 @keyframes shootingStar{0%{opacity:0;transform:translateX(0) translateY(0)}10%{opacity:1}20%{opacity:1;transform:translateX(-80px) translateY(40px)}100%{opacity:0;transform:translateX(-200px) translateY(100px)}}
 @keyframes scroll-left{0%{transform:translateX(0%)}100%{transform:translateX(-50%)}}
 .animate-scroll-right{animation:scroll-left 40s linear infinite}
+
+    .futuristic-btn {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+    .glowing-text {
+        text-shadow: 0 0 5px rgba(255,255,255,0.6), 0 0 10px rgba(255,255,255,0.4);
+        animation: subtleGlow 2s ease-in-out infinite alternate;
+    }
+    @keyframes subtleGlow {
+        from { text-shadow: 0 0 3px rgba(255,255,255,0.5), 0 0 5px rgba(255,255,255,0.3); }
+        to { text-shadow: 0 0 12px rgba(255,255,255,0.9), 0 0 15px rgba(255,255,255,0.6); }
+    }
+    .hero-mobile-bg-slider { position:absolute;top:0;left:0;width:100%;height:100%;z-index:0; }
+    .hero-mobile-bg-slider .mobile-slide { position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;opacity:0;transition:opacity 1s ease-in-out; }
+    .hero-mobile-bg-slider .mobile-slide.active { opacity:1;z-index:1; }
+    .hero-mobile-overlay { position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:2; }
+    @media (max-width:767px) { .hero-main .hero-gradient { background:transparent!important; } .hero-main .hero-content { position:relative;z-index:3; } }
+
 </style>
 </head>
 <body class="antialiased">
@@ -154,7 +186,7 @@ body{font-family:'Inter',sans-serif;background-color:#f8f9fb;color:#191c1e}
       </div>
       <div class="flex flex-wrap gap-4 fade-up">
         <a href="indexInscription.html" class="inline-block px-8 py-4 bg-white text-primary rounded-full font-bold text-lg hover:bg-surface-container-low transition-colors ambient-shadow" data-i18n="hero_cta_primary">Commencer Maintenant</a>
-        <a href="indexconnexion.html" class="px-8 py-4 border-2 border-white/40 text-white rounded-full font-bold text-lg hover:bg-white/10 transition-colors" data-i18n="hero_cta_secondary">Se connecter</a>
+        <a href="indexconnexion.html" class="futuristic-btn px-8 py-4 border-2 border-white/40 text-white rounded-full font-bold text-lg hover:bg-white/10 transition-colors" data-i18n="hero_cta_secondary">Se connecter</a>
       </div>
       <div class="flex gap-8 pt-4 fade-up">
         <div class="text-white"><p class="text-2xl font-bold font-headline">120+</p><p class="text-sm text-white/60 font-body" data-i18n="stat_courses_label">Cours</p></div>
@@ -582,7 +614,7 @@ body{font-family:'Inter',sans-serif;background-color:#f8f9fb;color:#191c1e}
     <div class="hero-gradient rounded-3xl p-12 md:p-20 text-center relative overflow-hidden">
       <div class="absolute inset-0 overflow-hidden pointer-events-none" id="starContainer"></div>
       <div class="relative z-10">
-        <h2 class="text-3xl md:text-5xl font-headline font-extrabold text-white mb-8 fade-up" data-i18n="cta_title">Prêt à rejoindre CamunoLearn ?</h2>
+        <h2 class="text-3xl md:text-5xl font-headline font-extrabold text-white glowing-text mb-8 fade-up" data-i18n="cta_title">Prêt à rejoindre CamunoLearn ?</h2>
         <div class="flex flex-wrap justify-center gap-4 fade-up">
           <a href="indexInscription.html" class="inline-block px-14 py-5 bg-white text-primary rounded-full font-bold text-lg hover:opacity-90 hover:scale-105 transition-all font-body shadow-xl" data-i18n="cta_button">S'inscrire dès maintenant</a>
           <a href="indexconnexion.html" class="inline-block px-10 py-5 border-2 border-white/40 text-white rounded-full font-bold text-lg hover:bg-white/10 transition-all font-body">Se connecter</a>
@@ -905,15 +937,27 @@ async function submitPricingLead() {
       document.getElementById('modal-form').style.display    = 'none';
     } else {
       btn.disabled = false;
-      btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Être contacté par l'équipe';
+      btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Nous contacter';
       alert(d.message || 'Erreur. Réessayez.');
     }
   } catch(e) {
     btn.disabled = false;
-    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Être contacté par l'équipe';
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Nous contacter';
     alert('Serveur inaccessible. Contactez-nous sur WhatsApp : +237 691 929 394');
   }
 }
+
+// Mobile carousel
+(function(){
+    var slides = document.querySelectorAll('.hero-mobile-bg-slider .mobile-slide');
+    var cur = 0;
+    if(slides.length) setInterval(function(){
+        slides[cur].classList.remove('active');
+        cur = (cur+1) % slides.length;
+        slides[cur].classList.add('active');
+    }, 7000);
+})();
+
 </script>
 </body>
 </html>
