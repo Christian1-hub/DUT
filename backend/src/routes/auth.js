@@ -181,7 +181,8 @@ async function autoEnrollStudent(studentId, school, filiere, level) {
 router.get('/me', auth, async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT id, first_name, last_name, email, role, school, filiere, created_at
+      `SELECT id, first_name, last_name, email, role, school, filiere, 
+              bio, phone, avatar_url, discipline, niveau, created_at
        FROM users WHERE id=$1`,
       [req.user.id]
     );
