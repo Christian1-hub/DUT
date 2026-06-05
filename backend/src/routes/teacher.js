@@ -243,9 +243,9 @@ router.put('/courses/:id', async (req, res) => {
   try {
     const { title, description, filiere, color, file_url } = req.body;
     const r = await pool.query(
-      `UPDATE courses SET title=$1, description=$2, filiere=$3
-       WHERE id=$4 AND teacher_id=$5 RETURNING *`,
-      [title, description||null, filiere||null, req.params.id, req.user.id]
+      `UPDATE courses SET title=$1, description=$2, filiere=$3, color=$4, file_url=COALESCE($5, file_url)
+       WHERE id=$6 AND teacher_id=$7 RETURNING *`,
+      [title, description||null, filiere||null, color||'orange', file_url||null, req.params.id, req.user.id]
     );
     if (!r.rows.length) return res.status(404).json({ success: false, message: 'Cours introuvable.' });
     res.json({ success: true, course: r.rows[0] });
