@@ -34,7 +34,11 @@
 <body style="background:#f8f9fb;min-height:100vh">
 
 <script>
-const API = 'https://camunolearn-api.onrender.com/api';
+const API = (function() {
+  var h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
+  return 'https://camunolearn-api.onrender.com/api';
+})();
 const TK  = () => localStorage.getItem('camunolearn_token');
 </script>
 
@@ -303,8 +307,8 @@ async function loadAssignments() {
 
   renderDevoirs();
 
-  // Charger aussi les étudiants si classe liée
-  if (COURSE?.class_id) loadEtudiants();
+  // Charger les étudiants inscrits au cours
+  loadEtudiants();
 }
 
 function renderDevoirs() {
@@ -463,8 +467,7 @@ function switchTab(t) {
     if (btn) { btn.classList.toggle('on', n===t); }
   });
   if (t==='supports')   renderSupports();
-  if (t==='etudiants' && !_etudiantsLoaded) {
-    _etudiantsLoaded = true;
+  if (t==='etudiants') {
     loadEtudiants();
   }
 }
