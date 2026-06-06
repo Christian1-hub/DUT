@@ -126,12 +126,26 @@ router.post('/request', async (req, res) => {
     const teacher_id = course.rows[0].teacher_id;
 
     // Créer ou mettre à jour la demande
-    await pool.query(`
-      INSERT INTO cross_access_requests (student_id, course_id, teacher_id, message, status)
-      VALUES ($1, $2, $3, $4, 'pending')
-      ON CONFLICT (student_id, course_id)
-      DO UPDATE SET message=$4, status='pending', updated_at=NOW()
-    `, [req.user.id, course_id, teacher_id, message || null]);
+    // D'abord essayer avec ON CONFLICT, sinon faire un simple INSERT
+    try {
+      await pool.query(`
+        INSERT INTO cross_access_requests (student_id, course_id, teacher_id, message, status)
+        VALUES ($1, $2, $3, $4, 'pending')
+        ON CONFLICT (student_id, course_id)
+        DO UPDATE SET message=$4, status='pending', updated_at=NOW()
+      `, [req.user.id, course_id, teacher_id, message || null]);
+    } catch(conflictErr) {
+      // Si pas de contrainte UNIQUE, supprimer l'ancienne et insérer
+      await pool.query(
+        'DELETE FROM cross_access_requests WHERE student_id=$1 AND course_id=$2',
+        [req.user.id, course_id]
+      );
+      await pool.query(
+        `INSERT INTO cross_access_requests (student_id, course_id, teacher_id, message, status)
+         VALUES ($1, $2, $3, $4, 'pending')`,
+        [req.user.id, course_id, teacher_id, message || null]
+      );
+    }
 
     res.json({
       success: true,
