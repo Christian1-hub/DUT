@@ -120,6 +120,18 @@ router.put('/school', auth, async (req, res) => {
     if (user.role === 'etudiant' && filiere) {
       await autoEnrollStudent(user.id, school.trim(), filiere, level);
     }
+    
+    // Si enseignant → mettre à jour school dans ses classes et cours
+    if (user.role === 'enseignant') {
+      await pool.query(
+        `UPDATE classes SET school=$1 WHERE teacher_id=$2 AND (school IS NULL OR school='')`,
+        [school.trim(), req.user.id]
+      );
+      await pool.query(
+        `UPDATE courses SET school=$1 WHERE teacher_id=$2 AND (school IS NULL OR school='')`,
+        [school.trim(), req.user.id]
+      );
+    }
 
     res.json({ success: true, token, user });
   } catch(e) {
