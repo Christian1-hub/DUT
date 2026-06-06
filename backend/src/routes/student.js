@@ -72,7 +72,7 @@ router.get('/courses', async (req, res) => {
     const filiereShort = filiere ? filiere.split(' — ')[0].trim() : null;
 
     const r = await pool.query(
-      `SELECT DISTINCT c.id, c.title, c.description, c.filiere, '#4ade80' AS color, NULL AS file_url, c.created_at,
+      `SELECT DISTINCT c.id, c.title, c.description, c.filiere, COALESCE(c.color,'orange') AS color, c.file_url, c.created_at,
               u.first_name||' '||u.last_name AS teacher_name,
               (SELECT COUNT(*) FROM assignments a WHERE a.course_id=c.id) AS assignment_count,
               0 AS progress
