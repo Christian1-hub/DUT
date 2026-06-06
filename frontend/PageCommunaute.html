@@ -270,8 +270,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('postInput').addEventListener('input', e => {
     document.getElementById('charCount').textContent = `${e.target.value.length} / 1000`;
   });
-  // Rafraîchir toutes les 30s
-  setInterval(loadPosts, 30000);
+  // Rafraîchir toutes les 2 minutes seulement
+  setInterval(loadPosts, 120000);
 });
 
 // ══════════════════════════════════════════════
