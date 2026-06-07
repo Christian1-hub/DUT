@@ -24,6 +24,34 @@
 .shake{animation:shake .3s ease}
 @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .anim{animation:up .3s ease both}
+
+/* ── RESPONSIVE GLOBAL ─────────────────────────────── */
+@media (max-width: 768px) {
+  /* Sidebar cachée par défaut sur mobile */
+  #sidebar { transform: translateX(-100%) !important; }
+  /* Grilles → 1 colonne sur mobile */
+  .grid { grid-template-columns: 1fr !important; }
+  /* Textes plus petits */
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.25rem !important; }
+  /* Padding réduit */
+  main { padding: 12px 8px !important; }
+  /* Tableaux scrollables */
+  table { display: block; overflow-x: auto; }
+  /* Modaux plein écran */
+  .mbox, .modal { width: 100% !important; max-width: 100% !important; border-radius: 16px 16px 0 0 !important; }
+  /* Cards flex → column */
+  .card > div[style*="display:flex"] { flex-direction: column !important; }
+  /* Boutons pleine largeur sur mobile */
+  .btn-group { flex-direction: column !important; }
+  /* Stats grid → 2 colonnes */
+  #stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+}
+@media (max-width: 480px) {
+  .pin-box { width: 42px !important; height: 54px !important; font-size: 1.4rem !important; }
+  #stats-grid { grid-template-columns: 1fr 1fr !important; }
+}
+
 </style>
 </head>
 <body style="background:linear-gradient(135deg,#f0fdf4 0%,#f8f9fb 50%,#eff6ff 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
@@ -126,7 +154,7 @@
 const API = (function() {
   var h = window.location.hostname;
   if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
-  return '/api';
+  return 'https://camunolearn-api.onrender.com/api';
 })();
 let userEmail = '';
 
@@ -219,7 +247,12 @@ async function activateAccount() {
       setTimeout(() => {
         document.getElementById('redirect-fill').style.width = '100%';
       }, 100);
-      setTimeout(() => location.href = 'indexSélectionEcole.html', 3200);
+      // Rediriger selon le rôle
+      const role = d.user.role;
+      let redirect = 'indexSélectionEcole.html';
+      if (role === 'enseignant') redirect = 'indexSélectionEcole.html';
+      if (role === 'admin')      redirect = 'indexADMIN.html';
+      setTimeout(() => location.href = redirect, 3200);
     } else {
       // Erreur PIN
       const errEl = document.getElementById('pin-error');
