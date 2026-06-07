@@ -286,14 +286,14 @@ router.post('/activate', async (req, res) => {
     if (!email || !pin) return res.status(400).json({ success:false, message:'Email et PIN requis.' });
 
     const r = await pool.query(
-      `SELECT id, first_name, last_name, email, role, school, activation_pin, pin_used
+      `SELECT id, first_name, last_name, email, role, school, pin_code, pin_used
        FROM users WHERE email=$1`, [email.toLowerCase()]
     );
     if (!r.rows.length) return res.status(404).json({ success:false, message:'Compte introuvable.' });
 
     const u = r.rows[0];
     if (u.pin_used) return res.status(400).json({ success:false, message:'Ce PIN a déjà été utilisé. Contactez votre administrateur.' });
-    if (u.activation_pin !== pin) return res.status(401).json({ success:false, message:'PIN incorrect.' });
+    if (u.pin_code !== pin) return res.status(401).json({ success:false, message:'PIN incorrect.' });
 
     // Activer le compte
     await pool.query(
