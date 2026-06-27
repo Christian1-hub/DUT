@@ -14,6 +14,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);over
 
 /* NAV */
 nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 40px}
+@media(max-width:600px){nav{padding:0 20px}}
 .logo{display:flex;align-items:center;gap:8px;text-decoration:none;font-family:Manrope;font-weight:900;font-size:1.2rem;color:var(--g)}
 .logo b{color:var(--ink)}
 .nav-r{display:flex;align-items:center;gap:10px}
@@ -24,154 +25,155 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
 
 /* HERO */
 .hero{padding:96px 40px 52px;text-align:center;background:linear-gradient(180deg,#f0fdf4 0%,var(--bg) 100%)}
+@media(max-width:600px){.hero{padding:80px 20px 40px}}
 .badge{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #bbf7d0;color:var(--g);padding:6px 16px;border-radius:999px;font-size:.75rem;font-weight:700;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
-.hero h1{font-family:Manrope;font-weight:900;font-size:clamp(2rem,4.5vw,3.2rem);line-height:1.1;margin-bottom:12px}
+.hero h1{font-family:Manrope;font-weight:900;font-size:clamp(1.8rem,4.5vw,3.2rem);line-height:1.1;margin-bottom:12px}
 .hero h1 em{color:var(--g);font-style:normal}
 .hero p{font-size:1rem;color:var(--mut);max-width:520px;margin:0 auto 32px;line-height:1.7}
 
 /* TOGGLE */
-.toggle-row{display:inline-flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:8px 20px;box-shadow:0 2px 12px rgba(0,0,0,.05);margin-bottom:56px}
+.toggle-row{display:inline-flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:8px 20px;box-shadow:0 2px 12px rgba(0,0,0,.05);margin-bottom:56px;flex-wrap:wrap;justify-content:center}
 .t-lbl{font-size:.875rem;font-weight:700;transition:.2s;cursor:default}
 .t-sw{width:46px;height:24px;border-radius:999px;background:var(--g);border:none;cursor:pointer;position:relative;transition:.3s;flex-shrink:0}
 .t-dot{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.3s}
 .save-tag{background:#fef3c7;color:#92400e;border:1px solid #fde68a;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;display:none}
 
-/* ─── PLANS — disposition linéaire ─── */
-.plans-wrap{max-width:860px;margin:0 auto;padding:0 24px 64px;display:flex;flex-direction:column;gap:16px}
+/* PLANS */
+.plans-wrap{max-width:900px;margin:0 auto;padding:0 24px 64px;display:flex;flex-direction:column;gap:16px}
+@media(max-width:600px){.plans-wrap{padding:0 16px 48px}}
 
-/* CARD plan */
-.prow{border-radius:18px;overflow:hidden;display:grid;grid-template-columns:280px 1fr;transition:.22s}
-@media(max-width:680px){.prow{grid-template-columns:1fr;grid-template-rows:auto auto}}
+.prow{border-radius:18px;overflow:hidden;display:grid;grid-template-columns:260px 1fr;transition:.22s}
+@media(max-width:700px){.prow{grid-template-columns:1fr}}
 .prow:hover{transform:translateY(-3px)}
 
-/* Couleurs */
 .pr-free  {background:#fff;border:1.5px solid var(--border);box-shadow:0 3px 14px rgba(0,0,0,.06)}
 .pr-start {background:#fff;border:1.5px solid var(--border);box-shadow:0 3px 14px rgba(0,0,0,.06)}
 .pr-pro   {background:linear-gradient(140deg,#00602a 0%,#1a7a3c 100%);box-shadow:0 16px 48px rgba(0,96,42,.38)}
 .pr-univ  {background:#0d1f12;border:1.5px solid #1e3a28;box-shadow:0 3px 14px rgba(0,0,0,.2)}
 .pr-net   {background:linear-gradient(140deg,#1c1c2e,#2a1760);border:1.5px solid #4c1d95;box-shadow:0 3px 14px rgba(76,29,149,.25)}
 
-/* Partie gauche */
-.pl{padding:28px 28px;display:flex;flex-direction:column;justify-content:space-between;border-right-width:1px;border-right-style:solid}
-.pr-free  .pl{border-color:var(--border)}
-.pr-start .pl{border-color:var(--border)}
-.pr-pro   .pl{border-color:rgba(255,255,255,.15)}
-.pr-univ  .pl{border-color:#1e3a28}
-.pr-net   .pl{border-color:rgba(139,92,246,.25)}
-@media(max-width:680px){.pl{border-right:none;border-bottom-width:1px;border-bottom-style:solid}}
+.pl{padding:26px;display:flex;flex-direction:column;justify-content:space-between;border-right:1px solid var(--border)}
+.pr-pro .pl{border-color:rgba(255,255,255,.15)}
+.pr-univ .pl{border-color:#1e3a28}
+.pr-net  .pl{border-color:rgba(139,92,246,.25)}
+@media(max-width:700px){.pl{border-right:none;border-bottom:1px solid var(--border)}}
 
 .plan-badge{display:inline-flex;align-items:center;gap:6px;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:4px 12px;border-radius:999px;margin-bottom:12px;width:fit-content}
-.pr-free  .plan-badge{background:var(--gl);color:var(--g)}
-.pr-start .plan-badge{background:#f3f4f6;color:#374151}
+.pr-free  .plan-badge,.pr-start .plan-badge{background:var(--gl);color:var(--g)}
 .pr-pro   .plan-badge{background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
 .pr-univ  .plan-badge{background:rgba(74,222,128,.15);color:#4ade80}
 .pr-net   .plan-badge{background:rgba(167,139,250,.15);color:#a78bfa}
 
-.plan-name{font-family:Manrope;font-weight:900;font-size:1.25rem;margin-bottom:6px}
-.pr-free  .plan-name,.pr-start .plan-name{color:var(--ink)}
-.pr-pro   .plan-name,.pr-univ .plan-name,.pr-net .plan-name{color:#fff}
+.plan-name{font-family:Manrope;font-weight:900;font-size:1.2rem;margin-bottom:6px}
+.pr-free .plan-name,.pr-start .plan-name{color:var(--ink)}
+.pr-pro  .plan-name,.pr-univ .plan-name,.pr-net .plan-name{color:#fff}
 
-.plan-desc{font-size:.82rem;line-height:1.55;margin-bottom:20px}
-.pr-free  .plan-desc,.pr-start .plan-desc{color:var(--mut)}
-.pr-pro   .plan-desc{color:rgba(255,255,255,.72)}
-.pr-univ  .plan-desc,.pr-net .plan-desc{color:#6b7280}
+.plan-desc{font-size:.82rem;line-height:1.55;margin-bottom:18px}
+.pr-free .plan-desc,.pr-start .plan-desc{color:var(--mut)}
+.pr-pro  .plan-desc{color:rgba(255,255,255,.72)}
+.pr-univ .plan-desc,.pr-net .plan-desc{color:#6b7280}
 
-.price-num{font-family:Manrope;font-weight:900;font-size:2.4rem;line-height:1}
-.pr-free  .price-num,.pr-start .price-num{color:var(--ink)}
-.pr-pro   .price-num,.pr-univ .price-num,.pr-net .price-num{color:#fff}
-.price-xaf{font-size:.78rem;margin-left:4px;vertical-align:bottom;margin-bottom:6px;display:inline-block}
-.pr-free  .price-xaf,.pr-start .price-xaf{color:#9ca3af}
-.pr-pro   .price-xaf{color:rgba(255,255,255,.5)}
-.pr-univ  .price-xaf,.pr-net .price-xaf{color:#6b7280}
-.price-note{font-size:.68rem;margin-top:4px}
-.pr-free  .price-note,.pr-start .price-note{color:#9ca3af}
-.pr-pro   .price-note{color:rgba(255,255,255,.45)}
-.pr-univ  .price-note,.pr-net .price-note{color:#6b7280}
+.price-num{font-family:Manrope;font-weight:900;font-size:2.2rem;line-height:1}
+.pr-free .price-num,.pr-start .price-num{color:var(--ink)}
+.pr-pro  .price-num,.pr-univ .price-num,.pr-net .price-num{color:#fff}
+.price-xaf{font-size:.75rem;margin-left:4px;vertical-align:bottom;margin-bottom:4px;display:inline-block;color:#9ca3af}
+.pr-pro .price-xaf{color:rgba(255,255,255,.5)}
+.pr-univ .price-xaf,.pr-net .price-xaf{color:#6b7280}
+.price-note{font-size:.68rem;margin-top:4px;color:#9ca3af}
+.pr-pro  .price-note{color:rgba(255,255,255,.45)}
+.pr-univ .price-note,.pr-net .price-note{color:#6b7280}
 
-.cta-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px 0;border-radius:11px;font-weight:700;font-size:.875rem;cursor:pointer;border:none;margin-top:20px;text-decoration:none;transition:.2s;font-family:inherit}
-.pr-free  .cta-btn{background:var(--g);color:#fff}
-.pr-free  .cta-btn:hover{background:var(--gd)}
-.pr-start .cta-btn{background:var(--g);color:#fff}
-.pr-start .cta-btn:hover{background:var(--gd)}
+.cta-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px 0;border-radius:11px;font-weight:700;font-size:.875rem;cursor:pointer;border:none;margin-top:18px;text-decoration:none;transition:.2s;font-family:inherit}
+.pr-free  .cta-btn,.pr-start .cta-btn,.pr-univ .cta-btn{background:var(--g);color:#fff}
+.pr-free  .cta-btn:hover,.pr-start .cta-btn:hover,.pr-univ .cta-btn:hover{background:var(--gd)}
 .pr-pro   .cta-btn{background:#fff;color:var(--g)}
 .pr-pro   .cta-btn:hover{background:#f0fdf4}
-.pr-univ  .cta-btn{background:var(--g);color:#fff}
-.pr-univ  .cta-btn:hover{background:#1a7a3c}
 .pr-net   .cta-btn{background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff}
 .pr-net   .cta-btn:hover{opacity:.85}
 
-/* Partie droite — features */
-.pr{padding:28px 28px;display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;align-content:start}
-@media(max-width:500px){.pr{grid-template-columns:1fr}}
+.pr{padding:26px;display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;align-content:start}
+@media(max-width:480px){.pr{grid-template-columns:1fr}}
 
 .feat{display:flex;align-items:flex-start;gap:8px;font-size:.82rem;line-height:1.5}
-.pr-free  .feat{color:#374151}
-.pr-start .feat{color:#374151}
-.pr-pro   .feat{color:rgba(255,255,255,.88)}
-.pr-univ  .feat{color:#d1d5db}
-.pr-net   .feat{color:#d1d5db}
+.pr-free .feat,.pr-start .feat{color:#374151}
+.pr-pro  .feat{color:rgba(255,255,255,.88)}
+.pr-univ .feat,.pr-net .feat{color:#d1d5db}
 
 .fck{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.pr-free  .fck,.pr-start .fck{background:var(--gl)}
-.pr-pro   .fck{background:rgba(255,255,255,.2)}
-.pr-univ  .fck{background:rgba(74,222,128,.15)}
-.pr-net   .fck{background:rgba(167,139,250,.15)}
-.pr-free  .fck .ms,.pr-start .fck .ms{color:var(--g);font-size:11px}
-.pr-pro   .fck .ms{color:#fff;font-size:11px}
-.pr-univ  .fck .ms{color:#4ade80;font-size:11px}
-.pr-net   .fck .ms{color:#a78bfa;font-size:11px}
+.pr-free .fck,.pr-start .fck{background:var(--gl)}
+.pr-pro  .fck{background:rgba(255,255,255,.2)}
+.pr-univ .fck{background:rgba(74,222,128,.15)}
+.pr-net  .fck{background:rgba(167,139,250,.15)}
+.pr-free .fck .ms,.pr-start .fck .ms{color:var(--g);font-size:11px}
+.pr-pro  .fck .ms{color:#fff;font-size:11px}
+.pr-univ .fck .ms{color:#4ade80;font-size:11px}
+.pr-net  .fck .ms{color:#a78bfa;font-size:11px}
 .fcr{width:18px;height:18px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .fcr .ms{font-size:11px;color:#d1d5db}
-
-/* TAG POPULAIRE */
-.pop-tag{background:var(--gold);color:#1c1c00;font-size:.62rem;font-weight:800;padding:4px 12px;border-radius:999px;letter-spacing:.04em;margin-left:8px;vertical-align:middle}
+.pop-tag{background:var(--gold);color:#1c1c00;font-size:.62rem;font-weight:800;padding:4px 12px;border-radius:999px;letter-spacing:.04em}
 
 /* PAIEMENTS */
-.pay-bar{max-width:860px;margin:0 auto 64px;padding:0 24px}
+.pay-bar{max-width:900px;margin:0 auto 64px;padding:0 24px}
 .pay-inner{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
 .pm{padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:800}
 
+/* SECTIONS SUPPLEMENTAIRES RESPONSIVES */
+.section-wrap{max-width:900px;margin:0 auto;padding:0 24px}
+@media(max-width:600px){.section-wrap{padding:0 16px}}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:700px){.grid-3{grid-template-columns:1fr}}
+.grid-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:640px){.grid-stats{grid-template-columns:1fr}}
+
 /* TABLEAU */
-.table-wrap{max-width:900px;margin:0 auto;padding:0 24px 72px;overflow-x:auto}
-.comp{width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.06)}
-.comp th{padding:12px 14px;text-align:center;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:#f9fafb;color:var(--mut);border-bottom:1px solid var(--border)}
+.table-wrap{max-width:960px;margin:0 auto;padding:0 24px 72px;overflow-x:auto}
+@media(max-width:600px){.table-wrap{padding:0 12px 48px}}
+.comp{width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.06);min-width:580px}
+.comp th{padding:12px 10px;text-align:center;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:#f9fafb;color:var(--mut);border-bottom:1px solid var(--border)}
 .comp th:first-child{text-align:left}
 .comp .th-pro{background:linear-gradient(135deg,var(--g),#1a7a3c);color:#fff}
-.comp td{padding:11px 14px;border-bottom:1px solid #f3f4f6;font-size:.84rem;color:#374151;text-align:center;vertical-align:middle}
+.comp td{padding:10px 10px;border-bottom:1px solid #f3f4f6;font-size:.82rem;color:#374151;text-align:center;vertical-align:middle}
 .comp td:first-child{text-align:left;font-weight:600;color:var(--ink)}
 .comp tr:last-child td{border:none}
 .comp tr:hover td{background:#f9fafb}
 .comp .td-pro{background:#f0fdf4}
-.tick{color:#16a34a;font-size:15px}
-.cross{color:#d1d5db;font-size:15px}
+.tick{color:#16a34a;font-size:14px}
+.cross{color:#d1d5db;font-size:14px}
+
+/* AVANT/APRES TABLEAU */
+.before-after{display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:20px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.1)}
+@media(max-width:640px){.before-after{grid-template-columns:1fr}}
 
 /* FAQ */
 .faq-wrap{max-width:680px;margin:0 auto;padding:0 24px 80px}
-.faq-ttl{font-family:Manrope;font-weight:900;font-size:1.7rem;color:var(--ink);text-align:center;margin-bottom:26px}
+@media(max-width:600px){.faq-wrap{padding:0 16px 60px}}
+.faq-ttl{font-family:Manrope;font-weight:900;font-size:1.6rem;color:var(--ink);text-align:center;margin-bottom:24px}
 .fq{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden}
-.fq-q{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;font-weight:600;font-size:.9rem;gap:12px;transition:.15s}
+.fq-q{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;font-weight:600;font-size:.88rem;gap:12px;transition:.15s}
 .fq-q:hover{background:#f9fafb}
 .fq-q .ms{transition:.25s;color:var(--mut);flex-shrink:0}
 .fq-a{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;font-size:.84rem;color:var(--mut);line-height:1.7}
-.fq-a.open{max-height:200px;padding:0 20px 16px}
+.fq-a.open{max-height:220px;padding:0 20px 16px}
 .fq.open .fq-q .ms{transform:rotate(45deg);color:var(--g)}
 
-/* CTA final */
-.end-cta{text-align:center;padding:20px 24px 90px}
-.end-cta h2{font-family:Manrope;font-weight:900;font-size:clamp(1.5rem,3vw,2rem);margin-bottom:10px}
+/* CTA FINAL */
+.end-cta{text-align:center;padding:20px 24px 80px}
+.end-cta h2{font-family:Manrope;font-weight:900;font-size:clamp(1.4rem,3vw,2rem);margin-bottom:10px}
 .end-cta p{color:var(--mut);margin-bottom:24px;font-size:.95rem}
 .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.cta-main{padding:13px 32px;background:var(--g);color:#fff;border-radius:12px;font-weight:700;font-size:.95rem;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.2s;font-family:inherit}
+.cta-main{padding:13px 28px;background:var(--g);color:#fff;border-radius:12px;font-weight:700;font-size:.9rem;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.2s;font-family:inherit;text-decoration:none}
 .cta-main:hover{background:var(--gd);transform:translateY(-2px)}
-.cta-sec{padding:12px 24px;border:2px solid var(--border);color:var(--ink);border-radius:12px;font-weight:700;font-size:.95rem;text-decoration:none;transition:.2s}
+.cta-sec{padding:12px 22px;border:2px solid var(--border);color:var(--ink);border-radius:12px;font-weight:700;font-size:.9rem;text-decoration:none;transition:.2s}
 .cta-sec:hover{border-color:var(--g);color:var(--g)}
 
 /* MODAL */
-.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
-.mbox{background:#fff;border-radius:22px;width:100%;max-width:440px;box-shadow:0 28px 70px rgba(0,0,0,.2);overflow:hidden;animation:mpop .2s ease both}
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
+.mbox{background:#fff;border-radius:22px;width:100%;max-width:440px;box-shadow:0 28px 70px rgba(0,0,0,.2);overflow:hidden;animation:mpop .2s ease both;max-height:90vh;overflow-y:auto}
 @keyframes mpop{from{opacity:0;transform:scale(.95) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.mhead{padding:24px 26px;background:linear-gradient(135deg,var(--g),#1a7a3c)}
-.mbody{padding:22px 26px}
+.mhead{padding:22px 24px;background:linear-gradient(135deg,var(--g),#1a7a3c)}
+.mbody{padding:20px 24px}
 .mfld{width:100%;background:#f9fafb;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:.875rem;color:#111;outline:none;font-family:inherit;transition:border .15s;margin-bottom:10px}
 .mfld:focus{border-color:var(--g)}
 .mlbl{display:block;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px}
@@ -195,20 +197,18 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
   <div class="badge"><span class="ms" style="font-size:15px">sell</span>5 plans tarifaires</div>
   <h1>Le bon plan pour<br/><em>chaque université</em></h1>
   <p>Des tarifs adaptés à chaque taille d'établissement. Commencez gratuitement, évoluez quand vous êtes prêt.</p>
-  <div>
-    <div class="toggle-row">
-      <span class="t-lbl" id="lbl-m" style="color:var(--g)">Mensuel</span>
-      <button class="t-sw" onclick="switchFreq()"><span class="t-dot" id="t-dot"></span></button>
-      <span class="t-lbl" id="lbl-y" style="color:var(--mut)">Annuel</span>
-      <span class="save-tag" id="save-tag">Économisez 20% 🎉</span>
-    </div>
+  <div class="toggle-row">
+    <span class="t-lbl" id="lbl-m" style="color:var(--g)">Mensuel</span>
+    <button class="t-sw" onclick="switchFreq()"><span class="t-dot" id="t-dot"></span></button>
+    <span class="t-lbl" id="lbl-y" style="color:var(--mut)">Annuel</span>
+    <span class="save-tag" id="save-tag">Économisez 20% 🎉</span>
   </div>
 </section>
 
-<!-- ═══ PLANS LINÉAIRES ═══ -->
+<!-- PLANS -->
 <div class="plans-wrap">
 
-  <!-- 1. DÉCOUVERTE -->
+  <!-- DÉCOUVERTE -->
   <div class="prow pr-free">
     <div class="pl">
       <div>
@@ -231,17 +231,17 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
       <div class="feat"><span class="fck"><span class="ms">check</span></span>30 étudiants maximum</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>3 cours PDF</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>1 enseignant</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>Devoirs & corrections basiques</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>Devoirs basiques</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Dashboard étudiant & prof</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>500 MB de stockage</div>
       <div class="feat" style="opacity:.45"><span class="fcr"><span class="ms">close</span></span>Quiz auto-corrigés</div>
-      <div class="feat" style="opacity:.45"><span class="fcr"><span class="ms">close</span></span>Communautés de classe</div>
+      <div class="feat" style="opacity:.45"><span class="fcr"><span class="ms">close</span></span>Communautés</div>
       <div class="feat" style="opacity:.45"><span class="fcr"><span class="ms">close</span></span>Inter-universités</div>
       <div class="feat" style="opacity:.45"><span class="fcr"><span class="ms">close</span></span>Statistiques avancées</div>
     </div>
   </div>
 
-  <!-- 2. STARTER -->
+  <!-- STARTER -->
   <div class="prow pr-start">
     <div class="pl">
       <div>
@@ -264,7 +264,7 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
       <div class="feat"><span class="fck"><span class="ms">check</span></span>150 étudiants actifs</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>5 enseignants</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Cours PDF illimités</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>Devoirs & corrections complètes</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>Devoirs & corrections</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>1 communauté de classe</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>5 GB de stockage</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Support par email</div>
@@ -274,9 +274,9 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
     </div>
   </div>
 
-  <!-- 3. PRO — POPULAIRE -->
+  <!-- PRO POPULAIRE -->
   <div class="prow pr-pro" style="position:relative">
-    <span class="pop-tag" style="position:absolute;top:18px;right:18px;z-index:1">⭐ POPULAIRE</span>
+    <span class="pop-tag" style="position:absolute;top:16px;right:16px;z-index:1">⭐ POPULAIRE</span>
     <div class="pl">
       <div>
         <span class="plan-badge">🏛️ Université Pro</span>
@@ -301,20 +301,20 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Inter-universités activé</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Communautés illimitées</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Métriques & statistiques</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>Support WhatsApp prioritaire</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>20 GB de stockage PDF</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>WhatsApp prioritaire</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>20 GB de stockage</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Activation prof par PIN</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Attestations numériques</div>
     </div>
   </div>
 
-  <!-- 4. UNIVERSITÉ -->
+  <!-- UNIVERSITÉ -->
   <div class="prow pr-univ">
     <div class="pl">
       <div>
         <span class="plan-badge">🏫 Université</span>
         <h2 class="plan-name">Toutes filières</h2>
-        <p class="plan-desc">L'établissement entier — tous niveaux, toutes filières, administration complète avec tableau de bord direction.</p>
+        <p class="plan-desc">L'établissement entier — tous niveaux, toutes filières, administration complète.</p>
       </div>
       <div>
         <div style="display:flex;align-items:flex-end;gap:4px">
@@ -331,23 +331,23 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Étudiants illimités</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Tout le plan Pro inclus</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Admin université dédié</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>Rapports direction & scolarité</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>Rapports direction</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>100 GB de stockage</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>Formation équipe pédagogique</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>Intégration systèmes existants</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>Formation équipe</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>Intégration systèmes</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Onboarding accompagné</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Support WhatsApp + appel</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>Attestations numériques officielles</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>Attestations officielles</div>
     </div>
   </div>
 
-  <!-- 5. RÉSEAU NATIONAL -->
+  <!-- RÉSEAU NATIONAL -->
   <div class="prow pr-net">
     <div class="pl">
       <div>
         <span class="plan-badge">🌐 Réseau National</span>
         <h2 class="plan-name">Multi-établissements</h2>
-        <p class="plan-desc">Pour les groupes d'universités, les ministères et les déploiements à l'échelle nationale. Hébergement dédié inclus.</p>
+        <p class="plan-desc">Pour les groupes d'universités, les ministères et les déploiements nationaux.</p>
       </div>
       <div>
         <div style="display:flex;align-items:flex-end;gap:4px">
@@ -363,14 +363,14 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
     <div class="pr">
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Universités illimitées</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Super Admin centralisé</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>Hébergement serveur dédié</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>SLA 99.9% uptime garanti</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>Hébergement dédié</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>SLA 99.9% garanti</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Stockage illimité</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Account manager dédié</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Rapports ministériels</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>Personnalisation aux couleurs</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>Personnalisation couleurs</div>
       <div class="feat"><span class="fck"><span class="ms">check</span></span>Sauvegarde quotidienne</div>
-      <div class="feat"><span class="fck"><span class="ms">check</span></span>Formation sur site complète</div>
+      <div class="feat"><span class="fck"><span class="ms">check</span></span>Formation sur site</div>
     </div>
   </div>
 
@@ -381,11 +381,11 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
   <div class="pay-inner">
     <div style="display:flex;align-items:center;gap:7px"><span class="ms" style="color:var(--g)">lock</span><span style="font-size:.85rem;font-weight:700">Paiements 100% sécurisés</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <span style="font-size:.7rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em">Méthodes acceptées :</span>
+      <span style="font-size:.7rem;font-weight:700;color:#9ca3af;text-transform:uppercase">Méthodes acceptées :</span>
       <div class="pm" style="background:#ffcc00;color:#000">📱 MTN MoMo</div>
       <div class="pm" style="background:#ff6600;color:#fff">🟠 Orange Money</div>
       <div class="pm" style="background:#1a56db;color:#fff">💳 Visa / Mastercard</div>
-      <div class="pm" style="background:#f3f4f6;color:#374151">🏦 Virement bancaire</div>
+      <div class="pm" style="background:#f3f4f6;color:#374151">🏦 Virement</div>
     </div>
     <div style="display:flex;align-items:center;gap:5px;color:#16a34a;font-size:.85rem;font-weight:700">
       <span class="ms" style="font-size:17px">check_circle</span>Sans engagement
@@ -393,326 +393,208 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
   </div>
 </div>
 
-
-<!-- ═══ SECTION PERSUASION ═══ -->
-
-<!-- 1. ROI CHIFFRÉ -->
-<div style="max-width:860px;margin:0 auto;padding:0 24px 64px">
-  <div style="background:linear-gradient(135deg,#00602a,#1a7a3c);border-radius:24px;padding:52px 48px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:-60px;right:-60px;width:280px;height:280px;background:rgba(255,255,255,.06);border-radius:50%"></div>
-    <div style="position:absolute;bottom:-80px;left:-40px;width:240px;height:240px;background:rgba(255,255,255,.04);border-radius:50%"></div>
-    <div style="position:relative;text-align:center;margin-bottom:40px">
+<!-- ═══ SECTION SUPPLEMENTAIRE 1 : POURQUOI CAMUNOLEARN ═══ -->
+<div class="section-wrap" style="padding-bottom:64px">
+  <div style="background:linear-gradient(135deg,#00602a,#1a7a3c);border-radius:24px;padding:48px 40px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:-60px;right:-60px;width:280px;height:280px;background:rgba(255,255,255,.06);border-radius:50%;pointer-events:none"></div>
+    <div style="position:relative;text-align:center;margin-bottom:36px">
       <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);color:#fff;padding:6px 16px;border-radius:999px;font-size:.75rem;font-weight:700;margin-bottom:16px">💰 Retour sur investissement</span>
-      <h2 style="font-family:Manrope;font-weight:900;font-size:clamp(1.8rem,4vw,2.6rem);color:#fff;margin-bottom:12px;line-height:1.2">CamunoLearn se rembourse<br/>dès le premier semestre</h2>
-      <p style="color:rgba(255,255,255,.75);font-size:1rem;max-width:520px;margin:0 auto;line-height:1.7">Calculez ce que vous dépensez aujourd'hui en impression, photocopies et gestion manuelle. La plateforme coûte moins que vos frais de reprographie mensuels.</p>
+      <h2 style="font-family:Manrope;font-weight:900;font-size:clamp(1.6rem,3.5vw,2.4rem);color:#fff;margin-bottom:12px;line-height:1.2">CamunoLearn se rembourse<br/>dès le premier semestre</h2>
+      <p style="color:rgba(255,255,255,.75);font-size:.95rem;max-width:520px;margin:0 auto;line-height:1.7">Calculez ce que vous dépensez en impression, photocopies et gestion manuelle. La plateforme coûte moins que vos frais de reprographie mensuels.</p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;position:relative">
-      <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:22px;text-align:center;backdrop-filter:blur(10px)">
-        <p style="font-family:Manrope;font-weight:900;font-size:2.6rem;color:#fff;margin:0 0 6px">8h</p>
+    <div class="grid-stats" style="position:relative">
+      <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:22px;text-align:center">
+        <p style="font-family:Manrope;font-weight:900;font-size:2.4rem;color:#fff;margin:0 0 6px">8h</p>
         <p style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.5;margin:0">gagnées par enseignant par semaine sur les corrections et la distribution</p>
       </div>
-      <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:22px;text-align:center;backdrop-filter:blur(10px)">
-        <p style="font-family:Manrope;font-weight:900;font-size:2.6rem;color:#fff;margin:0 0 6px">-70%</p>
+      <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:22px;text-align:center">
+        <p style="font-family:Manrope;font-weight:900;font-size:2.4rem;color:#fff;margin:0 0 6px">-70%</p>
         <p style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.5;margin:0">de frais d'impression de supports de cours pour les étudiants</p>
       </div>
-      <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:22px;text-align:center;backdrop-filter:blur(10px)">
-        <p style="font-family:Manrope;font-weight:900;font-size:2.6rem;color:#fff;margin:0 0 6px">×3</p>
+      <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:22px;text-align:center">
+        <p style="font-family:Manrope;font-weight:900;font-size:2.4rem;color:#fff;margin:0 0 6px">×3</p>
         <p style="font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.5;margin:0">d'engagement étudiant comparé aux cours uniquement en présentiel</p>
       </div>
     </div>
-    <div style="text-align:center;margin-top:32px">
-      <p style="color:rgba(255,255,255,.6);font-size:.85rem">📊 Données issues des 3 premiers établissements pilotes de CamunoLearn (2025-2026)</p>
-    </div>
   </div>
 </div>
 
-<!-- 2. CE QUE GAGNE L'UNIVERSITÉ -->
-<div style="max-width:860px;margin:0 auto;padding:0 24px 64px">
-  <div style="text-align:center;margin-bottom:40px">
-    <span style="display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;color:#00602a;padding:6px 16px;border-radius:999px;font-size:.75rem;font-weight:700;margin-bottom:16px">
-      <span style="font-family:Material Symbols Outlined;font-size:15px">emoji_events</span>Ce que vous gagnez
+<!-- ═══ SECTION CE QUE VOUS GAGNEZ ═══ -->
+<div class="section-wrap" style="padding-bottom:64px">
+  <div style="text-align:center;margin-bottom:36px">
+    <span style="display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;color:#00602a;padding:6px 16px;border-radius:999px;font-size:.75rem;font-weight:700;margin-bottom:14px">
+      <span class="ms" style="font-size:15px">emoji_events</span>Ce que vous gagnez
     </span>
-    <h2 style="font-family:Manrope;font-weight:900;font-size:clamp(1.7rem,3.5vw,2.4rem);color:#0d1f12;margin-bottom:12px">Votre université devient une<br/>référence dans la région</h2>
-    <p style="color:#6b7280;max-width:540px;margin:0 auto;line-height:1.7;font-size:.95rem">CamunoLearn transforme votre établissement en institution moderne et connectée. Voici exactement ce que vous gagnez.</p>
+    <h2 style="font-family:Manrope;font-weight:900;font-size:clamp(1.6rem,3.5vw,2.2rem);color:#0d1f12;margin-bottom:10px">Votre université devient une<br/>référence dans la région</h2>
+    <p style="color:#6b7280;max-width:540px;margin:0 auto;line-height:1.7;font-size:.95rem">CamunoLearn transforme votre établissement en institution moderne et connectée.</p>
   </div>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-
-    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-        <div style="width:44px;height:44px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <span style="font-family:Material Symbols Outlined;color:#00602a;font-size:22px">schedule</span>
-        </div>
-        <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#0d1f12;margin:0">Du temps libéré pour enseigner</h3>
+  <div class="grid-2">
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:44px;height:44px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms" style="color:#00602a;font-size:22px">schedule</span></div>
+        <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#0d1f12;margin:0">Du temps libéré pour enseigner</h3>
       </div>
-      <p style="font-size:.875rem;color:#6b7280;line-height:1.7;margin:0">Vos enseignants passent 8h de moins par semaine sur la gestion administrative. Distribution des supports, collecte des copies, calcul des moyennes — tout est automatisé. Ils se concentrent sur ce qui compte : la pédagogie.</p>
+      <p style="font-size:.85rem;color:#6b7280;line-height:1.7;margin:0">Vos enseignants passent 8h de moins par semaine sur la gestion administrative. Distribution, collecte des copies, calcul des moyennes — tout est automatisé.</p>
     </div>
-
-    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-        <div style="width:44px;height:44px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <span style="font-family:Material Symbols Outlined;color:#00602a;font-size:22px">trending_up</span>
-        </div>
-        <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#0d1f12;margin:0">Des résultats académiques en hausse</h3>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:44px;height:44px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms" style="color:#00602a;font-size:22px">trending_up</span></div>
+        <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#0d1f12;margin:0">Des résultats académiques en hausse</h3>
       </div>
-      <p style="font-size:.875rem;color:#6b7280;line-height:1.7;margin:0">Les étudiants qui accèdent aux cours à n'importe quelle heure, qui refont les quiz jusqu'à maîtriser le sujet, qui s'entraident dans les communautés — ils réussissent mieux. Les établissements pilotes ont observé +18% de taux de réussite aux examens.</p>
+      <p style="font-size:.85rem;color:#6b7280;line-height:1.7;margin:0">Les étudiants accèdent aux cours à toute heure, refont les quiz jusqu'à maîtriser. Les établissements pilotes ont observé +18% de taux de réussite.</p>
     </div>
-
-    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-        <div style="width:44px;height:44px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <span style="font-family:Material Symbols Outlined;color:#00602a;font-size:22px">groups</span>
-        </div>
-        <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#0d1f12;margin:0">Une attractivité renforcée</h3>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:44px;height:44px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms" style="color:#00602a;font-size:22px">attach_money</span></div>
+        <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#0d1f12;margin:0">Des coûts opérationnels réduits</h3>
       </div>
-      <p style="font-size:.875rem;color:#6b7280;line-height:1.7;margin:0">Les futurs étudiants choisissent leur université. Un établissement avec une plateforme numérique moderne, des cours accessibles en ligne, des attestations numériques — il se distingue immédiatement face à la concurrence.</p>
+      <p style="font-size:.85rem;color:#6b7280;line-height:1.7;margin:0">Photocopies, impression, distribution physique — tout disparaît progressivement. Une université de 500 étudiants économise 2 millions XAF/semestre sur ces postes.</p>
     </div>
-
-    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-        <div style="width:44px;height:44px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <span style="font-family:Material Symbols Outlined;color:#00602a;font-size:22px">analytics</span>
-        </div>
-        <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#0d1f12;margin:0">Des décisions basées sur des données</h3>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:44px;height:44px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms" style="color:#00602a;font-size:22px">analytics</span></div>
+        <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#0d1f12;margin:0">Des décisions basées sur des données</h3>
       </div>
-      <p style="font-size:.875rem;color:#6b7280;line-height:1.7;margin:0">Pour la première fois, votre direction dispose de tableaux de bord en temps réel : taux de présence numérique, moyennes par filière, devoirs non rendus, étudiants en difficulté. Des alertes proactives avant les examens.</p>
+      <p style="font-size:.85rem;color:#6b7280;line-height:1.7;margin:0">Tableaux de bord en temps réel : taux de présence, moyennes par filière, devoirs non rendus, étudiants en difficulté. Des alertes proactives avant les examens.</p>
     </div>
-
-    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-        <div style="width:44px;height:44px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <span style="font-family:Material Symbols Outlined;color:#00602a;font-size:22px">attach_money</span>
-        </div>
-        <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#0d1f12;margin:0">Des coûts opérationnels réduits</h3>
-      </div>
-      <p style="font-size:.875rem;color:#6b7280;line-height:1.7;margin:0">Photocopies, impression des sujets d'examens, distribution physique, achat de cahiers — tout ça disparaît progressivement. Une université de 500 étudiants économise en moyenne 2 millions XAF par semestre sur ces postes.</p>
-    </div>
-
-    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-        <div style="width:44px;height:44px;border-radius:12px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <span style="font-family:Material Symbols Outlined;color:#00602a;font-size:22px">language</span>
-        </div>
-        <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#0d1f12;margin:0">L'inter-universitaire : une exclusivité</h3>
-      </div>
-      <p style="font-size:.875rem;color:#6b7280;line-height:1.7;margin:0">Seul CamunoLearn offre la fonctionnalité inter-universités au Cameroun. Vos étudiants peuvent accéder à des cours d'autres établissements. Votre université devient un hub académique régional, pas juste un bâtiment.</p>
-    </div>
-
   </div>
 </div>
 
-<!-- 3. TÉMOIGNAGES -->
+<!-- ═══ SECTION SUPPLEMENTAIRE 2 : TÉMOIGNAGES ═══ -->
 <div style="background:linear-gradient(180deg,#f8f9fb,#f0fdf4);padding:64px 24px">
-  <div style="max-width:860px;margin:0 auto">
-    <div style="text-align:center;margin-bottom:40px">
-      <span style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #bbf7d0;color:#00602a;padding:6px 16px;border-radius:999px;font-size:.75rem;font-weight:700;margin-bottom:16px">
-        <span style="font-family:Material Symbols Outlined;font-size:15px">format_quote</span>Ils ont franchi le pas
+  <div style="max-width:900px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:36px">
+      <span style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #bbf7d0;color:#00602a;padding:6px 16px;border-radius:999px;font-size:.75rem;font-weight:700;margin-bottom:14px">
+        <span class="ms" style="font-size:15px">format_quote</span>Ils ont franchi le pas
       </span>
-      <h2 style="font-family:Manrope;font-weight:900;font-size:clamp(1.6rem,3.5vw,2.2rem);color:#0d1f12;margin:0">Ce que disent les premiers établissements</h2>
+      <h2 style="font-family:Manrope;font-weight:900;font-size:clamp(1.5rem,3.5vw,2.1rem);color:#0d1f12;margin:0">Ce que disent les premiers établissements</h2>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
-
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
-        <div style="display:flex;gap:3px;margin-bottom:14px">
-          <span style="color:#f59e0b;font-size:16px">★★★★★</span>
-        </div>
-        <p style="font-size:.9rem;color:#374151;line-height:1.7;margin-bottom:18px;font-style:italic">"Avant CamunoLearn, je passais mes mercredis soirs à photocopier les sujets de TD. Maintenant j'upload le PDF et mes 120 étudiants y ont accès instantanément. C'est révolutionnaire pour notre contexte."</p>
+    <div class="grid-2">
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
+        <div style="color:#f59e0b;font-size:16px;margin-bottom:12px">★★★★★</div>
+        <p style="font-size:.88rem;color:#374151;line-height:1.7;margin-bottom:16px;font-style:italic">"Avant CamunoLearn, je passais mes mercredis soirs à photocopier les sujets de TD. Maintenant j'upload le PDF et mes 120 étudiants y ont accès instantanément. C'est révolutionnaire pour notre contexte."</p>
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00602a,#1a7a3c);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff">JP</div>
-          <div>
-            <p style="font-weight:700;color:#0d1f12;margin:0;font-size:.875rem">Dr. Jean-Paul Mbongo</p>
-            <p style="font-size:.75rem;color:#9ca3af;margin:0">Enseignant Informatique · IUT de Douala</p>
-          </div>
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#00602a,#1a7a3c);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff">JP</div>
+          <div><p style="font-weight:700;color:#0d1f12;margin:0;font-size:.85rem">Dr. Jean-Paul Mbongo</p><p style="font-size:.72rem;color:#9ca3af;margin:0">Enseignant Informatique · IUT de Douala</p></div>
         </div>
       </div>
-
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
-        <div style="display:flex;gap:3px;margin-bottom:14px">
-          <span style="color:#f59e0b;font-size:16px">★★★★★</span>
-        </div>
-        <p style="font-size:.9rem;color:#374151;line-height:1.7;margin-bottom:18px;font-style:italic">"Le tableau de bord admin nous a révélé que 30% des étudiants ne rendaient jamais leurs devoirs. Avant on ne le savait qu'aux examens. Maintenant on peut intervenir à temps. Cette donnée à elle seule justifie l'abonnement."</p>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
+        <div style="color:#f59e0b;font-size:16px;margin-bottom:12px">★★★★★</div>
+        <p style="font-size:.88rem;color:#374151;line-height:1.7;margin-bottom:16px;font-style:italic">"Le tableau de bord nous a révélé que 30% des étudiants ne rendaient jamais leurs devoirs. Avant on ne le savait qu'aux examens. Maintenant on intervient à temps. Cette donnée à elle seule justifie l'abonnement."</p>
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1a56db,#1e40af);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff">SK</div>
-          <div>
-            <p style="font-weight:700;color:#0d1f12;margin:0;font-size:.875rem">Pr. Sylvie Kengne</p>
-            <p style="font-size:.75rem;color:#9ca3af;margin:0">Directrice pédagogique · ESSEC Douala</p>
-          </div>
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1a56db,#1e40af);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff">SK</div>
+          <div><p style="font-weight:700;color:#0d1f12;margin:0;font-size:.85rem">Pr. Sylvie Kengne</p><p style="font-size:.72rem;color:#9ca3af;margin:0">Directrice pédagogique · ESSEC Douala</p></div>
         </div>
       </div>
-
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
-        <div style="display:flex;gap:3px;margin-bottom:14px">
-          <span style="color:#f59e0b;font-size:16px">★★★★★</span>
-        </div>
-        <p style="font-size:.9rem;color:#374151;line-height:1.7;margin-bottom:18px;font-style:italic">"Nos étudiants viennent parfois de loin. Avec CamunoLearn, ceux qui ratent un cours pour des raisons de transport peuvent consulter le contenu le soir même depuis leur téléphone. On a réduit les abandons de 22%."</p>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
+        <div style="color:#f59e0b;font-size:16px;margin-bottom:12px">★★★★★</div>
+        <p style="font-size:.88rem;color:#374151;line-height:1.7;margin-bottom:16px;font-style:italic">"Nos étudiants viennent parfois de loin. Avec CamunoLearn, ceux qui ratent un cours pour des raisons de transport consultent le contenu le soir depuis leur téléphone. On a réduit les abandons de 22%."</p>
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4c1d95);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff">AT</div>
-          <div>
-            <p style="font-weight:700;color:#0d1f12;margin:0;font-size:.875rem">M. Alain Tchinda</p>
-            <p style="font-size:.75rem;color:#9ca3af;margin:0">Doyen · Université de Ngaoundéré</p>
-          </div>
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4c1d95);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff">AT</div>
+          <div><p style="font-weight:700;color:#0d1f12;margin:0;font-size:.85rem">M. Alain Tchinda</p><p style="font-size:.72rem;color:#9ca3af;margin:0">Doyen · Université de Ngaoundéré</p></div>
         </div>
       </div>
-
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
-        <div style="display:flex;gap:3px;margin-bottom:14px">
-          <span style="color:#f59e0b;font-size:16px">★★★★★</span>
-        </div>
-        <p style="font-size:.9rem;color:#374151;line-height:1.7;margin-bottom:18px;font-style:italic">"Pour 49 000 XAF par mois — soit 1 633 XAF par jour — on a transformé notre département entier. On a économisé plus de 3 millions XAF en impression cette année. C'est l'investissement le plus rentable que j'aie fait."</p>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;box-shadow:0 3px 14px rgba(0,0,0,.05)">
+        <div style="color:#f59e0b;font-size:16px;margin-bottom:12px">★★★★★</div>
+        <p style="font-size:.88rem;color:#374151;line-height:1.7;margin-bottom:16px;font-style:italic">"Pour 49 000 XAF par mois — soit 1 633 XAF par jour — on a transformé notre département entier. On a économisé plus de 3 millions XAF en impression cette année. C'est l'investissement le plus rentable."</p>
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#059669,#065f46);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff">BN</div>
-          <div>
-            <p style="font-weight:700;color:#0d1f12;margin:0;font-size:.875rem">Dr. Bertrand Nkolo</p>
-            <p style="font-size:.75rem;color:#9ca3af;margin:0">Chef de département Génie Civil · ENSET</p>
-          </div>
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#059669,#065f46);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff">BN</div>
+          <div><p style="font-weight:700;color:#0d1f12;margin:0;font-size:.85rem">Dr. Bertrand Nkolo</p><p style="font-size:.72rem;color:#9ca3af;margin:0">Chef de département GC · ENSET</p></div>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
-<!-- 4. CALCUL COMPARATIF (Coût sans vs avec) -->
-<div style="max-width:860px;margin:0 auto;padding:64px 24px">
-  <div style="text-align:center;margin-bottom:40px">
-    <span style="display:inline-flex;align-items:center;gap:6px;background:#fef3c7;border:1px solid #fde68a;color:#92400e;padding:6px 16px;border-radius:999px;font-size:.75rem;font-weight:700;margin-bottom:16px">
-      <span style="font-family:Material Symbols Outlined;font-size:15px">calculate</span>Le calcul qui parle de lui-même
+<!-- ═══ SECTION SUPPLEMENTAIRE 3 : AVANT/APRÈS ═══ -->
+<div class="section-wrap" style="padding-top:64px;padding-bottom:64px">
+  <div style="text-align:center;margin-bottom:36px">
+    <span style="display:inline-flex;align-items:center;gap:6px;background:#fef3c7;border:1px solid #fde68a;color:#92400e;padding:6px 16px;border-radius:999px;font-size:.75rem;font-weight:700;margin-bottom:14px">
+      <span class="ms" style="font-size:15px">calculate</span>Le calcul qui parle de lui-même
     </span>
-    <h2 style="font-family:Manrope;font-weight:900;font-size:clamp(1.6rem,3.5vw,2.2rem);color:#0d1f12;margin-bottom:10px">Avant CamunoLearn vs Après</h2>
-    <p style="color:#6b7280;font-size:.95rem">Pour une université de 300 étudiants, 15 enseignants</p>
+    <h2 style="font-family:Manrope;font-weight:900;font-size:clamp(1.5rem,3.5vw,2.1rem);color:#0d1f12;margin-bottom:8px">Avant CamunoLearn vs Après</h2>
+    <p style="color:#6b7280;font-size:.9rem">Pour une université de 300 étudiants, 15 enseignants</p>
   </div>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:20px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.1)">
-
-    <!-- Sans CamunoLearn -->
-    <div style="background:#fef2f2;border:2px solid #fecaca;padding:28px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
-        <span style="font-family:Material Symbols Outlined;color:#dc2626;font-size:22px">cancel</span>
-        <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#dc2626;margin:0">SANS CamunoLearn</h3>
+  <div class="before-after">
+    <div style="background:#fef2f2;border:2px solid #fecaca;padding:26px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
+        <span class="ms" style="color:#dc2626;font-size:20px">cancel</span>
+        <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#dc2626;margin:0">SANS CamunoLearn</h3>
       </div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #fecaca;font-size:.85rem">
-          <span style="color:#6b7280">Impression supports (2000 pages/mois)</span>
-          <span style="font-weight:700;color:#dc2626">80 000 XAF</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #fecaca;font-size:.85rem">
-          <span style="color:#6b7280">Temps gestion admin enseignants (×15)</span>
-          <span style="font-weight:700;color:#dc2626">~120h/mois</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #fecaca;font-size:.85rem">
-          <span style="color:#6b7280">Achats cahiers/classeurs étudiants</span>
-          <span style="font-weight:700;color:#dc2626">45 000 XAF</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #fecaca;font-size:.85rem">
-          <span style="color:#6b7280">Étudiants absents sans recours</span>
-          <span style="font-weight:700;color:#dc2626">~12% / semestre</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #fecaca;font-size:.85rem">
-          <span style="color:#6b7280">Suivi pédagogique</span>
-          <span style="font-weight:700;color:#dc2626">Manuel · subjectif</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-top:4px;font-size:.95rem">
-          <span style="font-weight:700;color:#dc2626">Coût mensuel estimé</span>
-          <span style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#dc2626">125 000 XAF+</span>
-        </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #fecaca;font-size:.83rem"><span style="color:#6b7280">Impression supports (2000 pages/mois)</span><span style="font-weight:700;color:#dc2626">80 000 XAF</span></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #fecaca;font-size:.83rem"><span style="color:#6b7280">Temps gestion admin enseignants (×15)</span><span style="font-weight:700;color:#dc2626">~120h/mois</span></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #fecaca;font-size:.83rem"><span style="color:#6b7280">Achats cahiers/classeurs étudiants</span><span style="font-weight:700;color:#dc2626">45 000 XAF</span></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #fecaca;font-size:.83rem"><span style="color:#6b7280">Étudiants absents sans recours</span><span style="font-weight:700;color:#dc2626">~12% / semestre</span></div>
+        <div style="display:flex;justify-content:space-between;padding-top:4px;font-size:.92rem"><span style="font-weight:700;color:#dc2626">Coût mensuel estimé</span><span style="font-family:Manrope;font-weight:900;font-size:1.15rem;color:#dc2626">125 000 XAF+</span></div>
       </div>
     </div>
-
-    <!-- Avec CamunoLearn -->
-    <div style="background:#f0fdf4;border:2px solid #bbf7d0;padding:28px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
-        <span style="font-family:Material Symbols Outlined;color:#16a34a;font-size:22px">check_circle</span>
-        <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#16a34a;margin:0">AVEC CamunoLearn Pro</h3>
+    <div style="background:#f0fdf4;border:2px solid #bbf7d0;padding:26px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
+        <span class="ms" style="color:#16a34a;font-size:20px">check_circle</span>
+        <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#16a34a;margin:0">AVEC CamunoLearn Pro</h3>
       </div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #bbf7d0;font-size:.85rem">
-          <span style="color:#6b7280">Impression (PDFs en ligne)</span>
-          <span style="font-weight:700;color:#16a34a">≈ 8 000 XAF</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #bbf7d0;font-size:.85rem">
-          <span style="color:#6b7280">Temps gestion admin (automatisé)</span>
-          <span style="font-weight:700;color:#16a34a">~30h/mois</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #bbf7d0;font-size:.85rem">
-          <span style="color:#6b7280">Supports étudiants (accès gratuit)</span>
-          <span style="font-weight:700;color:#16a34a">0 XAF</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #bbf7d0;font-size:.85rem">
-          <span style="color:#6b7280">Étudiants avec accès hors classe</span>
-          <span style="font-weight:700;color:#16a34a">100% · 24h/24</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #bbf7d0;font-size:.85rem">
-          <span style="color:#6b7280">Suivi pédagogique</span>
-          <span style="font-weight:700;color:#16a34a">Temps réel · automatique</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-top:4px;font-size:.95rem">
-          <span style="font-weight:700;color:#16a34a">Abonnement Pro mensuel</span>
-          <span style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#16a34a">49 000 XAF</span>
-        </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #bbf7d0;font-size:.83rem"><span style="color:#6b7280">Impression (PDFs en ligne)</span><span style="font-weight:700;color:#16a34a">≈ 8 000 XAF</span></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #bbf7d0;font-size:.83rem"><span style="color:#6b7280">Temps gestion admin (automatisé)</span><span style="font-weight:700;color:#16a34a">~30h/mois</span></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #bbf7d0;font-size:.83rem"><span style="color:#6b7280">Supports étudiants (accès gratuit)</span><span style="font-weight:700;color:#16a34a">0 XAF</span></div>
+        <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #bbf7d0;font-size:.83rem"><span style="color:#6b7280">Étudiants avec accès hors classe</span><span style="font-weight:700;color:#16a34a">100% · 24h/24</span></div>
+        <div style="display:flex;justify-content:space-between;padding-top:4px;font-size:.92rem"><span style="font-weight:700;color:#16a34a">Abonnement Pro mensuel</span><span style="font-family:Manrope;font-weight:900;font-size:1.15rem;color:#16a34a">49 000 XAF</span></div>
       </div>
     </div>
-
   </div>
-
-  <!-- Économie réalisée -->
-  <div style="background:#0d1f12;border-radius:0 0 20px 20px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-top:-2px">
+  <div style="background:#0d1f12;border-radius:0 0 20px 20px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:-2px">
     <div>
-      <p style="font-size:.8rem;color:#64748b;margin:0 0 2px;text-transform:uppercase;letter-spacing:.05em">Économie réalisée chaque mois</p>
-      <p style="font-family:Manrope;font-weight:900;font-size:2rem;color:#4ade80;margin:0">+ 76 000 XAF économisés</p>
+      <p style="font-size:.78rem;color:#64748b;margin:0 0 2px;text-transform:uppercase;letter-spacing:.05em">Économie réalisée chaque mois</p>
+      <p style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#4ade80;margin:0">+ 76 000 XAF économisés</p>
     </div>
     <div style="text-align:right">
-      <p style="font-size:.8rem;color:#64748b;margin:0 0 2px">Soit sur une année</p>
-      <p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#4ade80;margin:0">+ 912 000 XAF d'économies</p>
+      <p style="font-size:.78rem;color:#64748b;margin:0 0 2px">Sur une année complète</p>
+      <p style="font-family:Manrope;font-weight:900;font-size:1.4rem;color:#4ade80;margin:0">+ 912 000 XAF d'économies</p>
     </div>
-    <button onclick="openM('pro')" style="padding:12px 28px;background:#00602a;color:#fff;border:none;border-radius:12px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.2s" onmouseover="this.style.background='#004d22'" onmouseout="this.style.background='#00602a'">
+    <button onclick="openM('pro')" style="padding:11px 24px;background:#00602a;color:#fff;border:none;border-radius:12px;font-weight:700;font-size:.88rem;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.2s" onmouseover="this.style.background='#004d22'" onmouseout="this.style.background='#00602a'">
       Commencer maintenant →
     </button>
   </div>
 </div>
 
-<!-- 5. GARANTIES & SÉCURITÉ -->
-<div style="max-width:860px;margin:0 auto;padding:0 24px 64px">
+<!-- ═══ SECTION SUPPLEMENTAIRE 4 : GARANTIES ═══ -->
+<div class="section-wrap" style="padding-bottom:64px">
   <div style="background:#fff;border:1px solid #e5e7eb;border-radius:22px;padding:36px;box-shadow:0 4px 18px rgba(0,0,0,.06)">
-    <div style="text-align:center;margin-bottom:32px">
-      <h2 style="font-family:Manrope;font-weight:900;font-size:1.6rem;color:#0d1f12;margin-bottom:8px">Vous prenez zéro risque</h2>
+    <div style="text-align:center;margin-bottom:28px">
+      <h2 style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#0d1f12;margin-bottom:8px">Vous prenez zéro risque</h2>
       <p style="color:#6b7280;font-size:.9rem">Nos garanties pour votre tranquillité d'esprit</p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+    <div class="grid-3">
       <div style="text-align:center;padding:16px">
-        <div style="width:52px;height:52px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
-          <span style="font-family:Material Symbols Outlined;color:#00602a;font-size:26px">verified_user</span>
-        </div>
+        <div style="width:52px;height:52px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><span class="ms" style="color:#00602a;font-size:24px">verified_user</span></div>
         <h4 style="font-family:Manrope;font-weight:800;font-size:.9rem;color:#0d1f12;margin:0 0 6px">30 jours d'essai gratuit</h4>
-        <p style="font-size:.8rem;color:#6b7280;line-height:1.6;margin:0">Testez la plateforme complète pendant 30 jours. Si elle ne vous convient pas, vous ne payez rien. Aucune question posée.</p>
+        <p style="font-size:.8rem;color:#6b7280;line-height:1.6;margin:0">Testez la plateforme complète pendant 30 jours. Si elle ne vous convient pas, vous ne payez rien.</p>
       </div>
       <div style="text-align:center;padding:16px">
-        <div style="width:52px;height:52px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
-          <span style="font-family:Material Symbols Outlined;color:#00602a;font-size:26px">cancel_schedule_send</span>
-        </div>
+        <div style="width:52px;height:52px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><span class="ms" style="color:#00602a;font-size:24px">cancel_schedule_send</span></div>
         <h4 style="font-family:Manrope;font-weight:800;font-size:.9rem;color:#0d1f12;margin:0 0 6px">Résiliable à tout moment</h4>
-        <p style="font-size:.8rem;color:#6b7280;line-height:1.6;margin:0">Aucun contrat minimum. Résiliez quand vous voulez depuis votre tableau de bord en 2 clics. Remboursement prorata immédiat.</p>
+        <p style="font-size:.8rem;color:#6b7280;line-height:1.6;margin:0">Aucun contrat minimum. Résiliez depuis votre tableau de bord en 2 clics. Remboursement prorata.</p>
       </div>
       <div style="text-align:center;padding:16px">
-        <div style="width:52px;height:52px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
-          <span style="font-family:Material Symbols Outlined;color:#00602a;font-size:26px">support_agent</span>
-        </div>
+        <div style="width:52px;height:52px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><span class="ms" style="color:#00602a;font-size:24px">support_agent</span></div>
         <h4 style="font-family:Manrope;font-weight:800;font-size:.9rem;color:#0d1f12;margin:0 0 6px">Support humain à Douala</h4>
-        <p style="font-size:.8rem;color:#6b7280;line-height:1.6;margin:0">Notre équipe est physiquement à Douala. On peut se déplacer. Support WhatsApp 7j/7. Réponse en moins de 2h.</p>
+        <p style="font-size:.8rem;color:#6b7280;line-height:1.6;margin:0">Notre équipe est physiquement à Douala. Support WhatsApp 7j/7. Réponse en moins de 2h.</p>
       </div>
     </div>
   </div>
 </div>
 
 <!-- TABLEAU COMPARATIF -->
-<div style="max-width:900px;margin:0 auto;padding:0 24px 24px;text-align:center">
-  <div class="badge" style="margin-bottom:14px"><span class="ms" style="font-size:15px">compare</span>Tableau comparatif</div>
-  <h2 style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:var(--ink);margin-bottom:6px">Tout en un coup d'œil</h2>
-  <p style="color:var(--mut);font-size:.9rem;margin-bottom:28px">Comparez les fonctionnalités de chaque plan</p>
+<div style="max-width:960px;margin:0 auto;padding:0 24px 24px;text-align:center">
+  <div class="badge" style="margin-bottom:12px"><span class="ms" style="font-size:15px">compare</span>Tableau comparatif</div>
+  <h2 style="font-family:Manrope;font-weight:900;font-size:1.7rem;color:var(--ink);margin-bottom:6px">Tout en un coup d'œil</h2>
+  <p style="color:var(--mut);font-size:.88rem;margin-bottom:24px">Comparez les fonctionnalités de chaque plan</p>
 </div>
 <div class="table-wrap">
   <table class="comp">
     <thead><tr>
-      <th style="width:210px">Fonctionnalité</th>
+      <th style="width:180px">Fonctionnalité</th>
       <th>🌱 Déco.</th><th>🎓 Starter</th>
       <th class="th-pro">🏛️ Pro ⭐</th>
       <th>🏫 Univ.</th><th>🌐 Réseau</th>
@@ -729,17 +611,16 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
       <tr><td>Métriques avancées</td><td><span class="ms cross">cancel</span></td><td><span class="ms cross">cancel</span></td><td class="td-pro"><span class="ms tick">check_circle</span></td><td><span class="ms tick">check_circle</span></td><td><span class="ms tick">check_circle</span></td></tr>
       <tr><td>Stockage</td><td>500 MB</td><td>5 GB</td><td class="td-pro"><b>20 GB</b></td><td>100 GB</td><td>Illimité</td></tr>
       <tr><td>Admin université</td><td><span class="ms cross">cancel</span></td><td><span class="ms cross">cancel</span></td><td class="td-pro"><span class="ms cross">cancel</span></td><td><span class="ms tick">check_circle</span></td><td><span class="ms tick">check_circle</span></td></tr>
-      <tr><td>Super Admin central</td><td><span class="ms cross">cancel</span></td><td><span class="ms cross">cancel</span></td><td class="td-pro"><span class="ms cross">cancel</span></td><td><span class="ms cross">cancel</span></td><td><span class="ms tick">check_circle</span></td></tr>
+      <tr><td>Super Admin</td><td><span class="ms cross">cancel</span></td><td><span class="ms cross">cancel</span></td><td class="td-pro"><span class="ms cross">cancel</span></td><td><span class="ms cross">cancel</span></td><td><span class="ms tick">check_circle</span></td></tr>
       <tr><td>Hébergement dédié</td><td><span class="ms cross">cancel</span></td><td><span class="ms cross">cancel</span></td><td class="td-pro"><span class="ms cross">cancel</span></td><td><span class="ms cross">cancel</span></td><td><span class="ms tick">check_circle</span></td></tr>
-      <tr><td>SLA garanti</td><td><span class="ms cross">cancel</span></td><td><span class="ms cross">cancel</span></td><td class="td-pro"><span class="ms cross">cancel</span></td><td><span class="ms cross">cancel</span></td><td>99.9%</td></tr>
-      <tr><td>Support</td><td>—</td><td>Email</td><td class="td-pro"><b>WhatsApp 24h</b></td><td>WhatsApp + Appel</td><td>Manager dédié</td></tr>
+      <tr><td>Support</td><td>—</td><td>Email</td><td class="td-pro"><b>WhatsApp 24h</b></td><td>WA + Appel</td><td>Manager dédié</td></tr>
       <tr style="background:#f9fafb">
         <td></td>
-        <td><button onclick="openM('decouverte')" style="width:100%;padding:7px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer">Démarrer</button></td>
-        <td><button onclick="openM('starter')" style="width:100%;padding:7px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer">Choisir</button></td>
-        <td class="td-pro"><button onclick="openM('pro')" style="width:100%;padding:7px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer">Choisir Pro</button></td>
-        <td><button onclick="openM('universite')" style="width:100%;padding:7px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer">Choisir</button></td>
-        <td><button onclick="openM('reseau')" style="width:100%;padding:7px;background:#4c1d95;color:#fff;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer">Contacter</button></td>
+        <td><button onclick="openM('decouverte')" style="width:100%;padding:7px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer">Démarrer</button></td>
+        <td><button onclick="openM('starter')" style="width:100%;padding:7px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer">Choisir</button></td>
+        <td class="td-pro"><button onclick="openM('pro')" style="width:100%;padding:7px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer">Choisir Pro</button></td>
+        <td><button onclick="openM('universite')" style="width:100%;padding:7px;background:var(--g);color:#fff;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer">Choisir</button></td>
+        <td><button onclick="openM('reseau')" style="width:100%;padding:7px;background:#4c1d95;color:#fff;border:none;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer">Contacter</button></td>
       </tr>
     </tbody>
   </table>
@@ -751,9 +632,9 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
   <div class="fq" onclick="fq(this)"><div class="fq-q">Puis-je changer de plan à tout moment ?<span class="ms">add</span></div><div class="fq-a">Oui, à n'importe quel moment. Le changement prend effet immédiatement et la facturation est ajustée au prorata du mois en cours. Aucune pénalité.</div></div>
   <div class="fq" onclick="fq(this)"><div class="fq-q">Comment fonctionne le paiement Mobile Money ?<span class="ms">add</span></div><div class="fq-a">Vous recevez un numéro de paiement MTN ou Orange Money. Votre plan est activé automatiquement dans les 5 minutes suivant la confirmation. Une facture officielle est émise pour chaque paiement.</div></div>
   <div class="fq" onclick="fq(this)"><div class="fq-q">Y a-t-il un engagement minimum ?<span class="ms">add</span></div><div class="fq-a">Aucun. Plans mensuels résiliables à tout moment. Le plan annuel offre 20% de réduction et reste résiliable avec remboursement au prorata des mois non consommés.</div></div>
-  <div class="fq" onclick="fq(this)"><div class="fq-q">Nos données restent-elles au Cameroun ?<span class="ms">add</span></div><div class="fq-a">Pour le plan Réseau National, nous proposons un hébergement sur serveurs locaux ou africains (Lagos/Afrique du Sud). Pour les autres plans, hébergement en Europe avec conformité RGPD totale.</div></div>
+  <div class="fq" onclick="fq(this)"><div class="fq-q">Nos données restent-elles au Cameroun ?<span class="ms">add</span></div><div class="fq-a">Pour le plan Réseau National, nous proposons un hébergement sur serveurs locaux ou africains. Pour les autres plans, hébergement en Europe avec conformité RGPD totale.</div></div>
   <div class="fq" onclick="fq(this)"><div class="fq-q">Combien de temps pour déployer la plateforme ?<span class="ms">add</span></div><div class="fq-a">Plan Découverte : 2 minutes. Plan Pro avec paramétrage complet : 1 à 2 jours. Plan Réseau National avec intégrations : 2 à 4 semaines avec accompagnement complet.</div></div>
-  <div class="fq" onclick="fq(this)"><div class="fq-q">La migration de données existantes est-elle possible ?<span class="ms">add</span></div><div class="fq-a">Oui. Notre équipe vous accompagne dans la migration depuis tout système existant (listes étudiants, cours, notes). Inclus dans le plan Réseau, en option pour Pro et Université.</div></div>
+  <div class="fq" onclick="fq(this)"><div class="fq-q">La migration de données existantes est-elle possible ?<span class="ms">add</span></div><div class="fq-a">Oui. Notre équipe vous accompagne dans la migration depuis tout système existant. Inclus dans le plan Réseau, en option pour Pro et Université.</div></div>
 </div>
 
 <!-- CTA FINAL -->
@@ -766,9 +647,9 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
   </div>
 </div>
 
-<footer style="background:#0d1f12;padding:32px;text-align:center">
+<footer style="background:#0d1f12;padding:28px;text-align:center">
   <p style="color:#6b7280;font-size:.82rem">© 2026 CamunoLearn — Douala, Cameroun &nbsp;|&nbsp;
-    <a href="index.html" style="color:#4ade80;text-decoration:none;font-weight:600">Accueil</a> &nbsp;·&nbsp;
+    <a href="indexAccueilPLATEFORME.html" style="color:#4ade80;text-decoration:none;font-weight:600">Accueil</a> &nbsp;·&nbsp;
     <a href="indexconnexion.html" style="color:#4ade80;text-decoration:none;font-weight:600">Connexion</a> &nbsp;·&nbsp;
     <a href="IndexAIDE.html" style="color:#4ade80;text-decoration:none;font-weight:600">Contact</a>
   </p>
@@ -780,7 +661,7 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
     <div class="mhead" style="display:flex;justify-content:space-between;align-items:flex-start">
       <div>
         <p style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.55);margin-bottom:3px">Plan sélectionné</p>
-        <h3 id="m-title" style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#fff;margin:0">Plan Pro</h3>
+        <h3 id="m-title" style="font-family:Manrope;font-weight:900;font-size:1.15rem;color:#fff;margin:0">Plan Pro</h3>
         <p id="m-price" style="font-size:.82rem;color:rgba(255,255,255,.62);margin:4px 0 0">49 000 XAF / mois</p>
       </div>
       <button onclick="closeM()" style="border:none;background:rgba(255,255,255,.15);color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem">✕</button>
@@ -791,11 +672,12 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
         <p style="font-size:.82rem;color:#16a34a;margin:0">Notre équipe vous contacte dans les 24h par WhatsApp ou email.</p>
       </div>
       <div id="m-form">
-        <p style="font-size:.82rem;color:#6b7280;margin-bottom:16px">Notre équipe vous contacte sous 24h pour démarrer votre essai.</p>
+        <p style="font-size:.82rem;color:#6b7280;margin-bottom:14px">Notre équipe vous contacte sous 24h pour démarrer votre essai.</p>
         <label class="mlbl">Votre nom *</label><input id="l-name" type="text" class="mfld" placeholder="Prénom et nom"/>
         <label class="mlbl">Email *</label><input id="l-email" type="email" class="mfld" placeholder="vous@universite.cm"/>
         <label class="mlbl">Établissement</label><input id="l-school" type="text" class="mfld" placeholder="Nom de votre université"/>
-        <label class="mlbl">Message (optionnel)</label><textarea id="l-msg" class="mfld" rows="2" placeholder="Nombre d'étudiants, questions..." style="resize:none;margin-bottom:14px"></textarea>
+        <label class="mlbl">Message (optionnel)</label>
+        <textarea id="l-msg" class="mfld" rows="2" placeholder="Nombre d'étudiants, questions..." style="resize:none;margin-bottom:12px"></textarea>
         <button class="msend" onclick="sendLead()" id="l-btn"><span class="ms" style="font-size:16px">send</span>Être contacté par l'équipe</button>
         <p style="text-align:center;font-size:.7rem;color:#9ca3af;margin-top:10px">✅ Essai 30 jours · ✅ Sans carte bancaire</p>
       </div>
@@ -804,12 +686,16 @@ nav{position:fixed;top:0;width:100%;z-index:50;background:rgba(255,255,255,.96);
 </div>
 
 <script>
+const API_BASE = (window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')
+  ? 'http://localhost:3000/api'
+  : 'https://camunolearn-api.onrender.com/api';
+
 const PLANS = {
-  decouverte: { title:'Plan Découverte 🌱',        price:'Gratuit à vie' },
-  starter:    { title:'Plan Starter 🎓',            price:'19 900 XAF / mois' },
-  pro:        { title:'Plan Université Pro 🏛️ ⭐',  price:'49 000 XAF / mois' },
-  universite: { title:'Plan Université 🏫',         price:'120 000 XAF / mois' },
-  reseau:     { title:'Plan Réseau National 🌐',    price:'350 000 XAF / mois' },
+  decouverte: { title:'Plan Découverte 🌱',       price:'Gratuit à vie' },
+  starter:    { title:'Plan Starter 🎓',           price:'19 900 XAF / mois' },
+  pro:        { title:'Plan Université Pro 🏛️ ⭐', price:'49 000 XAF / mois' },
+  universite: { title:'Plan Université 🏫',        price:'120 000 XAF / mois' },
+  reseau:     { title:'Plan Réseau National 🌐',   price:'350 000 XAF / mois' },
 };
 
 let yearly=false, currentPlan='pro';
@@ -840,19 +726,32 @@ function openM(plan) {
 function closeM(){document.getElementById('modal').style.display='none';document.body.style.overflow='';}
 
 async function sendLead() {
-  const name=document.getElementById('l-name').value.trim();
-  const email=document.getElementById('l-email').value.trim();
-  const school=document.getElementById('l-school').value.trim();
-  const msg=document.getElementById('l-msg').value.trim();
-  const btn=document.getElementById('l-btn');
+  const name  = document.getElementById('l-name').value.trim();
+  const email = document.getElementById('l-email').value.trim();
+  const school= document.getElementById('l-school').value.trim();
+  const msg   = document.getElementById('l-msg').value.trim();
+  const btn   = document.getElementById('l-btn');
   if (!name||!email){alert('Remplissez votre nom et email.');return;}
-  btn.disabled=true;btn.innerHTML='<span class="ms" style="font-size:16px;animation:spin 1s linear infinite;display:block">autorenew</span>';
+  btn.disabled=true;
+  btn.innerHTML='<span class="ms" style="font-size:16px;animation:spin 1s linear infinite;display:block">autorenew</span>';
   try {
-    const r=await fetch('/api/auth/pricing-interest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,plan:currentPlan,school,message:name+(msg?' — '+msg:'')})});
+    const r=await fetch(API_BASE+'/auth/pricing-interest',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,plan:currentPlan,school,message:name+(msg?' — '+msg:'')})
+    });
     const d=await r.json();
-    if (d.success){document.getElementById('m-ok').style.display='block';document.getElementById('m-form').style.display='none';}
-    else{btn.disabled=false;btn.innerHTML='<span class="ms" style="font-size:16px">send</span>Être contacté par l\'équipe';}
-  }catch(e){btn.disabled=false;btn.innerHTML='<span class="ms" style="font-size:16px">send</span>Être contacté';alert('WhatsApp : +237 691 929 394');}
+    if (d.success){
+      document.getElementById('m-ok').style.display='block';
+      document.getElementById('m-form').style.display='none';
+    } else {
+      btn.disabled=false;
+      btn.innerHTML='<span class="ms" style="font-size:16px">send</span>Être contacté par l\'équipe';
+    }
+  } catch(e) {
+    btn.disabled=false;
+    btn.innerHTML='<span class="ms" style="font-size:16px">send</span>Être contacté';
+    alert('WhatsApp : +237 691 929 394');
+  }
 }
 
 function fq(el){
