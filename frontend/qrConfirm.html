@@ -13,6 +13,31 @@
 input { width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:11px 14px;font-size:.9rem;outline:none;margin-bottom:10px; }
 input:focus { border-color:#00602a; }
 </style>
+
+<!-- BLOQUER TOUT ROUTING AUTOMATIQUE SUR CETTE PAGE -->
+<script>
+// Cette page ne doit JAMAIS rediriger automatiquement
+// On neutralise localStorage.getItem pour le routing
+const _originalGetItem = localStorage.getItem.bind(localStorage);
+const _blockedKeys = ['userRole', 'camunolearn_token'];
+// On ne bloque pas, mais on empêche tout script de routing de nous rediriger
+// en remplaçant location.replace et location.href temporairement
+const _originalReplace = location.replace.bind(location);
+let _allowRedirect = false;
+Object.defineProperty(window, 'location', {
+  get: function() {
+    return {
+      replace: function(url) { if (_allowRedirect) _originalReplace(url); },
+      href: location.href,
+      hostname: location.hostname,
+      search: location.search,
+      hash: location.hash,
+      pathname: location.pathname
+    };
+  },
+  configurable: true
+});
+</script>
 </head>
 <body class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
 
@@ -29,13 +54,11 @@ const API_BASE = (function() {
     <span style="font-family:Manrope;font-weight:900;color:#00602a">Camuno</span><span style="font-family:Manrope;font-weight:900;color:#111">Learn</span>
   </div>
 
-  <!-- Chargement -->
   <div id="stateLoading">
     <div class="spinner"></div>
     <p style="font-size:.85rem;color:#6b7280">Vérification...</p>
   </div>
 
-  <!-- Connexion requise -->
   <div id="stateLogin" style="display:none">
     <div style="font-size:2rem;margin-bottom:8px">🔐</div>
     <h1 style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin-bottom:6px">Connectez-vous d'abord</h1>
@@ -48,7 +71,6 @@ const API_BASE = (function() {
     </button>
   </div>
 
-  <!-- Confirmation du rôle -->
   <div id="stateConfirm" style="display:none">
     <div id="roleIcon" style="font-size:3rem;margin-bottom:12px"></div>
     <h1 style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#111;margin-bottom:8px">Confirmer votre rôle</h1>
@@ -64,7 +86,6 @@ const API_BASE = (function() {
     </button>
   </div>
 
-  <!-- Succès -->
   <div id="stateSuccess" style="display:none">
     <div style="font-size:3rem;margin-bottom:12px">✅</div>
     <h1 style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#111;margin-bottom:8px">Rôle confirmé !</h1>
@@ -74,7 +95,6 @@ const API_BASE = (function() {
     </div>
   </div>
 
-  <!-- Erreur -->
   <div id="stateError" style="display:none">
     <div id="errIcon" style="font-size:2.5rem;margin-bottom:8px">❌</div>
     <h1 id="errTitle" style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin-bottom:8px"></h1>
@@ -85,8 +105,7 @@ const API_BASE = (function() {
 <script>
 const params    = new URLSearchParams(location.search);
 const sessionId = params.get('session');
-const role      = params.get('role');
-let   token     = localStorage.getItem('camunolearn_token');
+let   token     = _originalGetItem('camunolearn_token');
 
 const ROLES = {
   etudiant:   { icon:'🎓', label:'Étudiant',   color:'#00602a' },
@@ -108,10 +127,7 @@ function showError(icon, title, sub) {
 }
 
 async function init() {
-  // Pas de token → formulaire login
   if (!token) { showState('Login'); return; }
-
-  // Vérifier le token
   try {
     const r = await fetch(API_BASE + '/auth/me', { headers:{ Authorization:'Bearer '+token } });
     const d = await r.json();
@@ -121,10 +137,9 @@ async function init() {
 }
 
 function showConfirm(userRole) {
-  // Utiliser le rôle réel de l'utilisateur (pas celui de l'URL)
   const info = ROLES[userRole] || { icon:'👤', label: userRole, color:'#374151' };
-  document.getElementById('roleIcon').textContent       = info.icon;
-  document.getElementById('roleSub').textContent        = 'Vous allez vous identifier en tant que ' + info.label;
+  document.getElementById('roleIcon').textContent        = info.icon;
+  document.getElementById('roleSub').textContent         = 'Vous allez vous identifier en tant que ' + info.label;
   document.getElementById('confirmBtn').style.background = info.color;
   document.getElementById('confirmBtn').textContent      = '✅ Confirmer — ' + info.label;
   document.getElementById('confirmBtn').dataset.role     = userRole;
@@ -137,10 +152,8 @@ async function doLogin() {
   const errDiv   = document.getElementById('loginError');
   errDiv.style.display = 'none';
   if (!email || !password) { errDiv.textContent='Remplissez email et mot de passe.'; errDiv.style.display='block'; return; }
-
   const btn = document.querySelector('#stateLogin button');
   btn.textContent = 'Connexion...'; btn.disabled = true;
-
   try {
     const r = await fetch(API_BASE + '/auth/login', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -149,9 +162,7 @@ async function doLogin() {
     const d = await r.json();
     if (d.success) {
       token = d.token;
-      localStorage.setItem('camunolearn_token', token);
-      localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
-      showState('Loading');
+      // NE PAS sauvegarder dans localStorage ici — évite le routing automatique
       showConfirm(d.user.role);
     } else {
       errDiv.textContent = d.message || 'Email ou mot de passe incorrect.';
@@ -166,27 +177,19 @@ async function doLogin() {
 }
 
 async function confirmRole() {
-  const userRole = document.getElementById('confirmBtn').dataset.role;
   document.getElementById('confirmBtn').textContent = 'Validation...';
   document.getElementById('confirmBtn').disabled    = true;
-
   try {
-    // Valider la session QR uniquement — le PC gère la redirection
-    // NE PAS toucher localStorage ici — sinon le routing redirige le téléphone
-    if (sessionId) {
-      const r = await fetch(API_BASE + '/qrsession/validate/' + sessionId, {
-        method:'POST',
-        headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
-        body: JSON.stringify({})
-      });
-      const d = await r.json();
-      if (d.success) {
-        showState('Success');
-      } else {
-        showError('❌', d.message || 'Erreur', 'Réessayez.');
-      }
-    } else {
+    const r = await fetch(API_BASE + '/qrsession/validate/' + sessionId, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
+      body: JSON.stringify({})
+    });
+    const d = await r.json();
+    if (d.success) {
       showState('Success');
+    } else {
+      showError('❌', d.message || 'Erreur', 'Réessayez.');
     }
   } catch(e) {
     showError('❌','Erreur réseau','Vérifiez votre connexion mobile.');
