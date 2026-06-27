@@ -194,8 +194,13 @@ async function showQR(role) {
 }
 
 async function generateQR() {
+    try {
     const r = await fetch(API_BASE + "/qrsession/create", { method: "POST" });
     const d = await r.json();
+    if (!d.sessionId) {
+        document.getElementById("qrSubtitle").textContent = "Erreur serveur — réessayez.";
+        return;
+    }
     currentSessionId = d.sessionId;
 
     // URL que le téléphone ouvrira
@@ -213,6 +218,9 @@ async function generateQR() {
     // Polling toutes les 2s
     clearInterval(pollInterval);
     pollInterval = setInterval(() => pollStatus(currentSessionId), 2000);
+    } catch(e) {
+        document.getElementById("qrSubtitle").textContent = "Erreur réseau — vérifiez votre connexion.";
+    }
 }
 
 async function pollStatus(sessionId) {
