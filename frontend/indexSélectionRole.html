@@ -60,17 +60,14 @@ const FRONTEND_BASE = (function() {
 <main class="flex-grow flex items-center justify-center px-4 py-12">
     <div class="w-full max-w-3xl">
         <div class="bg-white rounded-3xl p-8 md:p-12 tonal-elevation border border-gray-100">
-
             <div class="text-center mb-12">
                 <div class="flex items-center justify-center gap-2 mb-6 fade-up">
                     <span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings:'FILL' 1;">school</span>
-                    <span class="font-headline font-extrabold text-2xl tracking-tight text-primary">
-                        <span class="text-on-surface">Camuno</span>Learn
-                    </span>
+                    <span class="font-headline font-extrabold text-2xl tracking-tight text-primary"><span class="text-on-surface">Camuno</span>Learn</span>
                 </div>
                 <div class="mt-2 inline-block px-4 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full uppercase tracking-tighter fade-up">Étape 1 sur 2</div>
                 <h1 class="text-3xl font-headline font-extrabold text-on-surface mt-4 mb-2 fade-up">Bienvenue sur CamunoLearn !</h1>
-                <p class="text-gray-500 font-body text-sm fade-up">Choisissez votre rôle — un QR code s'affichera pour confirmer votre identité.</p>
+                <p class="text-gray-500 font-body text-sm fade-up">Choisissez votre rôle — scannez le QR code avec votre téléphone pour confirmer.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -102,7 +99,6 @@ const FRONTEND_BASE = (function() {
                     </div>
                 </div>
             </div>
-
             <p class="text-center text-xs text-gray-400 fade-up">Ce choix est <strong>définitif</strong> — vous ne pouvez pas changer de rôle après confirmation.</p>
         </div>
     </div>
@@ -116,19 +112,14 @@ const FRONTEND_BASE = (function() {
         <h2 id="qrTitle" style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#111;margin:0 0 4px"></h2>
         <p id="qrSubtitle" style="font-size:.8rem;color:#6b7280;margin-bottom:4px"></p>
 
-        <!-- QR dynamique (PC) -->
+        <!-- QR dynamique — affiché sur PC -->
         <div id="qrcode"></div>
 
-        <!-- Attente scan (PC) -->
+        <!-- Spinner attente scan — affiché sur PC après génération QR -->
         <div id="waitScan" style="display:none">
             <div class="spinner"></div>
             <p style="font-size:.78rem;color:#6b7280">En attente du scan sur votre téléphone...</p>
         </div>
-
-        <!-- Bouton direct (mobile) -->
-        <button id="mobileBtn" class="confirm-btn" style="background:#00602a;color:#fff;display:none" onclick="doConfirmMobile()">
-            <span id="mobileBtnLabel">✅ Confirmer mon rôle</span>
-        </button>
 
         <div id="qrWarning" style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px;margin-top:12px;font-size:.75rem;color:#92400e">
             ⚠️ Ce rôle est <strong>définitif</strong>. Une fois confirmé, vous ne pourrez pas en changer.
@@ -147,10 +138,6 @@ const ROLE_INFO = {
     enseignant: { icon:"👨‍🏫", color:"#1d4ed8", title:"QR Enseignant", sub:"Scannez avec votre téléphone pour confirmer" },
     admin:      { icon:"⚙️",  color:"#7c3aed", title:"QR Admin",      sub:"Scannez avec votre téléphone pour confirmer" }
 };
-
-function isMobile() {
-    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
-}
 
 document.addEventListener("DOMContentLoaded", () => {
     if (!token) { location.href = "indexconnexion.html"; return; }
@@ -172,57 +159,58 @@ async function showQR(role) {
     pendingRole = role;
     const info  = ROLE_INFO[role];
 
-    document.getElementById("qrIcon").textContent        = info.icon;
-    document.getElementById("qrTitle").textContent       = info.title;
-    document.getElementById("qrWarning").style.display   = "block";
-    document.getElementById("qrOverlay").style.display   = "flex";
-    document.getElementById("mobileBtn").style.background = info.color;
+    document.getElementById("qrIcon").textContent       = info.icon;
+    document.getElementById("qrTitle").textContent      = info.title;
+    document.getElementById("qrSubtitle").textContent   = info.sub;
+    document.getElementById("qrWarning").style.display  = "block";
+    document.getElementById("qrOverlay").style.display  = "flex";
+    document.getElementById("qrcode").innerHTML         = "";
+    document.getElementById("qrcode").style.display     = "flex";
+    document.getElementById("waitScan").style.display   = "none";
 
-    // PC et mobile → bouton direct (sans QR en attendant fix backend)
-    document.getElementById("qrcode").style.display       = "none";
-    document.getElementById("waitScan").style.display     = "none";
-    document.getElementById("mobileBtn").style.display    = "block";
-    document.getElementById("mobileBtnLabel").textContent  = info.icon + " Confirmer comme " + role;
-    document.getElementById("qrSubtitle").textContent     = "Appuyez pour confirmer votre rôle";
+    // Générer QR + polling
+    await generateQR();
 }
 
 async function generateQR() {
     try {
-    document.getElementById("qrSubtitle").textContent = "Création de la session...";
-    const r = await fetch(API_BASE + "/qrsession/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-    });
-    if (!r.ok) {
-        document.getElementById("qrSubtitle").textContent = "Erreur serveur (" + r.status + ") — réessayez.";
-        console.error("qrsession/create failed:", r.status, r.statusText);
-        return;
-    }
-    const d = await r.json();
-    console.log("qrsession/create response:", d);
-    if (!d.sessionId) {
-        document.getElementById("qrSubtitle").textContent = "Erreur: pas de sessionId — réessayez.";
-        return;
-    }
-    currentSessionId = d.sessionId;
-    console.log("sessionId:", currentSessionId);
+        document.getElementById("qrSubtitle").textContent = "Génération du QR code...";
 
-    // URL que le téléphone ouvrira
-    const confirmUrl = FRONTEND_BASE + "/qrConfirm.html?session=" + currentSessionId;
+        const r = await fetch(API_BASE + "/auth/qr/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({})
+        });
 
-    // Générer le QR
-    const qrDiv = document.getElementById("qrcode");
-    qrDiv.innerHTML = "";
-    qrDiv.style.display = "flex";
-    new QRCode(qrDiv, { text: confirmUrl, width: 180, height: 180, colorDark: "#000", colorLight: "#fff" });
+        if (!r.ok) {
+            document.getElementById("qrSubtitle").textContent = "Erreur serveur — réessayez.";
+            return;
+        }
 
-    // Attendre le scan
-    document.getElementById("waitScan").style.display = "block";
+        const d = await r.json();
+        if (!d.sessionId) {
+            document.getElementById("qrSubtitle").textContent = "Erreur: sessionId manquant.";
+            return;
+        }
 
-    // Polling toutes les 2s
-    clearInterval(pollInterval);
-    pollInterval = setInterval(() => pollStatus(currentSessionId), 2000);
+        currentSessionId = d.sessionId;
+
+        // URL que le téléphone ouvrira après scan
+        const confirmUrl = FRONTEND_BASE + "/qrConfirm.html?session=" + currentSessionId;
+
+        // Afficher le QR code
+        const qrDiv = document.getElementById("qrcode");
+        qrDiv.innerHTML = "";
+        qrDiv.style.display = "flex";
+        new QRCode(qrDiv, { text: confirmUrl, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff" });
+
+        document.getElementById("qrSubtitle").textContent  = "Scannez avec votre téléphone pour confirmer";
+        document.getElementById("waitScan").style.display  = "block";
+
+        // Polling toutes les 2s — dès que téléphone confirme, PC redirige
+        clearInterval(pollInterval);
+        pollInterval = setInterval(() => pollStatus(currentSessionId), 2000);
+
     } catch(e) {
         document.getElementById("qrSubtitle").textContent = "Erreur réseau — vérifiez votre connexion.";
     }
@@ -230,11 +218,10 @@ async function generateQR() {
 
 async function pollStatus(sessionId) {
     try {
-        const r = await fetch(API_BASE + "/qrsession/status/" + sessionId);
+        const r = await fetch(API_BASE + "/auth/qr/status/" + sessionId);
         const d = await r.json();
         if (d.status === "validated") {
             clearInterval(pollInterval);
-            // PC enregistre le rôle et redirige vers sélection école
             await saveRole(d.role || pendingRole);
         } else if (d.status === "expired") {
             clearInterval(pollInterval);
@@ -242,14 +229,6 @@ async function pollStatus(sessionId) {
             document.getElementById("waitScan").style.display = "none";
         }
     } catch(e) {}
-}
-
-// Mobile → confirmation directe
-async function doConfirmMobile() {
-    document.getElementById("mobileBtn").style.display  = "none";
-    document.getElementById("waitScan").style.display   = "block";
-    document.getElementById("qrSubtitle").textContent   = "Enregistrement...";
-    await saveRole(pendingRole);
 }
 
 async function saveRole(role) {
@@ -275,9 +254,9 @@ async function saveRole(role) {
 
 function closeQR() {
     clearInterval(pollInterval);
-    document.getElementById("qrOverlay").style.display  = "none";
-    document.getElementById("qrcode").innerHTML         = "";
-    document.getElementById("waitScan").style.display   = "none";
+    document.getElementById("qrOverlay").style.display = "none";
+    document.getElementById("qrcode").innerHTML        = "";
+    document.getElementById("waitScan").style.display  = "none";
     currentSessionId = null;
     pendingRole = "";
 }
