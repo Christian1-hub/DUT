@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Confirmation QR - CamunoLearn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+* { font-family:'DM Sans',sans-serif; }
+.spinner { border:4px solid #f3f3f3;border-top:4px solid #00602a;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;margin:0 auto 16px; }
+@keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+</style>
+</head>
+<body class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+
+<script>
+const API_BASE = (function() {
+  var h = window.location.hostname;
+  if (h==='localhost'||h==='127.0.0.1') return 'http://localhost:3000/api';
+  return 'https://camunolearn-api.onrender.com/api';
+})();
+</script>
+
+<div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-xl text-center">
+  <div id="icon" style="font-size:3rem;margin-bottom:12px">🔄</div>
+  <h1 id="title" style="font-family:Manrope;font-weight:900;font-size:1.4rem;color:#111;margin-bottom:8px">Chargement...</h1>
+  <p id="sub" style="font-size:.85rem;color:#6b7280;margin-bottom:20px"></p>
+  <div id="spinner" class="spinner"></div>
+  <div id="btnWrap" style="display:none;flex-direction:column;gap:10px;margin-top:8px"></div>
+</div>
+
+<script>
+const params    = new URLSearchParams(location.search);
+const sessionId = params.get('session');
+const token     = localStorage.getItem('camunolearn_token');
+
+const ROLES = {
+  etudiant:   {icon:'🎓',label:'Étudiant',  color:'#00602a'},
+  enseignant: {icon:'👨‍🏫',label:'Enseignant',color:'#1d4ed8'},
+  admin:      {icon:'⚙️', label:'Admin',     color:'#7c3aed'},
+  superadmin: {icon:'🔑', label:'SuperAdmin',color:'#374151'}
+};
+
+function show(icon,title,sub) {
+  document.getElementById('spinner').style.display='none';
+  document.getElementById('icon').textContent=icon;
+  document.getElementById('title').textContent=title;
+  document.getElementById('sub').textContent=sub;
+}
+
+async function init() {
+  if (!sessionId) { show('❌','Lien invalide','Ce QR code est invalide ou expiré.'); return; }
+
+  // Vérifier que la session existe
+  try {
+    const sr = await fetch(API_BASE+'/qrsession/status/'+sessionId);
+    const sd = await sr.json();
+    if (sd.status==='expired') { show('⏱️','QR expiré','Ce QR a expiré. Revenez sur votre PC et réessayez.'); return; }
+    if (sd.status==='validated') { show('✅','Déjà confirmé','Ce QR a déjà été utilisé.'); return; }
+  } catch(e) { show('❌','Erreur réseau','Vérifiez votre connexion.'); return; }
+
+  if (!token) {
+    show('🔐','Non connecté','Connectez-vous d\'abord sur CamunoLearn.');
+    setTimeout(()=>location.href='indexconnexion.html',2500);
+    return;
+  }
+
+  try {
+    const r = await fetch(API_BASE+'/auth/me',{headers:{Authorization:'Bearer '+token}});
+    const d = await r.json();
+    if (!d.success) { show('❌','Session expirée','Reconnectez-vous.'); setTimeout(()=>location.href='indexconnexion.html',2500); return; }
+
+    const role = d.user.role;
+    const info = ROLES[role]||{icon:'👤',label:role,color:'#374151'};
+
+    document.getElementById('spinner').style.display='none';
+    document.getElementById('icon').textContent=info.icon;
+    document.getElementById('title').textContent='Confirmer votre rôle';
+    document.getElementById('sub').textContent='Vous allez vous identifier en tant que '+info.label;
+
+    const wrap = document.getElementById('btnWrap');
+    wrap.style.display='flex';
+
+    const btn = document.createElement('button');
+    btn.textContent='✅ Confirmer — '+info.label;
+    btn.style.cssText='padding:14px;background:'+info.color+';color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:1rem;cursor:pointer;';
+    btn.onclick=()=>confirmRole();
+    wrap.appendChild(btn);
+
+    const cancel = document.createElement('button');
+    cancel.textContent='Annuler';
+    cancel.style.cssText='padding:12px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-weight:700;font-size:.9rem;cursor:pointer;';
+    cancel.onclick=()=>window.close();
+    wrap.appendChild(cancel);
+
+  } catch(e) { show('❌','Erreur réseau','Vérifiez votre connexion.'); }
+}
+
+async function confirmRole() {
+  document.getElementById('btnWrap').style.display='none';
+  document.getElementById('spinner').style.display='block';
+  document.getElementById('title').textContent='Validation...';
+  document.getElementById('sub').textContent='';
+
+  try {
+    const r = await fetch(API_BASE+'/qrsession/validate/'+sessionId,{
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+      body:JSON.stringify({})
+    });
+    const d = await r.json();
+    document.getElementById('spinner').style.display='none';
+    if (d.success) {
+      document.getElementById('icon').textContent='✅';
+      document.getElementById('title').textContent='Rôle confirmé !';
+      document.getElementById('sub').textContent='Retournez sur votre PC — il se met à jour automatiquement.';
+    } else {
+      show('❌',d.message||'Erreur','Ce QR est peut-être déjà utilisé.');
+    }
+  } catch(e) { show('❌','Erreur réseau','Vérifiez votre connexion.'); }
+}
+
+init();
+</script>
+</body>
+</html>

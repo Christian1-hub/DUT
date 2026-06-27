@@ -16,6 +16,7 @@ const forumRoutes      = require('./routes/forum');
 const adminRoutes      = require('./routes/admin');
 const superadminRoutes = require('./routes/Superadmin');
 const crossRoutes      = require('./routes/crossaccess');
+const qrSessionRoutes  = require('./routes/qrsession');
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use('/api/forum',      forumRoutes);
 app.use('/api/admin',      adminRoutes);
 app.use('/api/superadmin', superadminRoutes);
 app.use('/api/cross',      crossRoutes);
+app.use('/api/qrsession',  qrSessionRoutes);
 
 // ── Santé ────────────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -78,6 +80,9 @@ app.get('/', (req, res) => {
       'PUT  /api/cross/request/:id',
       'GET  /api/admin/stats',
       'GET  /api/superadmin/stats',
+      'POST /api/qrsession/create',
+      'POST /api/qrsession/validate/:sessionId',
+      'GET  /api/qrsession/status/:sessionId',
     ]
   });
 });
