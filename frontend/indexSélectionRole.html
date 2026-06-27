@@ -172,36 +172,41 @@ async function showQR(role) {
     pendingRole = role;
     const info  = ROLE_INFO[role];
 
-    document.getElementById("qrIcon").textContent     = info.icon;
-    document.getElementById("qrTitle").textContent    = info.title;
-    document.getElementById("qrWarning").style.display = "block";
-    document.getElementById("qrOverlay").style.display = "flex";
+    document.getElementById("qrIcon").textContent        = info.icon;
+    document.getElementById("qrTitle").textContent       = info.title;
+    document.getElementById("qrWarning").style.display   = "block";
+    document.getElementById("qrOverlay").style.display   = "flex";
     document.getElementById("mobileBtn").style.background = info.color;
 
-    if (isMobile()) {
-        // Mobile → bouton direct
-        document.getElementById("qrcode").style.display    = "none";
-        document.getElementById("waitScan").style.display  = "none";
-        document.getElementById("mobileBtn").style.display  = "block";
-        document.getElementById("mobileBtnLabel").textContent = info.icon + " Confirmer comme " + role;
-        document.getElementById("qrSubtitle").textContent  = "Appuyez pour confirmer votre rôle";
-    } else {
-        // PC → QR dynamique + polling
-        document.getElementById("mobileBtn").style.display  = "none";
-        document.getElementById("qrSubtitle").textContent  = info.sub;
-        await generateQR();
-    }
+    // PC et mobile → bouton direct (sans QR en attendant fix backend)
+    document.getElementById("qrcode").style.display       = "none";
+    document.getElementById("waitScan").style.display     = "none";
+    document.getElementById("mobileBtn").style.display    = "block";
+    document.getElementById("mobileBtnLabel").textContent  = info.icon + " Confirmer comme " + role;
+    document.getElementById("qrSubtitle").textContent     = "Appuyez pour confirmer votre rôle";
 }
 
 async function generateQR() {
     try {
-    const r = await fetch(API_BASE + "/qrsession/create", { method: "POST" });
+    document.getElementById("qrSubtitle").textContent = "Création de la session...";
+    const r = await fetch(API_BASE + "/qrsession/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+    });
+    if (!r.ok) {
+        document.getElementById("qrSubtitle").textContent = "Erreur serveur (" + r.status + ") — réessayez.";
+        console.error("qrsession/create failed:", r.status, r.statusText);
+        return;
+    }
     const d = await r.json();
+    console.log("qrsession/create response:", d);
     if (!d.sessionId) {
-        document.getElementById("qrSubtitle").textContent = "Erreur serveur — réessayez.";
+        document.getElementById("qrSubtitle").textContent = "Erreur: pas de sessionId — réessayez.";
         return;
     }
     currentSessionId = d.sessionId;
+    console.log("sessionId:", currentSessionId);
 
     // URL que le téléphone ouvrira
     const confirmUrl = FRONTEND_BASE + "/qrConfirm.html?session=" + currentSessionId;

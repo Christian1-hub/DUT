@@ -113,7 +113,7 @@ async function init() {
 
   // 1. Vérifier la session
   try {
-    const sr = await fetch(API_BASE+'/qrsession/status/'+sessionId);
+    const sr = await fetch(API_BASE+'/auth/qr/status/'+sessionId);
     const sd = await sr.json();
     if (sd.status==='expired')   { showError('⏱️','QR expiré','Ce QR a expiré. Revenez sur votre PC et réessayez.'); return; }
     if (sd.status==='validated') { showError('✅','Déjà confirmé','Ce QR a déjà été utilisé.'); return; }
@@ -184,7 +184,7 @@ async function confirmRole() {
   document.getElementById('confirmBtn').disabled    = true;
 
   try {
-    const r = await fetch(API_BASE+'/qrsession/validate/'+sessionId, {
+    const r = await fetch(API_BASE+'/auth/qr/validate/'+sessionId, {
       method:'POST',
       headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
       body: JSON.stringify({})
