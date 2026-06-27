@@ -187,7 +187,7 @@ async function confirmRole() {
 
     // 2. Valider la session QR si on a un sessionId
     if (sessionId) {
-      await fetch(API_BASE + '/auth/qr/validate/' + sessionId, {
+      await fetch(API_BASE + '/qrsession/validate/' + sessionId, {
         method:'POST',
         headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
         body: JSON.stringify({})

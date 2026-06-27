@@ -169,7 +169,7 @@ async function showQR(role) {
     // Créer une session côté serveur
     let sessionId = null;
     try {
-        const r = await fetch(API_BASE + "/auth/qr/create", {
+        const r = await fetch(API_BASE + "/qrsession/create", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({})
@@ -203,7 +203,7 @@ async function showQR(role) {
 
 async function pollStatus(sessionId) {
     try {
-        const r = await fetch(API_BASE + "/auth/qr/status/" + sessionId);
+        const r = await fetch(API_BASE + "/qrsession/status/" + sessionId);
         const d = await r.json();
         if (d.status === "validated") {
             clearInterval(pollInterval);
