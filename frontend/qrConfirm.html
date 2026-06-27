@@ -10,6 +10,8 @@
 * { font-family:'DM Sans',sans-serif; }
 .spinner { border:4px solid #f3f3f3;border-top:4px solid #00602a;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;margin:0 auto 16px; }
 @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+input { width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:11px 14px;font-size:.9rem;outline:none;margin-bottom:10px;font-family:DM Sans,sans-serif; }
+input:focus { border-color:#00602a; }
 </style>
 </head>
 <body class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -23,103 +25,190 @@ const API_BASE = (function() {
 </script>
 
 <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-xl text-center">
-  <div id="icon" style="font-size:3rem;margin-bottom:12px">🔄</div>
-  <h1 id="title" style="font-family:Manrope;font-weight:900;font-size:1.4rem;color:#111;margin-bottom:8px">Chargement...</h1>
-  <p id="sub" style="font-size:.85rem;color:#6b7280;margin-bottom:20px"></p>
-  <div id="spinner" class="spinner"></div>
-  <div id="btnWrap" style="display:none;flex-direction:column;gap:10px;margin-top:8px"></div>
+  <div style="font-size:1.8rem;margin-bottom:8px">
+    <span style="font-family:Manrope;font-weight:900;color:#00602a">Camuno</span><span style="font-family:Manrope;font-weight:900;color:#111">Learn</span>
+  </div>
+
+  <!-- État : chargement -->
+  <div id="stateLoading">
+    <div class="spinner"></div>
+    <p style="font-size:.85rem;color:#6b7280">Vérification du QR code...</p>
+  </div>
+
+  <!-- État : connexion requise -->
+  <div id="stateLogin" style="display:none">
+    <div style="font-size:2rem;margin-bottom:8px">🔐</div>
+    <h1 style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin-bottom:6px">Connectez-vous d'abord</h1>
+    <p style="font-size:.82rem;color:#6b7280;margin-bottom:20px">Pour confirmer votre rôle, identifiez-vous sur ce téléphone.</p>
+    <input id="loginEmail" type="email" placeholder="Votre email"/>
+    <input id="loginPassword" type="password" placeholder="Mot de passe"/>
+    <div id="loginError" style="display:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.8rem;margin-bottom:10px"></div>
+    <button onclick="doLogin()" style="width:100%;padding:13px;background:#00602a;color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:.95rem;cursor:pointer;">
+      Se connecter & confirmer
+    </button>
+  </div>
+
+  <!-- État : confirmation du rôle -->
+  <div id="stateConfirm" style="display:none">
+    <div id="roleIcon" style="font-size:2.5rem;margin-bottom:8px"></div>
+    <h1 id="roleTitle" style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin-bottom:6px">Confirmer votre rôle</h1>
+    <p id="roleSub" style="font-size:.82rem;color:#6b7280;margin-bottom:20px"></p>
+    <div id="confirmWarn" style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px;font-size:.75rem;color:#92400e;margin-bottom:16px">
+      ⚠️ Ce rôle est <strong>définitif</strong>. Impossible de le changer après confirmation.
+    </div>
+    <button id="confirmBtn" onclick="confirmRole()" style="width:100%;padding:13px;color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:.95rem;cursor:pointer;">
+      ✅ Confirmer
+    </button>
+    <button onclick="cancelConfirm()" style="width:100%;padding:11px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-weight:700;font-size:.88rem;cursor:pointer;margin-top:8px;">
+      Annuler
+    </button>
+  </div>
+
+  <!-- État : succès -->
+  <div id="stateSuccess" style="display:none">
+    <div style="font-size:3rem;margin-bottom:12px">✅</div>
+    <h1 style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#111;margin-bottom:8px">Rôle confirmé !</h1>
+    <p style="font-size:.85rem;color:#6b7280;margin-bottom:16px">Retournez sur votre PC — il se met à jour automatiquement.</p>
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px;font-size:.82rem;color:#166534;">
+      🖥️ Votre PC va maintenant vous rediriger vers la sélection d'établissement.
+    </div>
+  </div>
+
+  <!-- État : erreur -->
+  <div id="stateError" style="display:none">
+    <div id="errIcon" style="font-size:2.5rem;margin-bottom:8px">❌</div>
+    <h1 id="errTitle" style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin-bottom:8px"></h1>
+    <p id="errSub" style="font-size:.82rem;color:#6b7280"></p>
+  </div>
 </div>
 
 <script>
 const params    = new URLSearchParams(location.search);
 const sessionId = params.get('session');
-const token     = localStorage.getItem('camunolearn_token');
+let   token     = localStorage.getItem('camunolearn_token');
+let   userRole  = null;
 
 const ROLES = {
-  etudiant:   {icon:'🎓',label:'Étudiant',  color:'#00602a'},
-  enseignant: {icon:'👨‍🏫',label:'Enseignant',color:'#1d4ed8'},
-  admin:      {icon:'⚙️', label:'Admin',     color:'#7c3aed'},
-  superadmin: {icon:'🔑', label:'SuperAdmin',color:'#374151'}
+  etudiant:   {icon:'🎓', label:'Étudiant',   color:'#00602a'},
+  enseignant: {icon:'👨‍🏫',label:'Enseignant', color:'#1d4ed8'},
+  admin:      {icon:'⚙️',  label:'Admin',      color:'#7c3aed'},
+  superadmin: {icon:'🔑', label:'SuperAdmin',  color:'#374151'}
 };
 
-function show(icon,title,sub) {
-  document.getElementById('spinner').style.display='none';
-  document.getElementById('icon').textContent=icon;
-  document.getElementById('title').textContent=title;
-  document.getElementById('sub').textContent=sub;
+function showState(state) {
+  ['Loading','Login','Confirm','Success','Error'].forEach(s => {
+    document.getElementById('state'+s).style.display = s===state ? 'block' : 'none';
+  });
+}
+
+function showError(icon, title, sub) {
+  document.getElementById('errIcon').textContent  = icon;
+  document.getElementById('errTitle').textContent = title;
+  document.getElementById('errSub').textContent   = sub;
+  showState('Error');
 }
 
 async function init() {
-  if (!sessionId) { show('❌','Lien invalide','Ce QR code est invalide ou expiré.'); return; }
+  if (!sessionId) { showError('❌','Lien invalide','Ce QR code est invalide ou expiré.'); return; }
 
-  // Vérifier que la session existe
+  // 1. Vérifier la session
   try {
     const sr = await fetch(API_BASE+'/qrsession/status/'+sessionId);
     const sd = await sr.json();
-    if (sd.status==='expired') { show('⏱️','QR expiré','Ce QR a expiré. Revenez sur votre PC et réessayez.'); return; }
-    if (sd.status==='validated') { show('✅','Déjà confirmé','Ce QR a déjà été utilisé.'); return; }
-  } catch(e) { show('❌','Erreur réseau','Vérifiez votre connexion.'); return; }
+    if (sd.status==='expired')   { showError('⏱️','QR expiré','Ce QR a expiré. Revenez sur votre PC et réessayez.'); return; }
+    if (sd.status==='validated') { showError('✅','Déjà confirmé','Ce QR a déjà été utilisé.'); return; }
+  } catch(e) { showError('❌','Serveur inaccessible','Vérifiez votre connexion mobile.'); return; }
 
-  if (!token) {
-    show('🔐','Non connecté','Connectez-vous d\'abord sur CamunoLearn.');
-    setTimeout(()=>location.href='indexconnexion.html',2500);
-    return;
-  }
+  // 2. Si pas connecté → formulaire login
+  if (!token) { showState('Login'); return; }
+
+  // 3. Si connecté → vérifier le token et afficher le rôle
+  await loadUserAndShowConfirm();
+}
+
+async function loadUserAndShowConfirm() {
+  try {
+    const r = await fetch(API_BASE+'/auth/me', { headers:{ Authorization:'Bearer '+token } });
+    const d = await r.json();
+    if (!d.success) { token = null; showState('Login'); return; }
+
+    userRole = d.user.role;
+    const info = ROLES[userRole] || {icon:'👤', label:userRole, color:'#374151'};
+
+    document.getElementById('roleIcon').textContent  = info.icon;
+    document.getElementById('roleTitle').textContent = 'Confirmer votre rôle';
+    document.getElementById('roleSub').textContent   = 'Vous allez vous identifier en tant que ' + info.label;
+    document.getElementById('confirmBtn').style.background = info.color;
+    document.getElementById('confirmBtn').textContent = '✅ Confirmer — ' + info.label;
+    showState('Confirm');
+  } catch(e) { showError('❌','Erreur réseau','Vérifiez votre connexion mobile.'); }
+}
+
+async function doLogin() {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errDiv   = document.getElementById('loginError');
+  errDiv.style.display = 'none';
+
+  if (!email || !password) { errDiv.textContent='Remplissez email et mot de passe.'; errDiv.style.display='block'; return; }
+
+  const btn = document.querySelector('#stateLogin button');
+  btn.textContent = 'Connexion...'; btn.disabled = true;
 
   try {
-    const r = await fetch(API_BASE+'/auth/me',{headers:{Authorization:'Bearer '+token}});
+    const r = await fetch(API_BASE+'/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
     const d = await r.json();
-    if (!d.success) { show('❌','Session expirée','Reconnectez-vous.'); setTimeout(()=>location.href='indexconnexion.html',2500); return; }
-
-    const role = d.user.role;
-    const info = ROLES[role]||{icon:'👤',label:role,color:'#374151'};
-
-    document.getElementById('spinner').style.display='none';
-    document.getElementById('icon').textContent=info.icon;
-    document.getElementById('title').textContent='Confirmer votre rôle';
-    document.getElementById('sub').textContent='Vous allez vous identifier en tant que '+info.label;
-
-    const wrap = document.getElementById('btnWrap');
-    wrap.style.display='flex';
-
-    const btn = document.createElement('button');
-    btn.textContent='✅ Confirmer — '+info.label;
-    btn.style.cssText='padding:14px;background:'+info.color+';color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:1rem;cursor:pointer;';
-    btn.onclick=()=>confirmRole();
-    wrap.appendChild(btn);
-
-    const cancel = document.createElement('button');
-    cancel.textContent='Annuler';
-    cancel.style.cssText='padding:12px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-weight:700;font-size:.9rem;cursor:pointer;';
-    cancel.onclick=()=>window.close();
-    wrap.appendChild(cancel);
-
-  } catch(e) { show('❌','Erreur réseau','Vérifiez votre connexion.'); }
+    if (d.success) {
+      token = d.token;
+      localStorage.setItem('camunolearn_token', token);
+      localStorage.setItem('camunolearn_user',  JSON.stringify(d.user));
+      showState('Loading');
+      await loadUserAndShowConfirm();
+    } else {
+      errDiv.textContent = d.message || 'Email ou mot de passe incorrect.';
+      errDiv.style.display = 'block';
+      btn.textContent = 'Se connecter & confirmer'; btn.disabled = false;
+    }
+  } catch(e) {
+    errDiv.textContent = 'Serveur inaccessible. Vérifiez votre connexion.';
+    errDiv.style.display = 'block';
+    btn.textContent = 'Se connecter & confirmer'; btn.disabled = false;
+  }
 }
 
 async function confirmRole() {
-  document.getElementById('btnWrap').style.display='none';
-  document.getElementById('spinner').style.display='block';
-  document.getElementById('title').textContent='Validation...';
-  document.getElementById('sub').textContent='';
+  document.getElementById('confirmBtn').textContent = 'Validation...';
+  document.getElementById('confirmBtn').disabled    = true;
 
   try {
-    const r = await fetch(API_BASE+'/qrsession/validate/'+sessionId,{
+    const r = await fetch(API_BASE+'/qrsession/validate/'+sessionId, {
       method:'POST',
-      headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
-      body:JSON.stringify({})
+      headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
+      body: JSON.stringify({})
     });
     const d = await r.json();
-    document.getElementById('spinner').style.display='none';
     if (d.success) {
-      document.getElementById('icon').textContent='✅';
-      document.getElementById('title').textContent='Rôle confirmé !';
-      document.getElementById('sub').textContent='Retournez sur votre PC — il se met à jour automatiquement.';
+      showState('Success');
     } else {
-      show('❌',d.message||'Erreur','Ce QR est peut-être déjà utilisé.');
+      showError('❌', d.message||'Erreur', 'Ce QR est peut-être déjà utilisé.');
     }
-  } catch(e) { show('❌','Erreur réseau','Vérifiez votre connexion.'); }
+  } catch(e) { showError('❌','Erreur réseau','Vérifiez votre connexion mobile.'); }
 }
+
+function cancelConfirm() {
+  showState('Error');
+  document.getElementById('errIcon').textContent  = '↩️';
+  document.getElementById('errTitle').textContent = 'Annulé';
+  document.getElementById('errSub').textContent   = 'Vous pouvez fermer cette page.';
+}
+
+// Permettre "Entrée" pour valider le login
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && document.getElementById('stateLogin').style.display!=='none') doLogin();
+});
 
 init();
 </script>
