@@ -1,462 +1,438 @@
 <!DOCTYPE html>
-    <div class="hero-mobile-bg-slider md:hidden">
-        <div class="mobile-slide active" style="background-image:url('frontend/Ecole1.jpg')"></div>
-        <div class="mobile-slide" style="background-image:url('frontend/Etudiant1.jpg')"></div>
-        <div class="mobile-slide" style="background-image:url('frontend/Ecole2.jpg')"></div>
-        <div class="mobile-slide" style="background-image:url('frontend/Etudiant2.jpg')"></div>
-        <div class="mobile-slide" style="background-image:url('frontend/EtudiantUnivDouala.jpeg')"></div>
-        <div class="hero-mobile-overlay"></div>
-    </div>
-<html class="light" lang="fr">
+<html lang="fr" class="scroll-smooth">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>CamunoLearn — Plateforme E-learning d'Excellence</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700&display=swap" rel="stylesheet">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>CamunoLearn — Plateforme E-learning d'Excellence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0..1" rel="stylesheet"/>
 
-<!-- ══ ROUTING AUTOMATIQUE ══════════════════════════════ -->
-<script>
-(function() {
-  var token = localStorage.getItem('camunolearn_token');
-  if (!token) return;
-  fetch('/api/auth/me', {
-    headers: { 'Authorization': 'Bearer ' + token }
-  }).then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (!d.success) return;
-      var routes = {
-        'etudiant':   'indexETUDIANT.html',
-        'enseignant': 'indexEnseignant.html',
-        'admin':      'indexADMIN.html',
-        'superadmin': 'indexSUPERADMIN.html'
-      };
-      if (routes[d.user.role]) location.replace(routes[d.user.role]);
-    }).catch(function() {});
-})();
-</script>
+    <!-- ══ ROUTING AUTOMATIQUE ══════════════════════════════ -->
+    <script>
+    (function() {
+      var API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api'
+        : 'https://camunolearn-api.onrender.com/api';
+      var token = localStorage.getItem('camunolearn_token');
+      if (!token) return;
+      fetch(API_BASE + '/auth/me', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (!d.success) return;
+          var routes = {
+            'etudiant':   'indexETUDIANT.html',
+            'enseignant': 'indexEnseignant.html',
+            'admin':      'indexADMIN.html',
+            'superadmin': 'indexSUPERADMIN.html'
+          };
+          if (routes[d.user.role]) location.replace(routes[d.user.role]);
+        }).catch(function() {});
+    })();
+    </script>
 
-<script id="tailwind-config">
-tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      colors: {
-        "on-tertiary-fixed-variant": "#93000d",
-        "surface-container-lowest": "#ffffff",
-        "outline": "#6f7a6e",
-        "secondary-container": "#e2e0fc",
-        "on-tertiary-container": "#ffe6e4",
-        "on-error": "#ffffff",
-        "primary-fixed-dim": "#7fda91",
-        "secondary": "#5d5c74",
-        "primary": "#00602a",
-        "on-primary": "#ffffff",
-        "tertiary-container": "#cd2627",
-        "inverse-primary": "#7fda91",
-        "on-background": "#191c1e",
-        "on-secondary-fixed-variant": "#45455b",
-        "surface-container-low": "#f2f4f6",
-        "surface-tint": "#016d31",
-        "surface-container": "#eceef0",
-        "on-primary-container": "#aaffb7",
-        "surface-container-highest": "#e0e3e5",
-        "background": "#f8f9fb",
-        "on-secondary-container": "#63627a",
-        "secondary-fixed": "#e2e0fc",
-        "on-error-container": "#93000a",
-        "on-surface-variant": "#3f493f",
-        "tertiary": "#a90111",
-        "primary-fixed": "#9bf7ab",
-        "on-tertiary": "#ffffff",
-        "on-surface": "#191c1e",
-        "primary-container": "#1a7a3c",
-        "error": "#ba1a1a",
-        "inverse-on-surface": "#eff1f3",
-        "tertiary-fixed-dim": "#ffb4ac",
-        "surface-variant": "#e0e3e5",
-        "on-primary-fixed-variant": "#005323",
-        "on-secondary": "#ffffff",
-        "surface-dim": "#d8dadc",
-        "tertiary-fixed": "#ffdad6",
-        "inverse-surface": "#2d3133",
-        "surface-container-high": "#e6e8ea",
-        "error-container": "#ffdad6",
-        "secondary-fixed-dim": "#c6c4df",
-        "outline-variant": "#becabc",
-        "on-secondary-fixed": "#1a1a2e",
-        "on-tertiary-fixed": "#410002",
-        "surface-bright": "#f8f9fb",
-        "surface": "#f8f9fb",
-        "on-primary-fixed": "#00210a"
-      },
-      borderRadius: { "DEFAULT":"0.25rem","lg":"1rem","xl":"1.5rem","full":"9999px" },
-      fontFamily: { "headline":["Manrope","sans-serif"],"body":["Inter","sans-serif"],"label":["Inter","sans-serif"] }
-    }
-  }
-}
-</script>
-<style>
-body{font-family:'Inter',sans-serif;background-color:#f8f9fb;color:#191c1e}
-.font-headline{font-family:'Manrope',sans-serif}
-.material-symbols-outlined{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;user-select:none;line-height:1;vertical-align:middle}
-.hero-gradient{background:linear-gradient(135deg,#00602a 0%,#1a7a3c 100%)}
-.ambient-shadow{box-shadow:0 8px 32px rgba(25,28,30,.06)}
-.feature-card{opacity:0;transform:translateY(30px);transition:all .6s ease-out}
-.feature-card.show{opacity:1;transform:translateY(0)}
-.fade-up{opacity:0;transform:translateY(28px);transition:opacity .65s cubic-bezier(.22,1,.36,1),transform .65s cubic-bezier(.22,1,.36,1)}
-.fade-up.show{opacity:1;transform:translateY(0)}
-.star{position:absolute;background:#fff;border-radius:50%;opacity:0;animation:twinkle 3s ease-in-out infinite,floatStar 8s linear infinite;pointer-events:none}
-@keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.8;transform:scale(1)}}
-@keyframes floatStar{0%{transform:translateY(0) translateX(0)}100%{transform:translateY(-20px) translateX(10px)}}
-.star-shooting{position:absolute;width:2px;height:2px;background:#fff;box-shadow:0 0 6px 2px rgba(255,255,255,.6);border-radius:50%;opacity:0;animation:shootingStar 4s linear infinite;pointer-events:none}
-@keyframes shootingStar{0%{opacity:0;transform:translateX(0) translateY(0)}10%{opacity:1}20%{opacity:1;transform:translateX(-80px) translateY(40px)}100%{opacity:0;transform:translateX(-200px) translateY(100px)}}
-@keyframes scroll-left{0%{transform:translateX(0%)}100%{transform:translateX(-50%)}}
-.animate-scroll-right{animation:scroll-left 40s linear infinite}
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00602a",
+                        "primary-light": "#e6f2eb",
+                        secondary: "#191c1e",
+                        surface: "#f8f9fb",
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Manrope"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
-    .futuristic-btn {
-        font-family: 'Orbitron', sans-serif;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        transition: all 0.3s ease;
-    }
-    .glowing-text {
-        text-shadow: 0 0 5px rgba(255,255,255,0.6), 0 0 10px rgba(255,255,255,0.4);
-        animation: subtleGlow 2s ease-in-out infinite alternate;
-    }
-    @keyframes subtleGlow {
-        from { text-shadow: 0 0 3px rgba(255,255,255,0.5), 0 0 5px rgba(255,255,255,0.3); }
-        to { text-shadow: 0 0 12px rgba(255,255,255,0.9), 0 0 15px rgba(255,255,255,0.6); }
-    }
-    .hero-mobile-bg-slider { position:absolute;top:0;left:0;width:100%;height:100%;z-index:0; }
-    .hero-mobile-bg-slider .mobile-slide { position:absolute;top:0;left:0;width:100%;height:100%;background-size:cover;background-position:center;opacity:0;transition:opacity 1s ease-in-out; }
-    .hero-mobile-bg-slider .mobile-slide.active { opacity:1;z-index:1; }
-    .hero-mobile-overlay { position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:2; }
-    @media (max-width:767px) { .hero-main .hero-gradient { background:transparent!important; } .hero-main .hero-content { position:relative;z-index:3; } }
-
-</style>
+    <style>
+        body { background-color: #ffffff; color: #191c1e; overflow-x: hidden; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        @keyframes textFadeUp { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
+        .animate-text-up { opacity: 0; animation: textFadeUp 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .delay-100 { animation-delay: 150ms; }
+        .delay-200 { animation-delay: 300ms; }
+        .delay-300 { animation-delay: 450ms; }
+        .delay-400 { animation-delay: 600ms; }
+        @keyframes drawBorder { 0% { stroke-dashoffset: 100; } 100% { stroke-dashoffset: 0; } }
+        .animate-contour-path { stroke-dasharray: 100; stroke-dashoffset: 100; animation: drawBorder 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; animation-delay: 0.8s; }
+        @keyframes premiumPulse { 0%, 100% { transform: scale(1); box-shadow: 0 4px 14px 0 rgba(0, 96, 42, 0.25); } 50% { transform: scale(1.03); box-shadow: 0 6px 22px 6px rgba(0, 96, 42, 0.4); } }
+        .btn-pulse-premium { animation: premiumPulse 2.2s infinite ease-in-out; }
+        .hover-card { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .hover-card:hover { transform: translateY(-6px); box-shadow: 0 22px 35px -5px rgba(0, 0, 0, 0.06); }
+        #mobile-menu { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes scroll-right { 0% { transform: translateX(-50%); } 100% { transform: translateX(0%); } }
+        .animate-scroll-left-to-right { display: flex; width: max-content; animation: scroll-right 35s linear infinite; }
+        .reveal-underline { position: relative; display: inline-block; }
+        .reveal-underline::after { content: ''; position: absolute; left: 0; bottom: -4px; width: 100%; height: 4px; background-color: #00602a; border-radius: 2px; transform: scaleX(0); transform-origin: left; transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal-underline.active::after { transform: scaleX(1); }
+        @keyframes floatCap { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-8px) rotate(3deg); } 100% { transform: translateY(0px) rotate(0deg); } }
+        .graduation-cap-animated { display: inline-block; animation: floatCap 1.8s ease-in-out infinite; font-size: 3rem; vertical-align: middle; margin-right: 12px; filter: drop-shadow(0 6px 12px rgba(0,96,42,0.2)); }
+        @keyframes subtleFloat { 0% { transform: translateY(0px) rotate(0deg); } 100% { transform: translateY(-12px) rotate(6deg); } }
+        .bg-icon-float { animation: subtleFloat 6s infinite alternate ease-in-out; }
+        .animate-placeholder { animation: placeholderSlide 0.2s ease-in-out; }
+        @keyframes placeholderSlide { 0% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(-3px); opacity: 0.8; } 100% { transform: translateY(0); opacity: 1; } }
+        .carousel-courses-container { scrollbar-width: thin; }
+        @keyframes pricingPop { from{opacity:0;transform:scale(.95) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+        @media(max-width:900px){.plans-grid{grid-template-columns:1fr !important}}
+        @media(max-width:640px){.plans-grid{grid-template-columns:1fr !important}}
+    </style>
 </head>
-<body class="antialiased">
+<body class="antialiased font-sans">
 
-<!-- NAVBAR -->
-<nav class="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 h-20 flex justify-between items-center px-6 md:px-12 z-50">
-  <div class="flex items-center gap-2">
-    <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings:'FILL' 1">school</span>
-    <span class="text-2xl font-extrabold tracking-tight text-primary font-headline"><span class="text-on-surface">Camuno</span>Learn</span>
-  </div>
-  <form class="hidden md:flex items-center bg-surface-container-low px-4 py-2 rounded-full w-64 lg:w-80 border border-transparent focus-within:border-primary transition-all">
-    <span class="material-symbols-outlined text-outline mr-2 text-sm">search</span>
-    <input class="bg-transparent border-none focus:ring-0 text-sm w-full font-body outline-none" placeholder="Rechercher un cours..." type="text"/>
-  </form>
-  <div class="flex items-center gap-4">
-    <button id="langToggle" class="flex items-center gap-1 px-3 py-2 rounded-full bg-surface-container-low hover:bg-surface-container-highest transition-colors text-sm font-medium text-on-surface">
-      <span class="material-symbols-outlined text-base">language</span>
-      <span id="langLabel">FR</span>
-    </button>
-    <a href="indexconnexion.html" class="px-5 py-2 text-primary font-semibold hover:opacity-90 transition-opacity font-body text-sm inline-flex items-center gap-2">
-      <span class="material-symbols-outlined md:hidden">login</span>
-      <span class="hidden md:inline" data-i18n="login">Se connecter</span>
-    </a>
-    <a href="#section-prix" class="hidden md:inline-flex items-center gap-1.5 px-4 py-2 text-primary font-semibold hover:bg-primary/10 rounded-full transition-colors font-body text-sm" onclick="document.getElementById('section-prix').scrollIntoView({behavior:'smooth'});return false">
-      <span class="material-symbols-outlined text-sm">sell</span>
-      Tarifs
-    </a>
-    <a href="indexInscription.html" class="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-full font-semibold hover:opacity-90 transition-opacity font-body text-sm">
-      <span class="material-symbols-outlined md:hidden">person_add</span>
-      <span class="hidden md:inline" data-i18n="signup">S'inscrire</span>
-    </a>
-  </div>
+<!-- BARRE DE NAVIGATION -->
+<nav class="fixed top-0 w-full bg-white/95 backdrop-blur-md border-b border-gray-100 h-20 flex justify-between items-center px-4 sm:px-6 md:px-12 z-50">
+    <div class="flex items-center gap-2 shrink-0">
+        <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">school</span>
+        <span class="text-xl sm:text-2xl font-extrabold tracking-tight text-secondary font-display">Camuno<span class="text-primary">Learn</span></span>
+    </div>
+    <div class="hidden lg:flex flex-1 max-w-md mx-8">
+        <div class="relative w-full">
+            <span class="material-symbols-outlined absolute left-4 top-2.5 text-gray-400">search</span>
+            <input type="text" id="search-desktop" class="w-full bg-surface border border-gray-200 rounded-full py-2 pl-11 pr-4 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors font-medium" placeholder="Rechercher un cours"/>
+        </div>
+    </div>
+    <div class="hidden md:flex items-center gap-5 xl:gap-8">
+        <a href="coursPlatform.html" class="text-sm font-semibold text-gray-600 hover:text-primary transition-colors" data-i18n="nav_courses">Tous les cours</a>
+        <a href="PROFESSEURS.html" class="text-sm font-semibold text-gray-600 hover:text-primary transition-colors" data-i18n="nav_teachers">Professeurs</a>
+        <a href="#section-prix" class="text-sm font-semibold text-gray-600 hover:text-primary transition-colors" onclick="document.getElementById('section-prix').scrollIntoView({behavior:'smooth'});return false">Tarifs</a>
+        <span class="h-4 w-px bg-gray-200"></span>
+        <a href="indexconnexion.html" class="text-sm font-semibold text-secondary hover:text-primary transition-colors" data-i18n="nav_login">Se connecter</a>
+        <a href="indexInscription.html" class="px-5 py-2.5 bg-primary text-white rounded-md text-sm font-semibold btn-pulse-premium hover:bg-green-800 transition-all duration-200" data-i18n="nav_signup">S'inscrire gratuitement</a>
+    </div>
+    <div class="md:hidden flex items-center">
+        <button id="menu-toggle-btn" class="p-2 text-secondary focus:outline-none" aria-label="Menu principal">
+            <span id="menu-icon" class="material-symbols-outlined text-3xl">menu</span>
+        </button>
+    </div>
 </nav>
 
-<!-- HERO -->
-<section class="pt-32 pb-20 hero-gradient relative overflow-hidden">
-  <div class="max-w-7xl mx-auto px-8 grid md:grid-cols-2 gap-12 items-center relative z-10">
-    <div class="space-y-8">
-      <div class="space-y-4">
-        <h1 class="text-5xl md:text-6xl font-headline font-extrabold text-white leading-tight tracking-tight fade-up" data-i18n="hero_title">
-          Apprenez,<br/>Progressez,<br/>Réussissez.
-        </h1>
-        <p class="text-white/80 text-lg md:text-xl font-body max-w-lg leading-relaxed fade-up" data-i18n="hero_subtitle">
-          La plateforme e-learning des universités camerounaises. Accédez à des centaines de cours, devoirs et ressources en ligne.
-        </p>
-      </div>
-      <div class="flex flex-wrap gap-4 fade-up">
-        <a href="indexInscription.html" class="inline-block px-8 py-4 bg-white text-primary rounded-full font-bold text-lg hover:bg-surface-container-low transition-colors ambient-shadow" data-i18n="hero_cta_primary">Commencer Maintenant</a>
-        <a href="indexconnexion.html" class="futuristic-btn px-8 py-4 border-2 border-white/40 text-white rounded-full font-bold text-lg hover:bg-white/10 transition-colors" data-i18n="hero_cta_secondary">Se connecter</a>
-      </div>
-      <div class="flex gap-8 pt-4 fade-up">
-        <div class="text-white"><p class="text-2xl font-bold font-headline">120+</p><p class="text-sm text-white/60 font-body" data-i18n="stat_courses_label">Cours</p></div>
-        <div class="text-white"><p class="text-2xl font-bold font-headline">5 000+</p><p class="text-sm text-white/60 font-body" data-i18n="stat_students_label">Étudiants</p></div>
-        <div class="text-white"><p class="text-2xl font-bold font-headline">140+</p><p class="text-sm text-white/60 font-body" data-i18n="stat_teachers_label">Professeurs</p></div>
-        <div class="text-white"><p class="text-2xl font-bold font-headline">10</p><p class="text-sm text-white/60 font-body">Universités</p></div>
-      </div>
-    </div>
-    <div class="relative hidden md:block">
-      <div class="bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/20 transform rotate-2">
-        <img id="heroImg" alt="Dashboard CamunoLearn" class="rounded-xl shadow-2xl w-full object-cover aspect-[4/3]" src="frontend/IMAGETUDIANT.png"
-             onerror="this.parentElement.style.background='rgba(255,255,255,0.05)';this.parentElement.style.minHeight='300px';this.style.display='none'"/>
-      </div>
-      <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-lg ambient-shadow flex items-center gap-3">
-        <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-          <span class="material-symbols-outlined text-primary">verified</span>
+<!-- MENU MOBILE -->
+<div id="mobile-menu" class="fixed inset-0 bg-white z-40 pt-24 px-6 md:hidden pointer-events-none opacity-0 -translate-y-4">
+    <div class="flex flex-col gap-6">
+        <div class="relative w-full mb-2">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-400">search</span>
+            <input type="text" id="search-mobile" class="w-full bg-surface border border-gray-200 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-primary" placeholder="Rechercher un cours"/>
         </div>
-        <div>
-          <p class="text-sm font-bold font-headline text-primary" data-i18n="badge_title">Certification Académique</p>
-          <p class="text-xs text-on-surface-variant font-body" data-i18n="badge_subtitle">Reconnu par l'État</p>
+        <a href="coursPlatform.html" class="text-lg font-bold text-secondary border-b border-gray-100 pb-2">Tous les cours</a>
+        <a href="PROFESSEURS.html" class="text-lg font-bold text-secondary border-b border-gray-100 pb-2">Professeurs</a>
+        <a href="#section-prix" class="text-lg font-bold text-secondary border-b border-gray-100 pb-2" onclick="document.getElementById('mobile-menu').classList.add('pointer-events-none','opacity-0','-translate-y-4');document.getElementById('section-prix').scrollIntoView({behavior:'smooth'});return false">Tarifs</a>
+        <div class="flex flex-col gap-4 pt-4">
+            <a href="indexconnexion.html" class="w-full py-3 border border-gray-200 text-center rounded-md font-semibold text-secondary">Se connecter</a>
+            <a href="indexInscription.html" class="w-full py-3 bg-primary text-white text-center rounded-md font-semibold shadow-lg">S'inscrire gratuitement</a>
         </div>
-      </div>
     </div>
-  </div>
-  <div class="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12 transform translate-x-1/2"></div>
+</div>
+
+<!-- SECTION HERO -->
+<section class="pt-28 pb-16 md:pt-44 md:pb-28 bg-surface relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div class="space-y-6 text-center lg:text-left order-2 lg:order-1">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-secondary leading-tight tracking-tight font-display animate-text-up">
+                <span class="graduation-cap-animated material-symbols-outlined" style="font-size: 3rem;">school</span>
+                <span data-i18n="hero_title_line1">Prenez en main votre</span> <br/>
+                <span class="relative inline-block mt-2 px-3 py-1.5 whitespace-nowrap">
+                    <span class="relative z-10 text-primary" data-i18n="hero_title_line2">réussite académique</span>
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <rect x="0.5" y="0.5" width="99" height="99" rx="3" fill="none" stroke="#00602a" stroke-width="1.5" pathLength="100" class="animate-contour-path"/>
+                    </svg>
+                </span>.
+            </h1>
+            <p class="text-base sm:text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 leading-relaxed animate-text-up delay-100" data-i18n="hero_description">
+                Accédez aux cours officiels conçus par des experts et universités de renom. Formez-vous à votre rythme, validez vos compétences et boostez votre carrière.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 pt-2 animate-text-up delay-200">
+                <a href="indexInscription.html" class="px-6 py-3.5 bg-primary text-white rounded-md font-semibold text-center hover:bg-green-800 transition-colors shadow-md" data-i18n="hero_cta_catalog">Explorer le catalogue</a>
+                <a href="#fonctionnement" class="px-6 py-3.5 bg-white text-secondary border border-gray-200 rounded-md font-semibold text-center hover:bg-gray-50 transition-colors" data-i18n="hero_cta_how">Comment ça marche ?</a>
+            </div>
+            <div class="grid grid-cols-3 gap-4 pt-6 border-t border-gray-200/60 max-w-sm mx-auto lg:mx-0 text-left animate-text-up delay-300">
+                <div><p class="text-xl sm:text-2xl font-bold font-display text-primary">120+</p><p class="text-[11px] sm:text-xs text-gray-500 font-medium" data-i18n="stat_courses">Cours complets</p></div>
+                <div><p class="text-xl sm:text-2xl font-bold font-display text-primary">5k+</p><p class="text-[11px] sm:text-xs text-gray-500 font-medium" data-i18n="stat_students">Étudiants actifs</p></div>
+                <div><p class="text-xl sm:text-2xl font-bold font-display text-primary">140+</p><p class="text-[11px] sm:text-xs text-gray-500 font-medium" data-i18n="stat_mentors">Mentors certifiés</p></div>
+            </div>
+        </div>
+        <div class="relative order-1 lg:order-2 px-2 sm:px-6 lg:px-0 animate-text-up delay-100">
+            <div class="relative mx-auto max-w-md lg:max-w-none">
+                <div class="carousel-container relative overflow-hidden rounded-2xl shadow-xl border border-gray-100 bg-gray-100">
+                    <div class="carousel-slides flex transition-transform duration-500 ease-in-out" id="carouselSlides">
+                        <div class="carousel-slide flex-shrink-0 w-full"><img class="w-full object-cover aspect-[4/3]" src="Images/Ecole1.jpg" alt="École 1"></div>
+                        <div class="carousel-slide flex-shrink-0 w-full"><img class="w-full object-cover aspect-[4/3]" src="Images/Ecole2.jpg" alt="École 2"></div>
+                        <div class="carousel-slide flex-shrink-0 w-full"><img class="w-full object-cover aspect-[4/3]" src="Images/Etudiant1.jpg" alt="Étudiant 1"></div>
+                        <div class="carousel-slide flex-shrink-0 w-full"><img class="w-full object-cover aspect-[4/3]" src="Images/Etudiant2.jpg" alt="Étudiant 2"></div>
+                        <div class="carousel-slide flex-shrink-0 w-full"><img class="w-full object-cover aspect-[4/3]" src="Images/Etudiant3.jpeg" alt="Étudiant 3"></div>
+                        <div class="carousel-slide flex-shrink-0 w-full"><img class="w-full object-cover aspect-[4/3]" src="Images/EtudiantUnivDouala.jpeg" alt="Étudiant Univ Douala"></div>
+                        <div class="carousel-slide flex-shrink-0 w-full"><img class="w-full object-cover aspect-[4/3]" src="Images/IMAGETUDIANT.jpg" alt="Image étudiant"></div>
+                    </div>
+                    <div class="carousel-dots absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10" id="carouselDots"></div>
+                </div>
+                <div class="absolute -bottom-5 -left-2 sm:-left-6 bg-white p-3 sm:p-4 rounded-xl shadow-xl border border-gray-100 flex items-center gap-3 max-w-[260px] sm:max-w-[290px] z-20">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary-light rounded-full flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-xl sm:text-2xl">workspace_premium</span></div>
+                    <div><p class="text-xs sm:text-sm font-bold text-secondary font-display" data-i18n="badge_title">Certificats Reconnus</p><p class="text-[10px] sm:text-xs text-gray-500" data-i18n="badge_sub">Délivrés par nos universités partenaires</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
-<!-- FONCTIONNALITÉS -->
-<section class="py-24 bg-white">
-  <div class="max-w-7xl mx-auto px-8">
-    <div class="text-center mb-16">
-      <h2 class="text-3xl md:text-4xl font-headline font-bold text-on-surface mb-4 fade-up" data-i18n="features_title">Pourquoi choisir CamunoLearn ?</h2>
-      <div class="w-20 h-1.5 bg-primary-container mx-auto rounded-full fade-up"></div>
+<!-- PARTENAIRES -->
+<section class="py-8 border-b border-gray-100 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 text-center">
+        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-6 font-display" data-i18n="partners_title">Ils conçoivent nos programmes officiels</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 items-center gap-8">
+            <div class="flex justify-center"><div class="w-32 h-20 bg-white rounded-lg flex items-center justify-center p-2 hover:shadow-md transition"><img src="Images/LOGOUNIVDOUALA.jpeg" alt="Université de Douala" class="max-h-12 w-auto object-contain"></div></div>
+            <div class="flex justify-center"><div class="w-32 h-30 bg-white rounded-lg flex items-center justify-center p-6 hover:shadow-md transition"><img src="Images/IUTDOUALALOGO.png" alt="IUT de Douala" class="max-h-12 w-auto object-contain"></div></div>
+            <div class="flex justify-center"><div class="w-32 h-20 bg-white rounded-lg flex items-center justify-center p-2 hover:shadow-md transition"><img src="Images/LOGOPOLYTECH.png" alt="Polytech" class="max-h-12 w-auto object-contain"></div></div>
+            <div class="flex justify-center"><div class="w-32 h-20 bg-white rounded-lg flex items-center justify-center p-2 hover:shadow-md transition"><img src="Images/mtn academy.jpg" alt="MTN Academy" class="max-h-12 w-auto object-contain"></div></div>
+        </div>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-      <div class="group p-8 rounded-xl hover:bg-surface-container-low transition-all duration-300">
-        <div class="feature-card">
-          <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
-            <span class="material-symbols-outlined text-primary group-hover:text-white text-3xl">school</span>
-          </div>
-          <h3 class="text-xl font-bold font-headline mb-3 text-on-surface" data-i18n="feature1_title">Cours en ligne</h3>
-          <p class="text-on-surface-variant text-sm leading-relaxed font-body" data-i18n="feature1_desc">Des contenus pédagogiques structurés, validés par les meilleurs professeurs universitaires.</p>
-        </div>
-      </div>
-      <div class="group p-8 rounded-xl hover:bg-surface-container-low transition-all duration-300">
-        <div class="feature-card">
-          <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
-            <span class="material-symbols-outlined text-primary group-hover:text-white text-3xl">quiz</span>
-          </div>
-          <h3 class="text-xl font-bold font-headline mb-3 text-on-surface" data-i18n="feature2_title">Devoirs &amp; Quiz</h3>
-          <p class="text-on-surface-variant text-sm leading-relaxed font-body" data-i18n="feature2_desc">Évaluez vos connaissances en temps réel avec des tests interactifs et des corrections détaillées.</p>
-        </div>
-      </div>
-      <div class="group p-8 rounded-xl hover:bg-surface-container-low transition-all duration-300">
-        <div class="feature-card">
-          <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
-            <span class="material-symbols-outlined text-primary group-hover:text-white text-3xl">language</span>
-          </div>
-          <h3 class="text-xl font-bold font-headline mb-3 text-on-surface">Inter-Universités</h3>
-          <p class="text-on-surface-variant text-sm leading-relaxed font-body">Accédez aux cours d'autres universités camerounaises. Élargissez votre horizon académique sans frontières.</p>
-        </div>
-      </div>
-      <div class="group p-8 rounded-xl hover:bg-surface-container-low transition-all duration-300">
-        <div class="feature-card">
-          <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
-            <span class="material-symbols-outlined text-primary group-hover:text-white text-3xl">groups</span>
-          </div>
-          <h3 class="text-xl font-bold font-headline mb-3 text-on-surface" data-i18n="feature4_title">Communauté</h3>
-          <p class="text-on-surface-variant text-sm leading-relaxed font-body" data-i18n="feature4_desc">Échangez avec d'autres étudiants et collaborez sur des projets d'étude passionnants.</p>
-        </div>
-      </div>
-    </div>
-  </div>
 </section>
 
-<!-- COURS POPULAIRES -->
-<section class="py-24 bg-surface-container-low">
-  <div class="max-w-7xl mx-auto px-8">
-    <div class="flex justify-between items-end mb-12">
-      <div>
-        <h2 class="text-3xl md:text-4xl font-headline font-bold text-on-surface fade-up" data-i18n="courses_title">Cours Populaires</h2>
-        <p class="text-on-surface-variant mt-2 font-body fade-up" data-i18n="courses_subtitle">Découvrez les modules les plus suivis ce semestre.</p>
-      </div>
-      <a href="indexInscription.html" class="hidden md:block text-primary font-bold hover:underline font-body" data-i18n="courses_view_all">Tout voir →</a>
+<!-- PARCOURS PHARES -->
+<section class="py-16 md:py-24 bg-white overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-12">
+            <div>
+                <h2 class="text-2xl md:text-3xl font-bold text-secondary font-display" data-i18n="courses_title">Les parcours phares</h2>
+                <p class="text-gray-500 mt-1 text-sm sm:text-base" data-i18n="courses_subtitle">Acquérez les compétences les plus recherchées sur le marché actuel.</p>
+            </div>
+            <a href="coursPlatform.html" class="group inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105" data-i18n="courses_view_all">
+                Voir tout le catalogue
+                <span class="material-symbols-outlined text-base transition-transform duration-300 group-hover:translate-x-1">arrow_forward</span>
+            </a>
+        </div>
+        <div class="relative">
+            <div class="carousel-courses-container overflow-x-auto scroll-smooth" id="coursesCarousel" style="scroll-behavior: smooth; scrollbar-width: thin;">
+                <div class="flex gap-8 w-max">
+                    <div class="w-[280px] sm:w-[320px] md:w-[350px] flex-shrink-0 bg-white border border-gray-200 rounded-xl overflow-hidden hover-card flex flex-col h-full cursor-pointer transition-all duration-300">
+                        <div class="h-48 bg-gray-100 relative"><img alt="Développement Web" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"/><div class="absolute top-4 left-4 bg-white px-2.5 py-1 rounded-md text-xs font-bold text-primary shadow-sm font-display" data-i18n="course1_level">Niveau L3</div></div>
+                        <div class="p-5 sm:p-6 flex-grow flex flex-col"><h3 class="text-lg font-bold text-secondary mb-2 leading-snug font-display" data-i18n="course1_title">Développeur Web & Mobile Avancé</h3><p class="text-sm text-gray-500 mb-6 line-clamp-2" data-i18n="course1_desc">Maîtrisez les architectures modernes, des APIs robustes jusqu'au déploiement sécurisé.</p><div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between text-xs sm:text-sm text-gray-600 font-medium"><div class="flex items-center gap-1"><span class="material-symbols-outlined text-base text-gray-400">schedule</span> <span data-i18n="course1_duration">40 heures</span></div><div class="flex items-center gap-1"><span class="material-symbols-outlined text-base text-gray-400">workspace_premium</span> <span data-i18n="course1_cert">Diplômant</span></div></div></div>
+                    </div>
+                    <div class="w-[280px] sm:w-[320px] md:w-[350px] flex-shrink-0 bg-white border border-gray-200 rounded-xl overflow-hidden hover-card flex flex-col h-full cursor-pointer">
+                        <div class="h-48 bg-gray-100 relative"><img alt="Data SQL" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"/><div class="absolute top-4 left-4 bg-white px-2.5 py-1 rounded-md text-xs font-bold text-primary shadow-sm font-display" data-i18n="course2_level">Niveau L1</div></div>
+                        <div class="p-5 sm:p-6 flex-grow flex flex-col"><h3 class="text-lg font-bold text-secondary mb-2 leading-snug font-display" data-i18n="course2_title">Fondamentaux des Bases de Données (SQL)</h3><p class="text-sm text-gray-500 mb-6 line-clamp-2" data-i18n="course2_desc">Apprenez à structurer vos modèles de données, requêter efficacement et administrer vos serveurs.</p><div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between text-xs sm:text-sm text-gray-600 font-medium"><div class="flex items-center gap-1"><span class="material-symbols-outlined text-base text-gray-400">schedule</span> <span data-i18n="course2_duration">25 heures</span></div><div class="flex items-center gap-1"><span class="material-symbols-outlined text-base text-gray-400">workspace_premium</span> <span data-i18n="course2_cert">Certifiant</span></div></div></div>
+                    </div>
+                    <div class="w-[280px] sm:w-[320px] md:w-[350px] flex-shrink-0 bg-white border border-gray-200 rounded-xl overflow-hidden hover-card flex flex-col h-full cursor-pointer">
+                        <div class="h-48 bg-gray-100 relative"><img alt="Réseaux" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"/><div class="absolute top-4 left-4 bg-white px-2.5 py-1 rounded-md text-xs font-bold text-primary shadow-sm font-display" data-i18n="course3_level">Niveau L2</div></div>
+                        <div class="p-5 sm:p-6 flex-grow flex flex-col"><h3 class="text-lg font-bold text-secondary mb-2 leading-snug font-display" data-i18n="course3_title">Architecture & Sécurité des Réseaux</h3><p class="text-sm text-gray-500 mb-6 line-clamp-2" data-i18n="course3_desc">Comprenez le modèle OSI, configurez des commutateurs et sécurisez les accès aux réseaux d'entreprise.</p><div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between text-xs sm:text-sm text-gray-600 font-medium"><div class="flex items-center gap-1"><span class="material-symbols-outlined text-base text-gray-400">schedule</span> <span data-i18n="course3_duration">35 heures</span></div><div class="flex items-center gap-1"><span class="material-symbols-outlined text-base text-gray-400">workspace_premium</span> <span data-i18n="course3_cert">Certifiant</span></div></div></div>
+                    </div>
+                </div>
+            </div>
+            <button id="carouselPrev" class="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-all z-10 focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined text-primary">chevron_left</span></button>
+            <button id="carouselNext" class="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-all z-10 focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined text-primary">chevron_right</span></button>
+        </div>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="bg-surface-container-lowest rounded-lg overflow-hidden ambient-shadow flex flex-col h-full">
-        <div class="relative h-48">
-          <img alt="Dev Web" class="w-full h-full object-cover" src="https://potentiel-humain.eu/wp-content/uploads/2020/09/programming.jpg"/>
-          <div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold font-body">L3 INFO</div>
-        </div>
-        <div class="p-6 flex-grow flex flex-col">
-          <div class="flex items-center gap-2 mb-3"><span class="material-symbols-outlined text-primary text-sm">person</span><span class="text-xs text-on-surface-variant font-medium font-body">Dr. Jean-Pierre N.</span></div>
-          <h3 class="text-xl font-bold font-headline mb-4 text-on-surface">Développement Web Avancé</h3>
-          <div class="mt-auto space-y-4">
-            <div class="space-y-1">
-              <div class="flex justify-between text-xs text-on-surface-variant font-body"><span>Progression</span><span>85%</span></div>
-              <div class="w-full h-2 bg-surface-container-highest rounded-full"><div class="bg-primary h-full rounded-full" style="width:85%"></div></div>
-            </div>
-            <a href="indexInscription.html" class="block w-full py-3 bg-surface-container-high text-on-surface rounded-full font-bold hover:bg-primary hover:text-white transition-all font-body text-center">Voir le cours</a>
-          </div>
-        </div>
-      </div>
-      <div class="bg-surface-container-lowest rounded-lg overflow-hidden ambient-shadow flex flex-col h-full">
-        <div class="relative h-48">
-          <img alt="GEII" class="w-full h-full object-cover" src="https://www.iut.unilim.fr/wp-content/uploads/sites/3/2021/03/GEII.jpg"/>
-          <div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold font-body">L2 GEII</div>
-        </div>
-        <div class="p-6 flex-grow flex flex-col">
-          <div class="flex items-center gap-2 mb-3"><span class="material-symbols-outlined text-primary text-sm">person</span><span class="text-xs text-on-surface-variant font-medium font-body">Pr. Marie Ebanda</span></div>
-          <h3 class="text-xl font-bold font-headline mb-4 text-on-surface">Automatisme Industriel</h3>
-          <div class="mt-auto space-y-4">
-            <div class="space-y-1">
-              <div class="flex justify-between text-xs text-on-surface-variant font-body"><span>Progression</span><span>40%</span></div>
-              <div class="w-full h-2 bg-surface-container-highest rounded-full"><div class="bg-primary h-full rounded-full" style="width:40%"></div></div>
-            </div>
-            <a href="indexInscription.html" class="block w-full py-3 bg-surface-container-high text-on-surface rounded-full font-bold hover:bg-primary hover:text-white transition-all font-body text-center">Voir le cours</a>
-          </div>
-        </div>
-      </div>
-      <div class="bg-surface-container-lowest rounded-lg overflow-hidden ambient-shadow flex flex-col h-full">
-        <div class="relative h-48">
-          <img alt="SQL" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKE7P16hhsLydcaEzkD-l8UyKpo9HaGN579X5LSdFSSI8vjbW5KL0R9UeIYqDmqY9U6mlmPBfFyR7at7HSDC0JXv2O3PdB7CwFKJRMoTxumUaKa4s7SE0Rf8PAVgf2wIoXB9IJCaLKxHS8DOSn9csNgdiUknkzldDaDFnKFbGMXX7WaT-rW7SSnLyg5MGZjsMCjR1NR4m907JK5qqEW78xLorTt5_NrUE59_tcTYPpAfFIvIWEeI-iNyRkQ0gL0pHOBxEpi6LA2Xf3"/>
-          <div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold font-body">L1 INFO</div>
-        </div>
-        <div class="p-6 flex-grow flex flex-col">
-          <div class="flex items-center gap-2 mb-3"><span class="material-symbols-outlined text-primary text-sm">person</span><span class="text-xs text-on-surface-variant font-medium font-body">Dr. Samuel Fouda</span></div>
-          <h3 class="text-xl font-bold font-headline mb-4 text-on-surface">Base de Données SQL</h3>
-          <div class="mt-auto space-y-4">
-            <div class="space-y-1">
-              <div class="flex justify-between text-xs text-on-surface-variant font-body"><span>Progression</span><span>15%</span></div>
-              <div class="w-full h-2 bg-surface-container-highest rounded-full"><div class="bg-primary h-full rounded-full" style="width:15%"></div></div>
-            </div>
-            <a href="indexInscription.html" class="block w-full py-3 bg-surface-container-high text-on-surface rounded-full font-bold hover:bg-primary hover:text-white transition-all font-body text-center">Voir le cours</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </section>
 
-<!-- COMMENT ÇA MARCHE -->
-<section class="py-24 bg-white">
-  <div class="max-w-7xl mx-auto px-8">
-    <div class="text-center mb-20">
-      <h2 class="text-3xl md:text-4xl font-headline font-bold text-on-surface mb-4 fade-up" data-i18n="how_title">Comment ça marche ?</h2>
-      <p class="text-on-surface-variant max-w-xl mx-auto font-body fade-up" data-i18n="how_subtitle">Trois étapes simples pour transformer votre avenir académique.</p>
+<!-- FONCTIONNEMENT -->
+<section id="fonctionnement" class="py-16 md:py-24 bg-surface relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none select-none z-0">
+        <span class="material-symbols-outlined absolute top-[12%] left-[4%] text-primary/10 text-7xl md:text-8xl bg-icon-float" style="animation-delay: 0s;">workspace_premium</span>
+        <span class="material-symbols-outlined absolute bottom-[8%] right-[3%] text-primary/10 text-8xl md:text-9xl bg-icon-float" style="animation-delay: 0.7s;">school</span>
+        <span class="material-symbols-outlined absolute top-[40%] left-[85%] text-primary/10 text-6xl md:text-7xl bg-icon-float" style="animation-delay: 1.2s;">menu_book</span>
+        <span class="material-symbols-outlined absolute bottom-[20%] left-[10%] text-primary/10 text-7xl bg-icon-float" style="animation-delay: 0.3s;">auto_stories</span>
+        <span class="material-symbols-outlined absolute top-[70%] left-[25%] text-primary/10 text-6xl bg-icon-float" style="animation-delay: 1.5s;">emoji_objects</span>
+        <span class="material-symbols-outlined absolute top-[15%] left-[65%] text-primary/10 text-7xl bg-icon-float" style="animation-delay: 0.9s;">flag</span>
+        <span class="material-symbols-outlined absolute top-[60%] left-[80%] text-primary/5 text-8xl bg-icon-float" style="animation-delay: 0.4s;">graduation_cap</span>
+        <span class="material-symbols-outlined absolute top-[85%] left-[45%] text-primary/5 text-9xl bg-icon-float" style="animation-delay: 1.1s;">library_books</span>
+        <span class="material-symbols-outlined absolute top-[8%] left-[40%] text-primary/5 text-6xl bg-icon-float" style="animation-delay: 0.2s;">how_to_reg</span>
     </div>
-    <div class="relative flex flex-col md:flex-row justify-between items-center gap-12">
-      <div class="absolute top-8 left-0 w-full h-0.5 bg-surface-container-highest hidden md:block -z-10"></div>
-      <div class="flex flex-col items-center text-center max-w-xs fade-up">
-        <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center font-bold text-xl mb-6 ambient-shadow z-10">1</div>
-        <h3 class="font-headline font-bold text-xl mb-3" data-i18n="step1_title">Créez votre compte</h3>
-        <p class="text-on-surface-variant text-sm font-body" data-i18n="step1_desc">Inscrivez-vous gratuitement avec votre adresse étudiante ou personnelle.</p>
-      </div>
-      <div class="flex flex-col items-center text-center max-w-xs fade-up">
-        <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center font-bold text-xl mb-6 ambient-shadow z-10">2</div>
-        <h3 class="font-headline font-bold text-xl mb-3" data-i18n="step2_title">Rejoignez vos cours</h3>
-        <p class="text-on-surface-variant text-sm font-body" data-i18n="step2_desc">Inscrivez-vous aux modules de votre filière ou découvrez de nouveaux domaines.</p>
-      </div>
-      <div class="flex flex-col items-center text-center max-w-xs fade-up">
-        <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center font-bold text-xl mb-6 ambient-shadow z-10">3</div>
-        <h3 class="font-headline font-bold text-xl mb-3" data-i18n="step3_title">Apprenez &amp; progressez</h3>
-        <p class="text-on-surface-variant text-sm font-body" data-i18n="step3_desc">Suivez les cours à votre rythme et obtenez vos attestations de réussite.</p>
-      </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 relative z-10">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <h2 class="text-2xl md:text-3xl font-bold text-secondary font-display"><span class="reveal-underline" data-i18n="function_title">Votre parcours vers la réussite</span></h2>
+            <p class="text-gray-500 mt-2 text-sm sm:text-base" data-i18n="function_subtitle">Une méthodologie flexible et structurée pour atteindre vos objectifs.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-xl border border-gray-100 shadow-sm space-y-4 hover:shadow-md transition">
+                <div class="w-11 h-11 rounded-full bg-primary-light flex items-center justify-center font-bold text-primary font-display">1</div>
+                <h3 class="text-lg font-bold text-secondary font-display" data-i18n="step1_title">Inscription simplifiée</h3>
+                <p class="text-sm text-gray-500 leading-relaxed" data-i18n="step1_desc">Créez votre compte en quelques clics et parcourez instantanément nos modules d'enseignement de haut niveau.</p>
+            </div>
+            <div class="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-xl border border-gray-100 shadow-sm space-y-4 hover:shadow-md transition">
+                <div class="w-11 h-11 rounded-full bg-primary-light flex items-center justify-center font-bold text-primary font-display">2</div>
+                <h3 class="text-lg font-bold text-secondary font-display" data-i18n="step2_title">Apprentissage & Quiz</h3>
+                <p class="text-sm text-gray-500 leading-relaxed" data-i18n="step2_desc">Suivez vos cours en vidéo ou format textuel et validez votre progression via des quiz réguliers.</p>
+            </div>
+            <div class="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-xl border border-gray-100 shadow-sm space-y-4 hover:shadow-md transition">
+                <div class="w-11 h-11 rounded-full bg-primary-light flex items-center justify-center font-bold text-primary font-display">3</div>
+                <h3 class="text-lg font-bold text-secondary font-display" data-i18n="step3_title">Certification Officielle</h3>
+                <p class="text-sm text-gray-500 leading-relaxed" data-i18n="step3_desc">Validez vos examens de fin d'année et recevez un titre de compétences certifié par nos institutions partenaires.</p>
+            </div>
+        </div>
     </div>
-  </div>
 </section>
 
 <!-- TÉMOIGNAGES -->
-<section class="py-24 bg-surface-container-low overflow-hidden">
-  <div class="max-w-7xl mx-auto px-8 mb-12">
-    <div class="text-center">
-      <h2 class="text-3xl md:text-4xl font-headline font-bold text-on-surface mb-4 fade-up" data-i18n="testimonials_title">Ce que disent nos étudiants</h2>
-      <div class="w-20 h-1.5 bg-primary-container mx-auto rounded-full fade-up"></div>
+<section class="py-24 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-8 mb-12">
+        <div class="text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-secondary mb-4" data-i18n="testimonials_title">Ce que disent nos étudiants</h2>
+            <div class="w-20 h-1.5 bg-primary mx-auto rounded-full"></div>
+        </div>
     </div>
-  </div>
-  <div class="relative flex overflow-x-hidden">
-    <div class="flex animate-scroll-right whitespace-nowrap gap-8 py-4 hover:[animation-play-state:paused]">
-      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
-        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">ET</div><div><h4 class="font-bold font-headline text-on-surface">Emma T.</h4><p class="text-xs text-primary font-body">L2 Droit · UdD</p></div></div>
-        <p class="text-on-surface-variant italic font-body text-sm">"Grâce à CamunoLearn, j'ai pu rattraper mes cours de droit constitutionnel même quand je ne pouvais pas me déplacer à l'amphi."</p>
+    <div class="relative flex overflow-x-hidden group">
+        <div class="animate-scroll-left-to-right whitespace-nowrap gap-8 py-4 hover:[animation-play-state:paused]">
+            <div class="inline-block w-[350px] bg-white p-8 rounded-2xl shadow-sm whitespace-normal shrink-0"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">ET</div><div><h4 class="font-bold" data-i18n="testimonial1_name">Emma T.</h4><p class="text-xs text-primary" data-i18n="testimonial1_role">L2 Droit</p></div></div><p class="text-gray-600 italic text-sm" data-i18n="testimonial1_text">"Grâce à CamunoLearn, j'ai pu rattraper mes cours de droit constitutionnel même quand je ne pouvais pas me déplacer à l'amphi."</p></div>
+            <div class="inline-block w-[350px] bg-white p-8 rounded-2xl shadow-sm whitespace-normal shrink-0"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-600">MK</div><div><h4 class="font-bold" data-i18n="testimonial2_name">Marc K.</h4><p class="text-xs text-primary" data-i18n="testimonial2_role">M1 Informatique</p></div></div><p class="text-gray-600 italic text-sm" data-i18n="testimonial2_text">"Les quiz de préparation aux examens sont incroyablement proches des épreuves réelles. C'est l'outil indispensable."</p></div>
+            <div class="inline-block w-[350px] bg-white p-8 rounded-2xl shadow-sm whitespace-normal shrink-0"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-bold text-orange-600">AN</div><div><h4 class="font-bold" data-i18n="testimonial3_name">Aïcha N.</h4><p class="text-xs text-primary" data-i18n="testimonial3_role">L3 Gestion</p></div></div><p class="text-gray-600 italic text-sm" data-i18n="testimonial3_text">"La plateforme est fluide et les professeurs sont très réactifs. Je recommande à 100%."</p></div>
+            <div class="inline-block w-[350px] bg-white p-8 rounded-2xl shadow-sm whitespace-normal shrink-0"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600">SD</div><div><h4 class="font-bold" data-i18n="testimonial4_name">Samuel D.</h4><p class="text-xs text-primary" data-i18n="testimonial4_role">L1 Génie Civil</p></div></div><p class="text-gray-600 italic text-sm" data-i18n="testimonial4_text">"Les schémas techniques en haute résolution m'aident énormément pour mes révisions en RDM."</p></div>
+            <div class="inline-block w-[350px] bg-white p-8 rounded-2xl shadow-sm whitespace-normal shrink-0"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center font-bold text-red-600">LB</div><div><h4 class="font-bold" data-i18n="testimonial5_name">Lucie B.</h4><p class="text-xs text-primary" data-i18n="testimonial5_role">M2 Marketing</p></div></div><p class="text-gray-600 italic text-sm" data-i18n="testimonial5_text">"La certification obtenue après le cours de Marketing Digital a été un vrai plus sur mon CV pour mon stage."</p></div>
+            <div class="inline-block w-[350px] bg-white p-8 rounded-2xl shadow-sm whitespace-normal shrink-0"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">ET</div><div><h4 class="font-bold">Emma T.</h4><p class="text-xs text-primary">L2 Droit</p></div></div><p class="text-gray-600 italic text-sm">"Grâce à CamunoLearn, j'ai pu rattraper mes cours de droit constitutionnel même quand je ne pouvais pas me déplacer à l'amphi."</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ SECTION 1 : POURQUOI CAMUNOLEARN ════════════════════ -->
+<section class="py-20 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <div>
+        <div class="inline-flex items-center gap-2 bg-primary-light text-primary px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-6 font-display">
+          <span class="material-symbols-outlined text-sm">verified</span>Conçu pour l'Afrique
+        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-secondary font-display mb-6 leading-tight">La première plateforme e-learning<br/><span class="text-primary">pensée pour les universités camerounaises</span></h2>
+        <p class="text-gray-600 leading-relaxed mb-6">CamunoLearn n'est pas un simple outil de cours en ligne. C'est un écosystème académique complet — conçu depuis Douala, pour les réalités du terrain : connexions variables, téléphones comme outil principal, et des milliers d'étudiants qui méritent mieux que des photocopies illisibles.</p>
+        <p class="text-gray-600 leading-relaxed mb-8">Chaque fonctionnalité a été pensée avec des professeurs, des chefs de département et des étudiants. Le résultat : une plateforme que tout le monde adopte en moins d'une journée.</p>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-surface p-4 rounded-xl border border-gray-100"><p class="text-2xl font-bold text-primary font-display">98%</p><p class="text-sm text-gray-500 mt-1">de satisfaction étudiante</p></div>
+          <div class="bg-surface p-4 rounded-xl border border-gray-100"><p class="text-2xl font-bold text-primary font-display">&lt; 1 jour</p><p class="text-sm text-gray-500 mt-1">pour former une équipe</p></div>
+          <div class="bg-surface p-4 rounded-xl border border-gray-100"><p class="text-2xl font-bold text-primary font-display">10 univ.</p><p class="text-sm text-gray-500 mt-1">partenaires au Cameroun</p></div>
+          <div class="bg-surface p-4 rounded-xl border border-gray-100"><p class="text-2xl font-bold text-primary font-display">24/7</p><p class="text-sm text-gray-500 mt-1">accès aux ressources</p></div>
+        </div>
       </div>
-      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
-        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-600">MK</div><div><h4 class="font-bold font-headline text-on-surface">Marc K.</h4><p class="text-xs text-primary font-body">M1 Informatique · IUT</p></div></div>
-        <p class="text-on-surface-variant italic font-body text-sm">"Les quiz de préparation aux examens sont incroyablement proches des épreuves réelles. C'est l'outil indispensable."</p>
-      </div>
-      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
-        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-bold text-orange-600">AN</div><div><h4 class="font-bold font-headline text-on-surface">Aïcha N.</h4><p class="text-xs text-primary font-body">L3 Gestion · ESSEC</p></div></div>
-        <p class="text-on-surface-variant italic font-body text-sm">"La plateforme est fluide et les professeurs sont très réactifs dans les forums. Je recommande à 100%."</p>
-      </div>
-      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
-        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600">SD</div><div><h4 class="font-bold font-headline text-on-surface">Samuel D.</h4><p class="text-xs text-primary font-body">L1 GC · UCAC-ICAM</p></div></div>
-        <p class="text-on-surface-variant italic font-body text-sm">"Grâce aux cours inter-universités, j'accède aux cours de GI de l'IUT depuis l'UCAC. Révolutionnaire !"</p>
-      </div>
-      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
-        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center font-bold text-red-600">LB</div><div><h4 class="font-bold font-headline text-on-surface">Lucie B.</h4><p class="text-xs text-primary font-body">M2 Marketing · ESSEC</p></div></div>
-        <p class="text-on-surface-variant italic font-body text-sm">"La certification obtenue après le cours de Marketing Digital a été un vrai plus sur mon CV pour mon stage."</p>
-      </div>
-      <!-- Duplicate for infinite scroll -->
-      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
-        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">ET</div><div><h4 class="font-bold font-headline text-on-surface">Emma T.</h4><p class="text-xs text-primary font-body">L2 Droit · UdD</p></div></div>
-        <p class="text-on-surface-variant italic font-body text-sm">"Grâce à CamunoLearn, j'ai pu rattraper mes cours de droit constitutionnel même quand je ne pouvais pas me déplacer à l'amphi."</p>
-      </div>
-      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
-        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center font-bold text-green-600">MK</div><div><h4 class="font-bold font-headline text-on-surface">Marc K.</h4><p class="text-xs text-primary font-body">M1 Informatique · IUT</p></div></div>
-        <p class="text-on-surface-variant italic font-body text-sm">"Les quiz de préparation aux examens sont incroyablement proches des épreuves réelles. C'est l'outil indispensable."</p>
-      </div>
-      <div class="inline-block w-[350px] bg-white p-8 rounded-2xl ambient-shadow whitespace-normal shrink-0">
-        <div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center font-bold text-orange-600">AN</div><div><h4 class="font-bold font-headline text-on-surface">Aïcha N.</h4><p class="text-xs text-primary font-body">L3 Gestion · ESSEC</p></div></div>
-        <p class="text-on-surface-variant italic font-body text-sm">"La plateforme est fluide et les professeurs sont très réactifs dans les forums. Je recommande à 100%."</p>
+      <div class="space-y-4">
+        <div class="flex items-start gap-4 p-5 bg-surface rounded-xl border border-gray-100 hover:shadow-md transition">
+          <div class="w-12 h-12 bg-primary-light rounded-xl flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-2xl">phone_android</span></div>
+          <div><h4 class="font-bold text-secondary font-display mb-1">Optimisé mobile</h4><p class="text-sm text-gray-500">Interface légère, rapide même sur réseau 3G. Vos étudiants accèdent aux cours depuis n'importe où au Cameroun.</p></div>
+        </div>
+        <div class="flex items-start gap-4 p-5 bg-surface rounded-xl border border-gray-100 hover:shadow-md transition">
+          <div class="w-12 h-12 bg-primary-light rounded-xl flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-2xl">lock</span></div>
+          <div><h4 class="font-bold text-secondary font-display mb-1">Sécurisé & fiable</h4><p class="text-sm text-gray-500">Hébergement cloud professionnel, données protégées, disponibilité 99.9%. Vos cours ne disparaissent jamais.</p></div>
+        </div>
+        <div class="flex items-start gap-4 p-5 bg-surface rounded-xl border border-gray-100 hover:shadow-md transition">
+          <div class="w-12 h-12 bg-primary-light rounded-xl flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-2xl">sync_alt</span></div>
+          <div><h4 class="font-bold text-secondary font-display mb-1">Inter-universitaire</h4><p class="text-sm text-gray-500">Un étudiant de l'UdD peut suivre un cours de l'IUT. Un prof de l'ENSET peut enseigner à l'ESSEC. Sans frontières académiques.</p></div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
+<!-- ══ SECTION 2 : CHIFFRES & IMPACT ═══════════════════════ -->
+<section class="py-20" style="background:linear-gradient(135deg,#00602a 0%,#1a7a3c 100%)">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl md:text-4xl font-bold text-white font-display mb-4">CamunoLearn en chiffres</h2>
+      <p class="text-white/70 text-lg max-w-2xl mx-auto">Une plateforme qui grandit chaque semaine avec les universités qui nous font confiance.</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+      <div class="text-center"><p class="text-5xl font-bold text-white font-display mb-2">5 000+</p><p class="text-white/60 text-sm font-medium uppercase tracking-wider">Étudiants actifs</p></div>
+      <div class="text-center"><p class="text-5xl font-bold text-white font-display mb-2">140+</p><p class="text-white/60 text-sm font-medium uppercase tracking-wider">Professeurs certifiés</p></div>
+      <div class="text-center"><p class="text-5xl font-bold text-white font-display mb-2">120+</p><p class="text-white/60 text-sm font-medium uppercase tracking-wider">Cours complets</p></div>
+      <div class="text-center"><p class="text-5xl font-bold text-white font-display mb-2">10</p><p class="text-white/60 text-sm font-medium uppercase tracking-wider">Universités partenaires</p></div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20"><span class="material-symbols-outlined text-white text-3xl mb-4 block">description</span><h4 class="font-bold text-white font-display text-lg mb-2">Cours PDF & Vidéo</h4><p class="text-white/70 text-sm leading-relaxed">Vos enseignants déposent leurs supports en quelques clics. Les étudiants téléchargent, annotent, révisent — même hors connexion.</p></div>
+      <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20"><span class="material-symbols-outlined text-white text-3xl mb-4 block">assignment_turned_in</span><h4 class="font-bold text-white font-display text-lg mb-2">Devoirs & Corrections</h4><p class="text-white/70 text-sm leading-relaxed">Soumission en ligne, correction automatique ou manuelle, notation transparente. Fini les devoirs perdus ou en retard.</p></div>
+      <div class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20"><span class="material-symbols-outlined text-white text-3xl mb-4 block">forum</span><h4 class="font-bold text-white font-display text-lg mb-2">Forums & Communautés</h4><p class="text-white/70 text-sm leading-relaxed">Chaque cours dispose de son espace d'échange. Les étudiants s'entraident, les profs répondent — une vraie vie académique en ligne.</p></div>
+    </div>
+  </div>
+</section>
 
-<!-- PRIX ══════════════════════════════════════════════════════ -->
-<section id="section-prix" class="py-24" style="background:linear-gradient(180deg,#f8f9fb 0%,#f0fdf4 40%,#f8f9fb 100%);position:relative;overflow:hidden">
+<!-- ══ SECTION 3 : POUR QUI ══════════════════════════════════ -->
+<section class="py-20 bg-surface">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+    <div class="text-center mb-16">
+      <div class="inline-flex items-center gap-2 bg-primary-light text-primary px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-6 font-display"><span class="material-symbols-outlined text-sm">groups</span>Pour toute la communauté académique</div>
+      <h2 class="text-3xl md:text-4xl font-bold text-secondary font-display mb-4">Une plateforme pour chaque acteur</h2>
+      <p class="text-gray-500 text-lg max-w-2xl mx-auto">Étudiant, professeur ou administrateur — CamunoLearn s'adapte à votre rôle et amplifie votre impact.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group">
+        <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-100 transition-colors"><span class="material-symbols-outlined text-blue-600 text-3xl">school</span></div>
+        <h3 class="text-xl font-bold text-secondary font-display mb-3">Pour les Étudiants</h3>
+        <p class="text-gray-500 text-sm leading-relaxed mb-6">Accédez à tous vos cours, soumettez vos devoirs, préparez vos examens avec des quiz personnalisés et échangez avec vos camarades — depuis votre téléphone.</p>
+        <ul class="space-y-2">
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Cours PDF & vidéo en illimité</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Quiz de préparation aux examens</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Suivi de progression en temps réel</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Accès inter-universités</li>
+        </ul>
+      </div>
+      <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group">
+        <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-100 transition-colors"><span class="material-symbols-outlined text-primary text-3xl">co_present</span></div>
+        <h3 class="text-xl font-bold text-secondary font-display mb-3">Pour les Professeurs</h3>
+        <p class="text-gray-500 text-sm leading-relaxed mb-6">Publiez vos cours, gérez vos classes, corrigez les devoirs et suivez les progrès de chaque étudiant depuis un tableau de bord simple et puissant.</p>
+        <ul class="space-y-2">
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Upload de cours PDF / vidéo</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Gestion des devoirs & notes</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Statistiques par étudiant</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Forum de classe intégré</li>
+        </ul>
+      </div>
+      <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 group">
+        <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-purple-100 transition-colors"><span class="material-symbols-outlined text-purple-600 text-3xl">admin_panel_settings</span></div>
+        <h3 class="text-xl font-bold text-secondary font-display mb-3">Pour les Administrateurs</h3>
+        <p class="text-gray-500 text-sm leading-relaxed mb-6">Gérez votre établissement depuis un seul endroit. Créez des classes, attribuez des professeurs, suivez les indicateurs clés et produisez des rapports pour la direction.</p>
+        <ul class="space-y-2">
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Tableau de bord complet</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Gestion des utilisateurs</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Rapports & statistiques</li>
+          <li class="flex items-center gap-2 text-sm text-gray-600"><span class="material-symbols-outlined text-green-500 text-base">check_circle</span>Contrôle des accès</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <div style="position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:1000px;height:1000px;background:radial-gradient(circle,rgba(0,96,42,.05) 0%,transparent 65%);pointer-events:none"></div>
-
-  <div class="max-w-7xl mx-auto px-6 relative">
+<!-- ══ SECTION PRIX ══════════════════════════════════════════ -->
+<section id="section-prix" class="py-24 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
 
     <!-- En-tête -->
     <div class="text-center mb-14">
-      <div class="inline-flex items-center gap-2 bg-white border border-primary/20 text-primary px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-5 fade-up shadow-sm">
+      <div class="inline-flex items-center gap-2 bg-primary-light border border-primary/20 text-primary px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-5 font-display">
         <span class="material-symbols-outlined text-sm">sell</span>Tarifs transparents
       </div>
-      <h2 class="text-4xl md:text-5xl font-headline font-extrabold text-on-surface mb-4 fade-up leading-tight">
-        Le plan qui correspond<br/><span style="color:#00602a">exactement à vos besoins</span>
+      <h2 class="text-3xl md:text-4xl font-bold text-secondary font-display mb-4">
+        Le plan qui correspond <span class="text-primary">exactement à vos besoins</span>
       </h2>
-      <p class="text-on-surface-variant text-lg max-w-2xl mx-auto font-body fade-up leading-relaxed">
-        Des prix pensés pour chaque taille d'établissement. Commencez gratuitement, évoluez sans friction.
-      </p>
-      <!-- Toggle -->
-      <div class="flex items-center justify-center gap-3 mt-8 fade-up">
-        <span class="text-sm font-semibold" id="lbl-monthly" style="color:#00602a;font-weight:800">Mensuel</span>
-        <button onclick="togglePricing()" id="pricing-toggle"
-          style="width:52px;height:28px;border-radius:999px;background:#00602a;border:none;cursor:pointer;position:relative;transition:.3s">
+      <p class="text-gray-500 text-lg max-w-2xl mx-auto leading-relaxed">Des prix pensés pour chaque taille d'établissement. Commencez gratuitement, évoluez sans friction.</p>
+      <!-- Toggle mensuel/annuel -->
+      <div class="flex items-center justify-center gap-3 mt-8">
+        <span class="text-sm font-bold" id="lbl-monthly" style="color:#00602a">Mensuel</span>
+        <button onclick="togglePricing()" id="pricing-toggle" style="width:52px;height:28px;border-radius:999px;background:#00602a;border:none;cursor:pointer;position:relative;transition:.3s">
           <span id="toggle-dot" style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.3s"></span>
         </button>
-        <span class="text-sm font-semibold text-on-surface-variant" id="lbl-yearly">Annuel</span>
+        <span class="text-sm font-semibold text-gray-400" id="lbl-yearly">Annuel</span>
         <span id="save-badge" style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;display:none">Économisez 20% 🎉</span>
       </div>
     </div>
 
-    <!-- ═══ 5 PLANS ═══ -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:50px;align-items:start" class="plans-grid">
+    <!-- Grille 5 plans -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:40px;align-items:start" class="plans-grid">
 
-      <!-- ── DÉCOUVERTE ── -->
-      <div class="fade-up" style="background:#fff;border:1.5px solid #e5e7eb;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.05)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.05)'">
+      <!-- DÉCOUVERTE -->
+      <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.05)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.05)'">
         <div style="padding:22px 20px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb">
           <div style="font-size:1.6rem;margin-bottom:10px">🌱</div>
           <p style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#9ca3af;margin-bottom:3px">Découverte</p>
           <p style="font-size:.78rem;color:#6b7280;margin-bottom:16px;line-height:1.4">Tester la plateforme. Parfait pour un seul cours.</p>
-          <div style="display:flex;align-items:flex-end;gap:4px">
-            <span style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#111;line-height:1">0</span>
-            <span style="font-size:.75rem;color:#9ca3af;margin-bottom:5px">XAF</span>
-          </div>
+          <div style="display:flex;align-items:flex-end;gap:4px"><span style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#111;line-height:1">0</span><span style="font-size:.75rem;color:#9ca3af;margin-bottom:5px">XAF</span></div>
           <p style="font-size:.68rem;color:#9ca3af;margin-top:3px">Gratuit à vie</p>
         </div>
         <div style="padding:18px 20px">
-          <button onclick="openModalPricing('decouverte')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#f3f4f6;color:#374151;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s" onmouseover="this.style.background='#00602a';this.style.color='#fff'" onmouseout="this.style.background='#f3f4f6';this.style.color='#374151'">
-            <span class="material-symbols-outlined" style="font-size:16px">rocket_launch</span>Démarrer
-          </button>
+          <a href="indexInscription.html" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#f3f4f6;color:#374151;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s;text-decoration:none" onmouseover="this.style.background='#00602a';this.style.color='#fff'" onmouseout="this.style.background='#f3f4f6';this.style.color='#374151'">
+            <span class="material-symbols-outlined" style="font-size:16px">rocket_launch</span>Démarrer gratuitement
+          </a>
           <div style="display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>30 étudiants max</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>3 cours PDF</div>
-            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Devoirs basiques</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>1 prof</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#9ca3af;opacity:.5"><span style="width:17px;height:17px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#9ca3af">close</span></span>Quiz auto</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#9ca3af;opacity:.5"><span style="width:17px;height:17px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#9ca3af">close</span></span>Communautés</div>
@@ -464,51 +440,44 @@ body{font-family:'Inter',sans-serif;background-color:#f8f9fb;color:#191c1e}
         </div>
       </div>
 
-      <!-- ── STARTER ── -->
-      <div class="fade-up" style="background:#fff;border:1.5px solid #e5e7eb;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.05)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.05)'">
+      <!-- STARTER -->
+      <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.05)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.05)'">
         <div style="padding:22px 20px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb">
           <div style="font-size:1.6rem;margin-bottom:10px">🎓</div>
           <p style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#9ca3af;margin-bottom:3px">Starter</p>
           <p style="font-size:.78rem;color:#6b7280;margin-bottom:16px;line-height:1.4">Pour une filière complète avec plusieurs profs.</p>
-          <div style="display:flex;align-items:flex-end;gap:4px">
-            <span class="price-val" data-m="19900" data-y="15900" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#111;line-height:1">19 900</span>
-            <span style="font-size:.75rem;color:#9ca3af;margin-bottom:5px">XAF/mois</span>
-          </div>
+          <div style="display:flex;align-items:flex-end;gap:4px"><span class="price-val" data-m="19900" data-y="15900" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#111;line-height:1">19 900</span><span style="font-size:.75rem;color:#9ca3af;margin-bottom:5px">XAF/mois</span></div>
           <p class="price-note" data-m="facturé mensuellement" data-y="soit 190 800 XAF/an" style="font-size:.68rem;color:#9ca3af;margin-top:3px">facturé mensuellement</p>
         </div>
         <div style="padding:18px 20px">
-          <button onclick="openModalPricing('starter')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#00602a;color:#fff;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s" onmouseover="this.style.background='#004d22'" onmouseout="this.style.background='#00602a'">
+          <a href="indexInscription.html" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#00602a;color:#fff;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s;text-decoration:none" onmouseover="this.style.background='#004d22'" onmouseout="this.style.background='#00602a'">
             <span class="material-symbols-outlined" style="font-size:16px">bolt</span>Choisir
-          </button>
+          </a>
           <div style="display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>150 étudiants</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Cours PDF illimités</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>5 profs max</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Devoirs & corrections</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>1 communauté</div>
-            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Support email</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#9ca3af;opacity:.5"><span style="width:17px;height:17px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#9ca3af">close</span></span>Inter-universités</div>
           </div>
         </div>
       </div>
 
-      <!-- ── PRO (POPULAIRE) ── -->
-      <div class="fade-up" style="background:linear-gradient(160deg,#00602a 0%,#1a7a3c 100%);border-radius:22px;overflow:hidden;box-shadow:0 20px 50px rgba(0,96,42,.4);transform:scale(1.05);position:relative;transition:.25s;z-index:2" onmouseover="this.style.transform='scale(1.05) translateY(-6px)'" onmouseout="this.style.transform='scale(1.05)'">
-        <div style="position:absolute;top:14px;right:14px;background:#f59e0b;color:#1c1c00;font-size:.62rem;font-weight:800;padding:4px 12px;border-radius:999px;z-index:1;letter-spacing:.04em">⭐ POPULAIRE</div>
+      <!-- PRO POPULAIRE -->
+      <div style="background:linear-gradient(160deg,#00602a 0%,#1a7a3c 100%);border-radius:22px;overflow:hidden;box-shadow:0 20px 50px rgba(0,96,42,.4);transform:scale(1.05);position:relative;transition:.25s;z-index:2" onmouseover="this.style.transform='scale(1.05) translateY(-6px)'" onmouseout="this.style.transform='scale(1.05)'">
+        <div style="position:absolute;top:14px;right:14px;background:#f59e0b;color:#1c1c00;font-size:.62rem;font-weight:800;padding:4px 12px;border-radius:999px;z-index:1">⭐ POPULAIRE</div>
         <div style="padding:22px 20px 16px;background:rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.15)">
           <div style="font-size:1.6rem;margin-bottom:10px">🏛️</div>
           <p style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.55);margin-bottom:3px">Pro</p>
           <p style="font-size:.78rem;color:rgba(255,255,255,.7);margin-bottom:16px;line-height:1.4">Un département entier avec toutes les features.</p>
-          <div style="display:flex;align-items:flex-end;gap:4px">
-            <span class="price-val" data-m="49000" data-y="39200" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#fff;line-height:1">49 000</span>
-            <span style="font-size:.75rem;color:rgba(255,255,255,.55);margin-bottom:5px">XAF/mois</span>
-          </div>
+          <div style="display:flex;align-items:flex-end;gap:4px"><span class="price-val" data-m="49000" data-y="39200" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#fff;line-height:1">49 000</span><span style="font-size:.75rem;color:rgba(255,255,255,.55);margin-bottom:5px">XAF/mois</span></div>
           <p class="price-note" data-m="facturé mensuellement" data-y="soit 470 400 XAF/an 🎉" style="font-size:.68rem;color:rgba(255,255,255,.5);margin-top:3px">facturé mensuellement</p>
         </div>
         <div style="padding:18px 20px">
-          <button onclick="openModalPricing('pro')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#fff;color:#00602a;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='#fff'">
+          <a href="indexInscription.html" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#fff;color:#00602a;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s;text-decoration:none" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='#fff'">
             <span class="material-symbols-outlined" style="font-size:16px">bolt</span>Choisir ce plan
-          </button>
+          </a>
           <div style="display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>500 étudiants</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>Profs illimités</div>
@@ -517,27 +486,23 @@ body{font-family:'Inter',sans-serif;background-color:#f8f9fb;color:#191c1e}
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>Communautés illimitées</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>Métriques avancées</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>WhatsApp prioritaire</div>
-            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:rgba(255,255,255,.9)"><span style="width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#fff">check</span></span>Stockage 20 GB</div>
           </div>
         </div>
       </div>
 
-      <!-- ── UNIVERSITÉ ── -->
-      <div class="fade-up" style="background:#fff;border:1.5px solid #e5e7eb;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.05)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.05)'">
+      <!-- UNIVERSITÉ -->
+      <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(0,0,0,.05)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 40px rgba(0,0,0,.1)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.05)'">
         <div style="padding:22px 20px 16px;background:linear-gradient(135deg,#0d1f12,#1a3326);border-bottom:1px solid #1e3a28">
           <div style="font-size:1.6rem;margin-bottom:10px">🏫</div>
           <p style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#4ade80;margin-bottom:3px">Université</p>
           <p style="font-size:.78rem;color:#6b7280;margin-bottom:16px;line-height:1.4">L'établissement entier. Toutes filières, tous niveaux.</p>
-          <div style="display:flex;align-items:flex-end;gap:4px">
-            <span class="price-val" data-m="120000" data-y="96000" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#fff;line-height:1">120 000</span>
-            <span style="font-size:.75rem;color:#6b7280;margin-bottom:5px">XAF/mois</span>
-          </div>
+          <div style="display:flex;align-items:flex-end;gap:4px"><span class="price-val" data-m="120000" data-y="96000" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#fff;line-height:1">120 000</span><span style="font-size:.75rem;color:#6b7280;margin-bottom:5px">XAF/mois</span></div>
           <p class="price-note" data-m="facturé mensuellement" data-y="soit 1 152 000 XAF/an" style="font-size:.68rem;color:#6b7280;margin-top:3px">facturé mensuellement</p>
         </div>
         <div style="padding:18px 20px">
-          <button onclick="openModalPricing('universite')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#00602a;color:#fff;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s" onmouseover="this.style.background='#004d22'" onmouseout="this.style.background='#00602a'">
+          <a href="indexInscription.html" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:#00602a;color:#fff;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s;text-decoration:none" onmouseover="this.style.background='#004d22'" onmouseout="this.style.background='#00602a'">
             <span class="material-symbols-outlined" style="font-size:16px">domain</span>Choisir
-          </button>
+          </a>
           <div style="display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Étudiants illimités</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Tout le plan Pro</div>
@@ -545,419 +510,152 @@ body{font-family:'Inter',sans-serif;background-color:#f8f9fb;color:#191c1e}
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Rapports direction</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Stockage 100 GB</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Formation équipe</div>
-            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#374151"><span style="width:17px;height:17px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#00602a">check</span></span>Attestations numériques</div>
           </div>
         </div>
       </div>
 
-      <!-- ── RÉSEAU NATIONAL ── -->
-      <div class="fade-up" style="background:linear-gradient(160deg,#1c1c2e,#2d1b69);border:1.5px solid #4c1d95;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(76,29,149,.2)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 20px 50px rgba(76,29,149,.35)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(76,29,149,.2)'">
+      <!-- RÉSEAU NATIONAL -->
+      <div style="background:linear-gradient(160deg,#1c1c2e,#2d1b69);border:1.5px solid #4c1d95;border-radius:22px;overflow:hidden;transition:.25s;box-shadow:0 4px 16px rgba(76,29,149,.2)" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 20px 50px rgba(76,29,149,.35)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(76,29,149,.2)'">
         <div style="padding:22px 20px 16px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(139,92,246,.3)">
           <div style="font-size:1.6rem;margin-bottom:10px">🌐</div>
           <p style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#a78bfa;margin-bottom:3px">Réseau National</p>
           <p style="font-size:.78rem;color:#6b7280;margin-bottom:16px;line-height:1.4">Plusieurs universités. Ministère. Déploiement national.</p>
-          <div style="display:flex;align-items:flex-end;gap:4px">
-            <span class="price-val" data-m="350000" data-y="280000" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#fff;line-height:1">350 000</span>
-            <span style="font-size:.75rem;color:#6b7280;margin-bottom:5px">XAF/mois</span>
-          </div>
+          <div style="display:flex;align-items:flex-end;gap:4px"><span class="price-val" data-m="350000" data-y="280000" style="font-family:Manrope;font-weight:900;font-size:2.2rem;color:#fff;line-height:1">350 000</span><span style="font-size:.75rem;color:#6b7280;margin-bottom:5px">XAF/mois</span></div>
           <p class="price-note" data-m="facturé mensuellement" data-y="soit 3 360 000 XAF/an" style="font-size:.68rem;color:#6b7280;margin-top:3px">facturé mensuellement</p>
         </div>
         <div style="padding:18px 20px">
-          <button onclick="openModalPricing('reseau')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <a href="mailto:contact@camunolearn.cm" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:10px;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;border-radius:10px;font-weight:700;font-size:.82rem;border:none;cursor:pointer;margin-bottom:16px;transition:.2s;text-decoration:none">
             <span class="material-symbols-outlined" style="font-size:16px">language</span>Nous contacter
-          </button>
+          </a>
           <div style="display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Universités illimitées</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Super Admin central</div>
-            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Hébergement dédié</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>SLA 99.9% garanti</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Stockage illimité</div>
             <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Account manager dédié</div>
-            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:#d1d5db"><span style="width:17px;height:17px;border-radius:50%;background:rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="material-symbols-outlined" style="font-size:11px;color:#a78bfa">check</span></span>Rapports ministériels</div>
           </div>
         </div>
       </div>
 
     </div><!-- fin plans-grid -->
 
-    <!-- Bande paiements -->
-    <div class="fade-up" style="background:#fff;border:1.5px solid #e5e7eb;border-radius:18px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:32px;box-shadow:0 2px 12px rgba(0,0,0,.04)">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="material-symbols-outlined" style="color:#00602a;font-size:20px">lock</span>
-        <span style="font-size:.85rem;font-weight:700;color:#374151">Paiements sécurisés</span>
-      </div>
+    <!-- Paiements -->
+    <div style="background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:18px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div style="display:flex;align-items:center;gap:8px"><span class="material-symbols-outlined" style="color:#00602a;font-size:20px">lock</span><span style="font-size:.85rem;font-weight:700;color:#374151">Paiements sécurisés</span></div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:.72rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em">On accepte :</span>
         <div style="background:#ffcc00;color:#000;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:800">📱 MTN MoMo</div>
         <div style="background:#ff6600;color:#fff;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:800">🟠 Orange Money</div>
         <div style="background:#1a56db;color:#fff;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:800">💳 Visa / MC</div>
-        <div style="background:#f3f4f6;color:#374151;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:700">🏦 Virement</div>
+        <div style="background:#e5e7eb;color:#374151;padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:700">🏦 Virement</div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;color:#16a34a;font-size:.85rem;font-weight:700">
-        <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>Sans engagement
-      </div>
+      <div style="display:flex;align-items:center;gap:6px;color:#16a34a;font-size:.85rem;font-weight:700"><span class="material-symbols-outlined" style="font-size:18px">check_circle</span>Sans engagement</div>
     </div>
 
-    <!-- CTA détails -->
-    <div class="text-center fade-up">
-      <a href="indexPrix.html" style="display:inline-flex;align-items:center;gap:8px;color:#00602a;font-weight:700;font-size:.9rem;text-decoration:none;padding:11px 24px;border:2px solid #00602a;border-radius:12px;transition:.2s" onmouseover="this.style.background='#00602a';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='#00602a'">
-        <span class="material-symbols-outlined" style="font-size:17px">open_in_new</span>Comparer tous les plans en détail & FAQ
+
+    <!-- Bouton voir tous les tarifs -->
+    <div class="text-center mt-10">
+      <a href="indexPrix.html" class="inline-flex items-center gap-2 px-8 py-4 border-2 border-primary text-primary rounded-full font-bold text-sm hover:bg-primary hover:text-white transition-all duration-300 font-display">
+        <span class="material-symbols-outlined text-base">open_in_new</span>
+        Voir tous les tarifs en détail & FAQ
       </a>
     </div>
 
   </div>
 </section>
 
-<!-- CTA -->
-<section class="py-16">
-  <div class="max-w-7xl mx-auto px-8">
-    <div class="hero-gradient rounded-3xl p-12 md:p-20 text-center relative overflow-hidden">
-      <div class="absolute inset-0 overflow-hidden pointer-events-none" id="starContainer"></div>
-      <div class="relative z-10">
-        <h2 class="text-3xl md:text-5xl font-headline font-extrabold text-white glowing-text mb-8 fade-up" data-i18n="cta_title">Prêt à rejoindre CamunoLearn ?</h2>
-        <div class="flex flex-wrap justify-center gap-4 fade-up">
-          <a href="indexInscription.html" class="inline-block px-14 py-5 bg-white text-primary rounded-full font-bold text-lg hover:opacity-90 hover:scale-105 transition-all font-body shadow-xl" data-i18n="cta_button">S'inscrire dès maintenant</a>
-          <a href="indexconnexion.html" class="inline-block px-10 py-5 border-2 border-white/40 text-white rounded-full font-bold text-lg hover:bg-white/10 transition-all font-body">Se connecter</a>
-        </div>
-      </div>
-      <div class="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
-      <div class="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3"></div>
-    </div>
-  </div>
-</section>
-
 <!-- FOOTER -->
-<footer class="w-full py-16 px-12 grid grid-cols-1 md:grid-cols-4 gap-12 bg-[#0F5C2E]">
-  <div>
-    <span class="text-xl font-bold text-white font-headline mb-6 block">CamunoLearn</span>
-    <p class="text-slate-300 text-sm font-body leading-relaxed max-w-xs" data-i18n="footer_description">L'excellence académique à portée de clic. La première plateforme d'apprentissage collaborative au Cameroun.</p>
-  </div>
-  <div>
-    <h4 class="font-headline font-semibold text-white mb-6">Plateforme</h4>
-    <ul class="space-y-4">
-      <li><a class="text-slate-300 hover:text-white transition-colors font-body text-sm" href="indexInscription.html">S'inscrire</a></li>
-      <li><a class="text-slate-300 hover:text-white transition-colors font-body text-sm" href="indexconnexion.html">Se connecter</a></li>
-      <li><a class="text-slate-300 hover:text-white transition-colors font-body text-sm" href="#">Tous les cours</a></li>
-      <li><a class="text-slate-300 hover:text-white transition-colors font-body text-sm" href="indexPrix.html">Tarifs & Plans</a></li>
-    </ul>
-  </div>
-  <div>
-    <h4 class="font-headline font-semibold text-white mb-6">Universités</h4>
-    <ul class="space-y-4">
-      <li><span class="text-slate-300 text-sm font-body">IUT de Douala</span></li>
-      <li><span class="text-slate-300 text-sm font-body">ENSET de Douala</span></li>
-      <li><span class="text-slate-300 text-sm font-body">UCAC - ICAM</span></li>
-      <li><span class="text-slate-300 text-sm font-body">ESSEC Douala</span></li>
-      <li><span class="text-slate-300 text-sm font-body">Université de Yaoundé I</span></li>
-    </ul>
-  </div>
-  <div>
-    <h4 class="font-headline font-semibold text-white mb-6">Contact</h4>
-    <ul class="space-y-4">
-      <li class="text-slate-300 text-sm font-body">Douala, Cameroun</li>
-      <li class="text-slate-300 text-sm font-body">contact@camunolearn.cm</li>
-      <li class="text-slate-300 text-sm font-body">+237 691 929 394</li>
-    </ul>
-  </div>
-  <div class="col-span-1 md:col-span-4 pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
-    <p class="text-slate-300 text-sm font-body">
-  © 2026 <span id="sa-logo" style="cursor:default;user-select:none" title="">CamunoLearn</span> — Tous droits réservés
-</p>
-<script>
-let _c=0,_t;
-document.getElementById('sa-logo').addEventListener('click',function(){
-  _c++; clearTimeout(_t);
-  if(_c>=5){_c=0;location.href='indexconnexion.html';}
-  else _t=setTimeout(()=>{_c=0;},2000);
-});
-</script>
-    <div class="flex gap-6">
-      <a class="text-slate-300 hover:text-white font-body text-xs" href="#">Confidentialité</a>
-      <a class="text-slate-300 hover:text-white font-body text-xs" href="#">Conditions</a>
-      <a class="text-slate-300 hover:text-white font-body text-xs" href="#">Cookies</a>
+<footer class="bg-black text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-16">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-12 border-b border-gray-800">
+            <div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">school</span><span class="text-2xl font-extrabold tracking-tight text-white font-display">Camuno<span class="text-primary">Learn</span></span></div>
+            <div class="relative"><select id="language-switcher" class="bg-gray-900 text-white border border-gray-700 rounded-lg py-2 pl-4 pr-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer appearance-none"><option value="fr" selected>🇫🇷 Français</option><option value="en">🇬🇧 English</option></select><span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-base">arrow_drop_down</span></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 py-12">
+            <div><p class="text-gray-400 text-sm leading-relaxed max-w-xs" data-i18n="footer_desc">L'excellence académique à portée de clic. La première plateforme d'apprentissage collaborative au Cameroun.</p></div>
+            <div><h4 class="font-semibold text-white mb-6 text-sm uppercase tracking-wider" data-i18n="footer_platform_title">Plateforme</h4><ul class="space-y-3"><li><a href="coursPlatform.html" class="text-gray-400 hover:text-white transition-colors text-sm" data-i18n="footer_all_courses">Tous les cours</a></li><li><a href="PROFESSEURS.html" class="text-gray-400 hover:text-white transition-colors text-sm" data-i18n="footer_teachers">Professeurs</a></li><li><a href="#section-prix" class="text-gray-400 hover:text-white transition-colors text-sm">Tarifs</a></li></ul></div>
+            <div><h4 class="font-semibold text-white mb-6 text-sm uppercase tracking-wider" data-i18n="footer_resources_title">Ressources</h4><ul class="space-y-3"><li><a href="#" class="text-gray-400 hover:text-white transition-colors text-sm" data-i18n="footer_blog">Blog</a></li><li><a href="IndexAIDE.html" class="text-gray-400 hover:text-white transition-colors text-sm" data-i18n="footer_support">Support</a></li></ul></div>
+            <div><h4 class="font-semibold text-white mb-6 text-sm uppercase tracking-wider" data-i18n="footer_contact_title">Contact</h4><ul class="space-y-3"><li class="text-gray-400 text-sm" data-i18n="footer_address">Douala, Cameroun</li><li class="text-gray-400 text-sm">contact@camunolearn.cm</li><li class="text-gray-400 text-sm">+237 691929394</li></ul></div>
+        </div>
+        <div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500"><p data-i18n="footer_copyright">© 2026 CamunoLearn — Tous droits réservés</p><div class="flex gap-6"><a href="indexConfidentialité.html" class="hover:text-white transition-colors" data-i18n="footer_privacy">Confidentialité</a><a href="indexCookies.html" class="hover:text-white transition-colors" data-i18n="footer_cookies">Cookies</a></div></div>
     </div>
-  </div>
 </footer>
 
 <script>
-// ── Traductions FR/EN ────────────────────────────────────
-const translations = {
-  fr: {
-    login:"Se connecter",signup:"S'inscrire",
-    hero_title:"Apprenez,<br/>Progressez,<br/>Réussissez.",
-    hero_subtitle:"La plateforme e-learning des universités camerounaises.",
-    hero_cta_primary:"Commencer Maintenant",hero_cta_secondary:"Se connecter",
-    stat_courses_label:"Cours",stat_students_label:"Étudiants",stat_teachers_label:"Professeurs",
-    badge_title:"Certification Académique",badge_subtitle:"Reconnu par l'État",
-    features_title:"Pourquoi choisir CamunoLearn ?",
-    feature1_title:"Cours en ligne",feature1_desc:"Contenus pédagogiques structurés, validés par les meilleurs professeurs universitaires.",
-    feature2_title:"Devoirs & Quiz",feature2_desc:"Évaluez vos connaissances avec des tests interactifs et des corrections détaillées.",
-    feature4_title:"Communauté",feature4_desc:"Échangez avec d'autres étudiants et collaborez sur des projets passionnants.",
-    courses_title:"Cours Populaires",courses_subtitle:"Découvrez les modules les plus suivis ce semestre.",courses_view_all:"Tout voir →",
-    how_title:"Comment ça marche ?",how_subtitle:"Trois étapes simples pour transformer votre avenir académique.",
-    step1_title:"Créez votre compte",step1_desc:"Inscrivez-vous gratuitement avec votre adresse étudiante ou personnelle.",
-    step2_title:"Rejoignez vos cours",step2_desc:"Inscrivez-vous aux modules de votre filière ou découvrez de nouveaux domaines.",
-    step3_title:"Apprenez & progressez",step3_desc:"Suivez les cours à votre rythme et obtenez vos attestations de réussite.",
-    testimonials_title:"Ce que disent nos étudiants",
-    cta_title:"Prêt à rejoindre CamunoLearn ?",cta_button:"S'inscrire dès maintenant",
-    footer_description:"L'excellence académique à portée de clic."
-  },
-  en: {
-    login:"Log in",signup:"Sign up",
-    hero_title:"Learn,<br/>Grow,<br/>Succeed.",
-    hero_subtitle:"The e-learning platform for Cameroonian universities.",
-    hero_cta_primary:"Start Now",hero_cta_secondary:"Log in",
-    stat_courses_label:"Courses",stat_students_label:"Students",stat_teachers_label:"Teachers",
-    badge_title:"Academic Certification",badge_subtitle:"State-recognized",
-    features_title:"Why choose CamunoLearn?",
-    feature1_title:"Online Courses",feature1_desc:"Structured educational content validated by top university professors.",
-    feature2_title:"Assignments & Quizzes",feature2_desc:"Evaluate your knowledge with interactive tests and detailed feedback.",
-    feature4_title:"Community",feature4_desc:"Connect with students and collaborate on exciting study projects.",
-    courses_title:"Popular Courses",courses_subtitle:"Discover the most followed modules this semester.",courses_view_all:"View all →",
-    how_title:"How it works?",how_subtitle:"Three simple steps to transform your academic future.",
-    step1_title:"Create your account",step1_desc:"Sign up for free with your student or personal email.",
-    step2_title:"Join your courses",step2_desc:"Enroll in your faculty modules or explore new fields.",
-    step3_title:"Learn & progress",step3_desc:"Study at your pace and earn certificates of achievement.",
-    testimonials_title:"What our students say",
-    cta_title:"Ready to join CamunoLearn?",cta_button:"Sign up now",
-    footer_description:"Academic excellence at your fingertips."
-  }
-};
-
-let currentLang = 'fr';
-
-function updateLanguage(lang) {
-  currentLang = lang;
-  document.documentElement.lang = lang;
-  document.getElementById('langLabel').textContent = lang.toUpperCase();
-  document.querySelectorAll('[data-i18n]').forEach(function(el) {
-    var key = el.getAttribute('data-i18n');
-    if (translations[lang][key]) el.innerHTML = translations[lang][key];
-  });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
-    var key = el.getAttribute('data-i18n-placeholder');
-    if (translations[lang][key]) el.placeholder = translations[lang][key];
-  });
-}
-
-document.getElementById('langToggle').addEventListener('click', function() {
-  updateLanguage(currentLang === 'fr' ? 'en' : 'fr');
-});
-
-// ── Étoiles animées ──────────────────────────────────────
-function generateStars() {
-  var c = document.getElementById('starContainer');
-  if (!c) return;
-  for (var i = 0; i < 60; i++) {
-    var s = document.createElement('div');
-    s.className = 'star';
-    var size = Math.random() * 3 + 1;
-    s.style.cssText = 'width:'+size+'px;height:'+size+'px;left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;animation-delay:'+Math.random()*5+'s;animation-duration:'+(Math.random()*3+2)+'s';
-    c.appendChild(s);
-  }
-  for (var j = 0; j < 8; j++) {
-    var sh = document.createElement('div');
-    sh.className = 'star-shooting';
-    sh.style.cssText = 'left:'+(Math.random()*80+10)+'%;top:'+Math.random()*70+'%;animation-delay:'+Math.random()*8+'s;animation-duration:'+(Math.random()*3+2)+'s';
-    c.appendChild(sh);
-  }
-}
-
-// ── Toggle prix mensuel/annuel ───────────────────────────────
-let pricingYearly = false;
-function togglePricing() {
-  pricingYearly = !pricingYearly;
-  const dot   = document.getElementById('toggle-dot');
-  const badge = document.getElementById('save-badge');
-  const lblM  = document.getElementById('lbl-monthly');
-  const lblY  = document.getElementById('lbl-yearly');
-  const mode  = pricingYearly ? 'y' : 'm';
-
-  dot.style.transform  = pricingYearly ? 'translateX(24px)' : 'translateX(0)';
-  badge.style.display  = pricingYearly ? 'inline-flex' : 'none';
-  lblY.style.color     = pricingYearly ? '#00602a' : '#9ca3af';
-  lblY.style.fontWeight= pricingYearly ? '800' : '600';
-  lblM.style.color     = pricingYearly ? '#9ca3af' : '#00602a';
-  lblM.style.fontWeight= pricingYearly ? '600' : '800';
-
-  // Mettre à jour tous les prix dynamiquement via data attributes
-  document.querySelectorAll('.price-val').forEach(el => {
-    const raw = parseInt(el.dataset[mode]);
-    el.textContent = raw.toLocaleString('fr-FR');
-  });
-  document.querySelectorAll('.price-note').forEach(el => {
-    el.textContent = el.dataset[mode];
-  });
-}
-
-// Responsive plans grid
-function fixPlansGrid() {
-  const grid = document.querySelector('.plans-grid');
-  if (!grid) return;
-  if (window.innerWidth < 640) {
-    grid.style.gridTemplateColumns = '1fr';
-  } else if (window.innerWidth < 1024) {
-    grid.style.gridTemplateColumns = 'repeat(2,1fr)';
-  } else {
-    grid.style.gridTemplateColumns = 'repeat(5,1fr)';
-  }
-}
-window.addEventListener('resize', fixPlansGrid);
-fixPlansGrid();
-
-// ── Animations au scroll ──────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-  updateLanguage('fr');
-  generateStars();
-
-  var obs = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e, i) {
-      if (e.isIntersecting) { setTimeout(function() { e.target.classList.add('show'); }, i * 150); obs.unobserve(e.target); }
+    // MENU HAMBURGER
+    const toggleBtn = document.getElementById('menu-toggle-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = document.getElementById('menu-icon');
+    let isOpen = false;
+    toggleBtn.addEventListener('click', () => {
+        isOpen = !isOpen;
+        if (isOpen) { mobileMenu.classList.remove('pointer-events-none','opacity-0','-translate-y-4'); mobileMenu.classList.add('pointer-events-auto','opacity-100','translate-y-0'); menuIcon.textContent = 'close'; document.body.style.overflow = 'hidden'; }
+        else { mobileMenu.classList.remove('pointer-events-auto','opacity-100','translate-y-0'); mobileMenu.classList.add('pointer-events-none','opacity-0','-translate-y-4'); menuIcon.textContent = 'menu'; document.body.style.overflow = ''; }
     });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.feature-card').forEach(function(el) { obs.observe(el); });
+    document.querySelectorAll('#mobile-menu a').forEach(link => link.addEventListener('click', () => { if (isOpen) toggleBtn.click(); }));
 
-  var fObs = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e, i) {
-      if (e.isIntersecting) { setTimeout(function() { e.target.classList.add('show'); }, i * 120); fObs.unobserve(e.target); }
-    });
-  }, { threshold: 0.15 });
-  document.querySelectorAll('.fade-up').forEach(function(el) { fObs.observe(el); });
+    // SOULIGNEMENT AU SCROLL
+    const underlineObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('active'); underlineObserver.unobserve(entry.target); } }); }, { threshold: 0.6 });
+    const targetElement = document.querySelector('.reveal-underline');
+    if (targetElement) underlineObserver.observe(targetElement);
 
-  // Hero immédiat
-  document.querySelectorAll('.hero-gradient .fade-up').forEach(function(el, i) {
-    setTimeout(function() { el.classList.add('show'); }, 200 + i * 180);
-  });
-});
-</script>
-
-<!-- MODAL CONTACT COMMERCIAL ─────────────────────────────── -->
-<div id="modal-pricing" style="position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px"
-     onclick="if(event.target===this)closeModalPricing()">
-  <div style="background:#fff;border-radius:24px;width:100%;max-width:480px;box-shadow:0 32px 80px rgba(0,0,0,.2);overflow:hidden;animation:pricingPop .25s ease both">
-    <div style="background:linear-gradient(135deg,#00602a,#1a7a3c);padding:28px 32px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div>
-          <p id="modal-plan-name" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-bottom:4px">Plan sélectionné</p>
-          <h3 id="modal-plan-title" style="font-family:Manrope;font-weight:900;font-size:1.4rem;color:#fff;margin:0">Université Pro</h3>
-          <p id="modal-plan-price" style="font-size:.9rem;color:rgba(255,255,255,.7);margin:4px 0 0">49 000 XAF/mois</p>
-        </div>
-        <button onclick="closeModalPricing()" style="border:none;background:rgba(255,255,255,.15);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center">✕</button>
-      </div>
-    </div>
-    <div style="padding:28px 32px">
-      <p style="font-size:.875rem;color:#6b7280;margin-bottom:20px">Notre équipe vous contacte sous 24h pour démarrer votre essai gratuit.</p>
-      <div id="modal-success" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;text-align:center;margin-bottom:16px">
-        <p style="font-weight:700;color:#166534;font-size:1rem;margin:0 0 4px">✅ Parfait !</p>
-        <p style="font-size:.85rem;color:#16a34a;margin:0">Notre équipe vous contacte dans les 24h sur WhatsApp ou par email.</p>
-      </div>
-      <div id="modal-form">
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div>
-            <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:5px">Votre nom *</label>
-            <input id="lead-name" type="text" placeholder="Prénom et nom" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:.875rem;color:#111;outline:none;transition:border .15s" onfocus="this.style.borderColor='#00602a'" onblur="this.style.borderColor='#e5e7eb'"/>
-          </div>
-          <div>
-            <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:5px">Email *</label>
-            <input id="lead-email" type="email" placeholder="vous@universite.cm" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:.875rem;color:#111;outline:none;transition:border .15s" onfocus="this.style.borderColor='#00602a'" onblur="this.style.borderColor='#e5e7eb'"/>
-          </div>
-          <div>
-            <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:5px">Établissement</label>
-            <input id="lead-school" type="text" placeholder="Nom de votre université" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:.875rem;color:#111;outline:none;transition:border .15s" onfocus="this.style.borderColor='#00602a'" onblur="this.style.borderColor='#e5e7eb'"/>
-          </div>
-          <div>
-            <label style="display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:5px">Message (optionnel)</label>
-            <textarea id="lead-msg" placeholder="Nombre d'étudiants, questions particulières..." rows="3" style="width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:.875rem;color:#111;outline:none;resize:none;transition:border .15s;font-family:inherit" onfocus="this.style.borderColor='#00602a'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
-          </div>
-          <button onclick="submitPricingLead()" id="lead-btn" style="width:100%;padding:13px;background:#00602a;color:#fff;border:none;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s">
-            <span class="material-symbols-outlined" style="font-size:18px">send</span>
-            Être contacté par l'équipe
-          </button>
-          <p style="text-align:center;font-size:.75rem;color:#9ca3af">✅ Essai gratuit 30 jours &nbsp;·&nbsp; ✅ Sans carte bancaire</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<style>
-@keyframes pricingPop{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-@media(max-width:900px){.plans-grid{grid-template-columns:1fr !important}}
-</style>
-
-<script>
-// ── Modal pricing ─────────────────────────────────────────────
-const PLAN_INFO = {
-  decouverte: { name:'Découverte',       title:'Plan Découverte',       price:'Gratuit à vie' },
-  starter:    { name:'Starter',          title:'Plan Starter',          price:'19 900 XAF / mois' },
-  pro:        { name:'Université Pro ⭐', title:'Plan Université Pro',   price:'49 000 XAF / mois' },
-  universite: { name:'Université',       title:'Plan Université',       price:'120 000 XAF / mois' },
-  reseau:     { name:'Réseau National',  title:'Plan Réseau National',  price:'350 000 XAF / mois' },
-};
-
-function openModalPricing(plan) {
-  const info = PLAN_INFO[plan] || PLAN_INFO.pro;
-  document.getElementById('modal-plan-name').textContent  = 'Plan sélectionné';
-  document.getElementById('modal-plan-title').textContent = info.title;
-  document.getElementById('modal-plan-price').textContent = info.price;
-  document.getElementById('modal-pricing').dataset.plan   = plan;
-  document.getElementById('modal-success').style.display  = 'none';
-  document.getElementById('modal-form').style.display     = 'block';
-  document.getElementById('modal-pricing').style.display  = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModalPricing() {
-  document.getElementById('modal-pricing').style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-async function submitPricingLead() {
-  const name  = document.getElementById('lead-name').value.trim();
-  const email = document.getElementById('lead-email').value.trim();
-  const school = document.getElementById('lead-school').value.trim();
-  const msg   = document.getElementById('lead-msg').value.trim();
-  const plan  = document.getElementById('modal-pricing').dataset.plan;
-  const btn   = document.getElementById('lead-btn');
-
-  if (!name || !email) { alert('Veuillez remplir votre nom et email.'); return; }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;animation:spin 1s linear infinite">autorenew</span> Envoi...';
-
-  try {
-    const r = await fetch('/api/auth/pricing-interest', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, plan, school, message: name + (msg ? ' — ' + msg : '') })
-    });
-    const d = await r.json();
-    if (d.success) {
-      document.getElementById('modal-success').style.display = 'block';
-      document.getElementById('modal-form').style.display    = 'none';
-    } else {
-      btn.disabled = false;
-      btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Nous contacter';
-      alert(d.message || 'Erreur. Réessayez.');
+    // CARROUSEL HERO
+    const slidesContainer = document.getElementById('carouselSlides');
+    const dotsContainer = document.getElementById('carouselDots');
+    if (slidesContainer && dotsContainer) {
+        const slides = slidesContainer.children; const totalSlides = slides.length; let currentIndex = 0; let autoInterval;
+        for (let i = 0; i < totalSlides; i++) { const dot = document.createElement('div'); dot.classList.add('carousel-dot','w-2.5','h-2.5','rounded-full','bg-white/60','cursor-pointer','transition-all'); if (i === 0) dot.classList.add('bg-primary','w-5'); dot.addEventListener('click', () => { clearInterval(autoInterval); goToSlide(i); startAutoSlide(); }); dotsContainer.appendChild(dot); }
+        function goToSlide(index) { if (index < 0) index = 0; if (index >= totalSlides) index = 0; currentIndex = index; slidesContainer.style.transform = `translateX(-${currentIndex * 100}%)`; updateDots(); }
+        function updateDots() { document.querySelectorAll('.carousel-dot').forEach((dot, i) => { if (i === currentIndex) { dot.classList.add('bg-primary','w-5'); dot.classList.remove('bg-white/60','w-2.5'); } else { dot.classList.remove('bg-primary','w-5'); dot.classList.add('bg-white/60','w-2.5'); } }); }
+        function nextSlide() { goToSlide(currentIndex + 1); }
+        function startAutoSlide() { autoInterval = setInterval(nextSlide, 5000); }
+        function stopAutoSlide() { clearInterval(autoInterval); }
+        const carousel = document.querySelector('.carousel-container');
+        carousel.addEventListener('mouseenter', stopAutoSlide); carousel.addEventListener('mouseleave', startAutoSlide); startAutoSlide();
     }
-  } catch(e) {
-    btn.disabled = false;
-    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">send</span> Nous contacter';
-    alert('Serveur inaccessible. Contactez-nous sur WhatsApp : +237 691 929 394');
-  }
-}
 
-// Mobile carousel
-(function(){
-    var slides = document.querySelectorAll('.hero-mobile-bg-slider .mobile-slide');
-    var cur = 0;
-    if(slides.length) setInterval(function(){
-        slides[cur].classList.remove('active');
-        cur = (cur+1) % slides.length;
-        slides[cur].classList.add('active');
-    }, 7000);
-})();
+    // PLACEHOLDER
+    const searchInputs = [document.getElementById('search-desktop'), document.getElementById('search-mobile')].filter(Boolean);
+    const phrases = ["Rechercher un cours", "Rechercher une certification", "Rechercher un diplôme"];
+    let phraseIndex = 0;
+    function rotatePlaceholder() { phraseIndex = (phraseIndex + 1) % phrases.length; searchInputs.forEach(input => { if (input) { input.placeholder = phrases[phraseIndex]; input.classList.add('animate-placeholder'); setTimeout(() => input.classList.remove('animate-placeholder'), 200); } }); }
+    setInterval(rotatePlaceholder, 4000);
 
+    // CARROUSEL PARCOURS
+    const coursesCarousel = document.getElementById('coursesCarousel');
+    const prevBtn = document.getElementById('carouselPrev'); const nextBtn = document.getElementById('carouselNext');
+    let autoCoursesInterval; let isCoursesHovering = false;
+    function scrollToNextCourse() { if (!coursesCarousel || isCoursesHovering) return; const firstCard = coursesCarousel.querySelector('.flex > div'); if (!firstCard) return; const scrollAmount = firstCard.offsetWidth + 32; let newScrollLeft = coursesCarousel.scrollLeft + scrollAmount; if (newScrollLeft + coursesCarousel.clientWidth >= coursesCarousel.scrollWidth) newScrollLeft = 0; coursesCarousel.scrollTo({ left: newScrollLeft, behavior: 'smooth' }); }
+    function scrollToPrevCourse() { if (!coursesCarousel) return; const firstCard = coursesCarousel.querySelector('.flex > div'); if (!firstCard) return; let newScrollLeft = coursesCarousel.scrollLeft - (firstCard.offsetWidth + 32); if (newScrollLeft < 0) newScrollLeft = coursesCarousel.scrollWidth - coursesCarousel.clientWidth; coursesCarousel.scrollTo({ left: newScrollLeft, behavior: 'smooth' }); }
+    function startAutoCoursesScroll() { if (autoCoursesInterval) clearInterval(autoCoursesInterval); autoCoursesInterval = setInterval(() => { if (!isCoursesHovering) scrollToNextCourse(); }, Math.floor(Math.random()*(7000-5000+1)+5000)); }
+    if (coursesCarousel) { coursesCarousel.addEventListener('mouseenter', () => { isCoursesHovering = true; clearInterval(autoCoursesInterval); }); coursesCarousel.addEventListener('mouseleave', () => { isCoursesHovering = false; startAutoCoursesScroll(); }); if (prevBtn) prevBtn.addEventListener('click', () => { scrollToPrevCourse(); startAutoCoursesScroll(); }); if (nextBtn) nextBtn.addEventListener('click', () => { scrollToNextCourse(); startAutoCoursesScroll(); }); startAutoCoursesScroll(); }
+
+    // TOGGLE PRIX
+    let pricingYearly = false;
+    function togglePricing() {
+        pricingYearly = !pricingYearly;
+        const mode = pricingYearly ? 'y' : 'm';
+        document.getElementById('toggle-dot').style.transform = pricingYearly ? 'translateX(24px)' : 'translateX(0)';
+        document.getElementById('save-badge').style.display = pricingYearly ? 'inline-flex' : 'none';
+        document.getElementById('lbl-yearly').style.color = pricingYearly ? '#00602a' : '#9ca3af';
+        document.getElementById('lbl-yearly').style.fontWeight = pricingYearly ? '800' : '600';
+        document.getElementById('lbl-monthly').style.color = pricingYearly ? '#9ca3af' : '#00602a';
+        document.getElementById('lbl-monthly').style.fontWeight = pricingYearly ? '600' : '800';
+        document.querySelectorAll('.price-val').forEach(el => { el.textContent = parseInt(el.dataset[mode]).toLocaleString('fr-FR'); });
+        document.querySelectorAll('.price-note').forEach(el => { el.textContent = el.dataset[mode]; });
+    }
+
+    // RESPONSIVE PLANS GRID
+    function fixPlansGrid() { const grid = document.querySelector('.plans-grid'); if (!grid) return; if (window.innerWidth < 640) grid.style.gridTemplateColumns = '1fr'; else if (window.innerWidth < 1024) grid.style.gridTemplateColumns = 'repeat(2,1fr)'; else grid.style.gridTemplateColumns = 'repeat(5,1fr)'; }
+    window.addEventListener('resize', fixPlansGrid); fixPlansGrid();
+
+    // TRADUCTION
+    const translations = {
+        fr: { nav_courses:"Tous les cours",nav_teachers:"Professeurs",nav_pricing:"Tarifs",nav_login:"Se connecter",nav_signup:"S'inscrire gratuitement",hero_title_line1:"Prenez en main votre",hero_title_line2:"réussite académique",hero_description:"Accédez aux cours officiels conçus par des experts et universités de renom. Formez-vous à votre rythme, validez vos compétences et boostez votre carrière.",hero_cta_catalog:"Explorer le catalogue",hero_cta_how:"Comment ça marche ?",stat_courses:"Cours complets",stat_students:"Étudiants actifs",stat_mentors:"Mentors certifiés",badge_title:"Certificats Reconnus",badge_sub:"Délivrés par nos universités partenaires",partners_title:"Ils conçoivent nos programmes officiels",courses_title:"Les parcours phares",courses_subtitle:"Acquérez les compétences les plus recherchées sur le marché actuel.",courses_view_all:"Voir tout le catalogue",course1_level:"Niveau L3",course1_title:"Développeur Web & Mobile Avancé",course1_desc:"Maîtrisez les architectures modernes, des APIs robustes jusqu'au déploiement sécurisé.",course1_duration:"40 heures",course1_cert:"Diplômant",course2_level:"Niveau L1",course2_title:"Fondamentaux des Bases de Données (SQL)",course2_desc:"Apprenez à structurer vos modèles de données, requêter efficacement et administrer vos serveurs.",course2_duration:"25 heures",course2_cert:"Certifiant",course3_level:"Niveau L2",course3_title:"Architecture & Sécurité des Réseaux",course3_desc:"Comprenez le modèle OSI, configurez des commutateurs et sécurisez les accès aux réseaux d'entreprise.",course3_duration:"35 heures",course3_cert:"Certifiant",function_title:"Votre parcours vers la réussite",function_subtitle:"Une méthodologie flexible et structurée pour atteindre vos objectifs.",step1_title:"Inscription simplifiée",step1_desc:"Créez votre compte en quelques clics et parcourez instantanément nos modules d'enseignement de haut niveau.",step2_title:"Apprentissage & Quiz",step2_desc:"Suivez vos cours en vidéo ou format textuel et validez votre progression via des quiz réguliers.",step3_title:"Certification Officielle",step3_desc:"Validez vos examens de fin d'année et recevez un titre de compétences certifié par nos institutions partenaires.",testimonials_title:"Ce que disent nos étudiants",testimonial1_name:"Emma T.",testimonial1_role:"L2 Droit",testimonial1_text:'"Grâce à CamunoLearn, j\'ai pu rattraper mes cours de droit constitutionnel même quand je ne pouvais pas me déplacer à l\'amphi."',testimonial2_name:"Marc K.",testimonial2_role:"M1 Informatique",testimonial2_text:'"Les quiz de préparation aux examens sont incroyablement proches des épreuves réelles. C\'est l\'outil indispensable."',testimonial3_name:"Aïcha N.",testimonial3_role:"L3 Gestion",testimonial3_text:'"La plateforme est fluide et les professeurs sont très réactifs. Je recommande à 100%."',testimonial4_name:"Samuel D.",testimonial4_role:"L1 Génie Civil",testimonial4_text:'"Les schémas techniques en haute résolution m\'aident énormément pour mes révisions en RDM."',testimonial5_name:"Lucie B.",testimonial5_role:"M2 Marketing",testimonial5_text:'"La certification obtenue après le cours de Marketing Digital a été un vrai plus sur mon CV pour mon stage."',footer_desc:"L'excellence académique à portée de clic. La première plateforme d'apprentissage collaborative au Cameroun.",footer_platform_title:"Plateforme",footer_all_courses:"Tous les cours",footer_teachers:"Professeurs",footer_pricing:"Tarifs",footer_resources_title:"Ressources",footer_blog:"Blog",footer_support:"Support",footer_contact_title:"Contact",footer_address:"Douala, Cameroun",footer_copyright:"© 2026 CamunoLearn — Tous droits réservés",footer_privacy:"Confidentialité",footer_cookies:"Cookies" },
+        en: { nav_courses:"All courses",nav_teachers:"Teachers",nav_pricing:"Pricing",nav_login:"Log in",nav_signup:"Sign up for free",hero_title_line1:"Take control of your",hero_title_line2:"academic success",hero_description:"Access official courses designed by renowned experts and universities. Train at your own pace, validate your skills and boost your career.",hero_cta_catalog:"Explore catalog",hero_cta_how:"How it works?",stat_courses:"Complete courses",stat_students:"Active students",stat_mentors:"Certified mentors",badge_title:"Recognized Certificates",badge_sub:"Issued by our partner universities",partners_title:"They design our official programs",courses_title:"Featured programs",courses_subtitle:"Acquire the most sought-after skills on the market today.",courses_view_all:"View all catalog",course1_level:"Level L3",course1_title:"Advanced Web & Mobile Developer",course1_desc:"Master modern architectures, from robust APIs to secure deployment.",course1_duration:"40 hours",course1_cert:"Degree",course2_level:"Level L1",course2_title:"Database Fundamentals (SQL)",course2_desc:"Learn to structure your data models, query efficiently and administer your servers.",course2_duration:"25 hours",course2_cert:"Certificate",course3_level:"Level L2",course3_title:"Network Architecture & Security",course3_desc:"Understand the OSI model, configure switches and secure network access.",course3_duration:"35 hours",course3_cert:"Certificate",function_title:"Your path to success",function_subtitle:"A flexible and structured methodology to achieve your goals.",step1_title:"Simple registration",step1_desc:"Create your account in a few clicks and instantly browse our high-level teaching modules.",step2_title:"Learning & Quizzes",step2_desc:"Take your courses in video or text format and validate your progress with regular quizzes.",step3_title:"Official Certification",step3_desc:"Validate your end-of-year exams and receive a skill certificate certified by our partner institutions.",testimonials_title:"What our students say",testimonial1_name:"Emma T.",testimonial1_role:"Law L2",testimonial1_text:"Thanks to CamunoLearn, I was able to catch up on my constitutional law lessons.",testimonial2_name:"Marc K.",testimonial2_role:"CS M1",testimonial2_text:"The exam preparation quizzes are incredibly close to the real tests.",testimonial3_name:"Aïcha N.",testimonial3_role:"Management L3",testimonial3_text:"The platform is smooth and the teachers are very responsive.",testimonial4_name:"Samuel D.",testimonial4_role:"Civil Eng. L1",testimonial4_text:"The high-resolution technical diagrams help me a lot with my RDM revisions.",testimonial5_name:"Lucie B.",testimonial5_role:"Marketing M2",testimonial5_text:"The certification was a real plus on my CV for my internship.",footer_desc:"Academic excellence at your fingertips. The first collaborative learning platform in Cameroon.",footer_platform_title:"Platform",footer_all_courses:"All courses",footer_teachers:"Teachers",footer_pricing:"Pricing",footer_resources_title:"Resources",footer_blog:"Blog",footer_support:"Support",footer_contact_title:"Contact",footer_address:"Douala, Cameroon",footer_copyright:"© 2026 CamunoLearn — All rights reserved",footer_privacy:"Privacy",footer_cookies:"Cookies" }
+    };
+    function setLanguage(lang) { if (!translations[lang]) return; document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (translations[lang][key]) { if (el.tagName==='INPUT'||el.tagName==='TEXTAREA') el.placeholder=translations[lang][key]; else el.innerText=translations[lang][key]; } }); document.title = lang==='fr' ? "CamunoLearn — Plateforme E-learning d'Excellence" : "CamunoLearn — Excellence E-learning Platform"; }
+    const langSwitcher = document.getElementById('language-switcher');
+    if (langSwitcher) { langSwitcher.addEventListener('change', (e) => setLanguage(e.target.value)); setLanguage('fr'); }
 </script>
 </body>
 </html>
