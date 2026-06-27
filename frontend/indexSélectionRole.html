@@ -148,6 +148,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// QR codes statiques (images base64) qui pointent vers qrConfirm.html?role=ROLE&session=SESSION
+const QR_IMAGES = {
+    etudiant:   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbgAAAG4AQAAAAAfsc8eAAAD5UlEQVR4nO2c227jMAxEZxb+/1+efeCQUrJ5KNpiLcl0WyRxfRATBCneZArfOv58D2uuueaaO4aDpHoHCUL8CopXn1D8L5ld5DuduwCEXgiCAP0B8h/hE9OV+8j3DI4kkBYYKswzFEQhjc9Xbibfg7jSpI/hNTGHqrffZ3P/cgzLA8V0oyQAMUzwt7+vuR9zF4BhWSIAefVTLIP+jxfGvHIX+U7n5vjzCz/F7CLf6Rxnr0hAFEAx7M0fgNfF7wff19zvcuE/KaSS4p18hlAsf76sVLmLfE/gIkYJ90h6zaMiCnUGKOLFDHeS72TuAhyoWFVlbKEqZVIv1HlqH/lO5y4g1730lQDooIZZd7HxEXQYs4t8z+AkihIhiBTBqqVpSuUZnvW++2zu/bgQYUnaXbrNKoVSlQ2mlbb/XIe7UD4TyiAF4qvKkE41KjE33Gdzn4+R4TnjG7mDUwk4wJGzjFDgLvI9gxMUJgfB3rLqZpD16Jw+4tC95Dudox0maRuMUNS6YtVFI8i57z6bez+c/yFyBWWROtRotWKKOzOf2EW+J3DRaggfmg2/7DyI2c6lm4Lq/GE1blRfEO/oERjPSwiupTHnYvaS72Au/Gd0ZwmRTubTKt28rUC087+1uBpXyqPaRy+nRoui65/rcYQgDy9lt8GVs+goZfNB6vxvPW6aEJSqG1FDhIjkEC9X7iTfMzh5XInUyAFzlFDRiqg0YkP5zuSi/onZbWbTvVbAKotOVbVd5DudYy151QUEUP3AKsekMp3hbyPfYzjS+x48SBEmqJgJVc1XAL3+rcYx4sppjEKZRYCSa2k2Pd13n8195kItDGujy2gj69MIR4cf3Um+kznPD2Z5zEOfpUDNCvSlt9xnc58PVpKQ7dosvky6nBSYmeAu8p3OZf+omrNx2i0ldyQouD+I1OAu8j2B49R88OYjjiqoaoR3mOVe8p3P0cMt8gxF9QFdAkWsju5RdP1zLS6aejXbQkovNhlKLf32/MtiHOeNfmmDpBjbNznVtDt/WIyrsd23+medH9EpHI52/285LoZbco5JfuwE8zX3VQNIO91LvnO5C+k8mdsbWNODzO2doT4viD2/tBA377+dGnwe5WWtfLk/KX3rLvKdzr3tfx9jZ2973v38JV/R+99X4ebnL2F6UMj0J5fWRip4w3029/nI+rUHlaa27VjrKqnPwfob7rO5L3EUc7uKBKkmznKQKbfkbirf0RwZ6sk4VHRTcNTQasRiR/lO5ObnLymfPeGt8KOplC3AfJbdPvI9giPjsYKKVa5KoRpjMfPm97a/dbiX5y/9h+9rrrnmmjuF+wtaLTg1Ev/+7AAAAABJRU5ErkJggg==",
+    enseignant: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbgAAAG4AQAAAAAfsc8eAAAD2ElEQVR4nO1c0Y7bMAwjh/7/L3MPoiR3K/Zw2CG2T0Fx17QhGkGQLJFyKHzp+PU12OAGN7jBXYN7AWC8FSgKAOMt8h8QSdYngM6x73bcC7B7uLiPEAQSii8JgcuV59h3O+4FACDsKQLpKkAgBQoEqAg+2oen2Hc77rWeUHAQKsJQGXkChbVUPcW+23Gv99PwnSOQdprohPoffm9w34GTYpUDIMZylx+CiEDkcuVp9t2LewFVgEKRPCkKIuiIowCf55XH2Hc7jktWZNUuzphLx+Ci9LH7HNzno2IMUbQ4ZSo9J2YHESd5zSn2/RAcJWVvQGYVCsClaHSChEhO/7Adju4XotPDe06Fa0+7dOqX/XAZVvVHS0/vQ9kUPnifg/uEY3XpVXDGSXqSAAjzacOfbYeLBiF8BEUa9TLoZvCt/Jz6ZTOcGN2dItIqk4YTo5ePsKuq5ij7rsep9AYxKTRJiGDMsmahtg+z715c6w9U6A0g1NlyUQHFeMPR//bCiUrSWoQciMjMyQjGWv80699euPAb7UcwWnkyyWyQfiHbh6Psux4np0yAFATGMlgMtrJxlxPsYfZdjEvmRej+IHlslaCkaBDNik7+3A5nZrqGXBhJtDsJMfm1mZ/YDidklwDPumQrGBcJVgQfvs/B/XWUfisz12KFXMgQGZnKTx65z8H9A1espps/u6uSpauavuYw+y7HiUrJIVoEC7amrtkjTSVLHGXfzbgkO622F1tdyl9oEaxR7NH/NsR5PFDVOQCQIFXQ0fKSZv3bDkeJGWLKJY6WatOFKu6as/7thRObeGGqf0C5M5WHCEgN/7kZLvV3D79YhffQS09QMOPvqfsc3IdDsosUK55f6FFrlCDoE0g6xb6fgZPkXBkcDHMHy8KgAVniPHefg/vzcJ/unq/GrBfmunjQZmRGv90LJ1XbIEo1ZyatzWBpElO/bIdLwiyJFtcxoepSFm9rgvA4++7GVYiRvQGXSXh6DlRJk07/txGOtWmlKevm0IJZK/asPj7HvttxNezJ3DSWG8jW7X71aIrH7nNwn49Va8jM2dvE2pfvRcw59t2O8/Nfyl/LQ2Dalcvoderwp9h3O+7P/bceVmIvglRF5qx/2+GaJUPzaHC52eRnUqFmz4Y/2wW3Pn8pt5GxVkPkLnhTa/Ig2jn23Y4r/joE3CUK/W2Kfx2nmPjbE5faul3W/sohetQ+iSPtux7Hjj2SuSGpJVwgh53OtO9CXOwfqzKFybX0SGFthciP5/khG+Henr+Ub6uAoff85Q6l5ttOse923Dsr9v2/N7jBDW5wt+B+A2WrOT13lOmQAAAAAElFTkSuQmCC",
+    admin:      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbgAAAG4AQAAAAAfsc8eAAAD7klEQVR4nO1c0W7jMAwjD/3/X+Y9kFLS3fayh6vtqEC7xjWxCIJsUaJD4VevP7+DDW5wgxvcMThItYLKH5Lqa10CEmrYmF3sOx33AuI5AhAJCoCoGrYbCb7N3MW+Z+BIwl6S3UORIAhHH1lh6pm72Xcu7nX7TkAQSH+jCPqvfXdPVXex71k4e0wS2F6EAJDv7tvUvvNwjr9yDUERouSgc/gBLD/2zF3sewSOrA0wuYv3ONZbeV8z97LvYBz15cJpJuVUJp7Mbnibu4t9D8ExjgMFwV7zFqjkNOYTJMHhD+vgEnLOMhN7V/wB+fWOALSPfU/ASXLm4thTswWGszvoWCT+U/c5uJ9wTl5g99EfBCESMoswHVQlOXvZdzyOAKGEWdXMbrSiyp+kF9jd7DsbV0Em+wkApVuxU2b2jA8/dp+D+xZHVfwVeTDRAylkxaSokAl96j4H9z3OKYtIV8qI4vKpnDF1bbpBMfvfQrgXwtJVuUlqZs3lAd1JhIY/rIZL/Jkm2G9M3YzOPeNYAFUH3cm+83FkFkYzQagLabU5qpyqyV9WwzGsXQSKJ+SKinaCV0l74m89HAE6AaVdd6WaVfFMM5DD31fCOee8UfVuPKQGmohjq2Emf1kJ5247quQZvgf1SAh9i8+k0Z8thDN/aOESu/OQEe+JCccbkdjFvkfgWnaWpCUknbjVQ6nqEU7+uRpOnVaGv0dIgXQkxKqCAhj950q4F5DWEBCPFVNI9YWuXnf4Tf9hNVyJ45OKtphCkIOv6EO6E8Mf1sK1ZInd+XNTXmSq2jVas7ey72Sc108gTT517z3twPuph0pLOfxvGVzp5wV3Z5n2Xza9VEBRVH70L4vhitMRxfsU1eet+sIuZDcD3MW+Z+CcXCrZi4subO9R1yUjT9vLvnNxXj8Tb7TuJdIz3NTZrQaNIm0b+07H5bhtqHoPXudyVQXSIg9T/1wQVwc1IxRk8Xc3cqlqG/UZpM3sOxbnOFNRvrdIuzci0NE38bcSzuffk6gkSynlRH9kO5Qj8SP3ObifcXKCCbS6LFpQVr/BtZhE5OSfC+Hu/femd1QLCPXFrTVtF/tOx1092eIKJZ0A0CS+zrRkbPy3DO6Fe+evL0pFf3WUSgejz9zn4H543Z6/lAat8gSmMIY34lBjk3+uhAtHR45Ps2Qv1dBtKb3ecf/7Pgf3z6vrZ1lEm0l0r6FymBxPygK6i32n4748f6myzMpCoz7LBLGdu4t9T8JJl/A6VbR+6llCtJuAO9p3Iu7t+Uu03KxOu6ftns58t3GHvy+EezvmVzLCln+iBIUtkcn1Nvadjnt7/tJ/+H+DG9zgBncK7i9jhFgeEceTAAAAAABJRU5ErkJggg=="
+};
+
 async function showQR(role) {
     const existingRole = localStorage.getItem("userRole");
     if (existingRole) {
@@ -159,60 +166,38 @@ async function showQR(role) {
     pendingRole = role;
     const info  = ROLE_INFO[role];
 
-    document.getElementById("qrIcon").textContent       = info.icon;
-    document.getElementById("qrTitle").textContent      = info.title;
-    document.getElementById("qrSubtitle").textContent   = info.sub;
-    document.getElementById("qrWarning").style.display  = "block";
-    document.getElementById("qrOverlay").style.display  = "flex";
-    document.getElementById("qrcode").innerHTML         = "";
-    document.getElementById("qrcode").style.display     = "flex";
-    document.getElementById("waitScan").style.display   = "none";
-
-    // Générer QR + polling
-    await generateQR();
-}
-
-async function generateQR() {
+    // Créer une session côté serveur
+    let sessionId = null;
     try {
-        document.getElementById("qrSubtitle").textContent = "Génération du QR code...";
-
         const r = await fetch(API_BASE + "/auth/qr/create", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({})
         });
-
-        if (!r.ok) {
-            document.getElementById("qrSubtitle").textContent = "Erreur serveur — réessayez.";
-            return;
+        if (r.ok) {
+            const d = await r.json();
+            sessionId = d.sessionId;
         }
+    } catch(e) {}
 
-        const d = await r.json();
-        if (!d.sessionId) {
-            document.getElementById("qrSubtitle").textContent = "Erreur: sessionId manquant.";
-            return;
-        }
+    currentSessionId = sessionId;
 
-        currentSessionId = d.sessionId;
+    document.getElementById("qrIcon").textContent      = info.icon;
+    document.getElementById("qrTitle").textContent     = info.title;
+    document.getElementById("qrSubtitle").textContent  = "Scannez ce QR avec votre téléphone";
+    document.getElementById("qrWarning").style.display = "block";
+    document.getElementById("qrOverlay").style.display = "flex";
+    document.getElementById("waitScan").style.display  = "block";
 
-        // URL que le téléphone ouvrira après scan
-        const confirmUrl = FRONTEND_BASE + "/qrConfirm.html?session=" + currentSessionId;
+    // Afficher l'image QR statique
+    const qrDiv = document.getElementById("qrcode");
+    qrDiv.style.display = "flex";
+    qrDiv.innerHTML = '<img src="' + QR_IMAGES[role] + '" style="width:180px;height:180px;border-radius:12px;border:3px solid #e5e7eb;padding:8px;" alt="QR ' + role + '"/>';
 
-        // Afficher le QR code
-        const qrDiv = document.getElementById("qrcode");
-        qrDiv.innerHTML = "";
-        qrDiv.style.display = "flex";
-        new QRCode(qrDiv, { text: confirmUrl, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff" });
-
-        document.getElementById("qrSubtitle").textContent  = "Scannez avec votre téléphone pour confirmer";
-        document.getElementById("waitScan").style.display  = "block";
-
-        // Polling toutes les 2s — dès que téléphone confirme, PC redirige
+    // Polling : dès que le téléphone confirme, PC redirige
+    if (sessionId) {
         clearInterval(pollInterval);
-        pollInterval = setInterval(() => pollStatus(currentSessionId), 2000);
-
-    } catch(e) {
-        document.getElementById("qrSubtitle").textContent = "Erreur réseau — vérifiez votre connexion.";
+        pollInterval = setInterval(() => pollStatus(sessionId), 2000);
     }
 }
 
