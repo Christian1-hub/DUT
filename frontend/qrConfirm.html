@@ -171,30 +171,23 @@ async function confirmRole() {
   document.getElementById('confirmBtn').disabled    = true;
 
   try {
-    // 1. Enregistrer le rôle en base
-    const r1 = await fetch(API_BASE + '/auth/role', {
-      method:'PUT',
-      headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
-      body: JSON.stringify({ role: userRole })
-    });
-    const d1 = await r1.json();
-    if (d1.success || r1.ok) {
-      const user = JSON.parse(localStorage.getItem('camunolearn_user') || '{}');
-      user.role = userRole;
-      localStorage.setItem('camunolearn_user', JSON.stringify(user));
-      localStorage.setItem('userRole', userRole);
-    }
-
-    // 2. Valider la session QR si on a un sessionId
+    // Valider la session QR uniquement — le PC gère la redirection
+    // NE PAS toucher localStorage ici — sinon le routing redirige le téléphone
     if (sessionId) {
-      await fetch(API_BASE + '/qrsession/validate/' + sessionId, {
+      const r = await fetch(API_BASE + '/qrsession/validate/' + sessionId, {
         method:'POST',
         headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
         body: JSON.stringify({})
       });
+      const d = await r.json();
+      if (d.success) {
+        showState('Success');
+      } else {
+        showError('❌', d.message || 'Erreur', 'Réessayez.');
+      }
+    } else {
+      showState('Success');
     }
-
-    showState('Success');
   } catch(e) {
     showError('❌','Erreur réseau','Vérifiez votre connexion mobile.');
   }
