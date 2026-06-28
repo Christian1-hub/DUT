@@ -4,182 +4,185 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Confirmation - CamunoLearn</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-<style>
-* { font-family:'DM Sans',sans-serif; }
-.spinner { border:4px solid #f3f3f3;border-top:4px solid #00602a;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;margin:0 auto 16px; }
-@keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
-input { width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:11px 14px;font-size:.9rem;outline:none;margin-bottom:10px; }
-input:focus { border-color:#00602a; }
-</style>
-
-<!-- BLOQUER TOUT ROUTING AUTOMATIQUE SUR CETTE PAGE -->
 <script>
-// Supprimer userRole pour empêcher toute redirection automatique
+// BLOQUER toute redirection automatique sur cette page
 localStorage.removeItem('userRole');
 </script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'DM Sans',sans-serif}
+body{background:#f8f9fb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.card{background:#fff;border-radius:24px;padding:32px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.12)}
+.spinner{border:4px solid #f3f3f3;border-top:4px solid #00602a;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+input{width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:11px 14px;font-size:.9rem;outline:none;margin-bottom:10px;font-family:inherit}
+input:focus{border-color:#00602a}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-weight:800;font-size:1rem;cursor:pointer;margin-top:8px;font-family:inherit}
+.logo{font-size:1.5rem;font-weight:900;margin-bottom:20px}
+.logo span{color:#00602a}
+</style>
 </head>
-<body class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+<body>
+<div class="card">
+    <div class="logo"><span>Camuno</span>Learn</div>
 
-<script>
-const API_BASE = (function() {
-  var h = window.location.hostname;
-  if (h==='localhost'||h==='127.0.0.1') return 'http://localhost:3000/api';
-  return 'https://camunolearn-api.onrender.com/api';
-})();
-</script>
-
-<div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-xl text-center">
-  <div style="font-size:1.6rem;margin-bottom:8px">
-    <span style="font-family:Manrope;font-weight:900;color:#00602a">Camuno</span><span style="font-family:Manrope;font-weight:900;color:#111">Learn</span>
-  </div>
-
-  <div id="stateLoading">
-    <div class="spinner"></div>
-    <p style="font-size:.85rem;color:#6b7280">Vérification...</p>
-  </div>
-
-  <div id="stateLogin" style="display:none">
-    <div style="font-size:2rem;margin-bottom:8px">🔐</div>
-    <h1 style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin-bottom:6px">Connectez-vous d'abord</h1>
-    <p style="font-size:.82rem;color:#6b7280;margin-bottom:20px">Identifiez-vous pour confirmer votre rôle.</p>
-    <input id="loginEmail" type="email" placeholder="Votre email"/>
-    <input id="loginPassword" type="password" placeholder="Mot de passe"/>
-    <div id="loginError" style="display:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.8rem;margin-bottom:10px"></div>
-    <button onclick="doLogin()" style="width:100%;padding:13px;background:#00602a;color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:.95rem;cursor:pointer;">
-      Se connecter & confirmer
-    </button>
-  </div>
-
-  <div id="stateConfirm" style="display:none">
-    <div id="roleIcon" style="font-size:3rem;margin-bottom:12px"></div>
-    <h1 style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#111;margin-bottom:8px">Confirmer votre rôle</h1>
-    <p id="roleSub" style="font-size:.85rem;color:#6b7280;margin-bottom:16px"></p>
-    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px;font-size:.75rem;color:#92400e;margin-bottom:16px">
-      ⚠️ Ce rôle est <strong>définitif</strong>.
+    <!-- Chargement -->
+    <div id="s-load">
+        <div class="spinner"></div>
+        <p style="color:#6b7280;font-size:.85rem">Vérification...</p>
     </div>
-    <button id="confirmBtn" onclick="confirmRole()" style="width:100%;padding:14px;color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:1rem;cursor:pointer;">
-      ✅ Confirmer
-    </button>
-    <button onclick="history.back()" style="width:100%;padding:11px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-weight:700;font-size:.88rem;cursor:pointer;margin-top:8px;">
-      Annuler
-    </button>
-  </div>
 
-  <div id="stateSuccess" style="display:none">
-    <div style="font-size:3rem;margin-bottom:12px">✅</div>
-    <h1 style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#111;margin-bottom:8px">Rôle confirmé !</h1>
-    <p style="font-size:.85rem;color:#6b7280;margin-bottom:16px">Retournez sur votre PC — il se redirige automatiquement.</p>
-    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px;font-size:.82rem;color:#166534;">
-      🖥️ Votre PC va maintenant vous rediriger vers la sélection d'établissement.
+    <!-- Login -->
+    <div id="s-login" style="display:none">
+        <div style="font-size:2.5rem;margin-bottom:12px">🔐</div>
+        <h2 style="font-weight:900;font-size:1.2rem;color:#111;margin-bottom:8px">Connectez-vous</h2>
+        <p style="font-size:.82rem;color:#6b7280;margin-bottom:20px">Pour confirmer votre rôle sur ce téléphone.</p>
+        <input id="email" type="email" placeholder="Email"/>
+        <input id="password" type="password" placeholder="Mot de passe"/>
+        <div id="err" style="display:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.8rem;margin-bottom:8px"></div>
+        <button class="btn" onclick="doLogin()" style="background:#00602a;color:#fff">Se connecter</button>
     </div>
-  </div>
 
-  <div id="stateError" style="display:none">
-    <div id="errIcon" style="font-size:2.5rem;margin-bottom:8px">❌</div>
-    <h1 id="errTitle" style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin-bottom:8px"></h1>
-    <p id="errSub" style="font-size:.82rem;color:#6b7280"></p>
-  </div>
+    <!-- Confirmer -->
+    <div id="s-confirm" style="display:none">
+        <div id="c-icon" style="font-size:3rem;margin-bottom:12px"></div>
+        <h2 style="font-weight:900;font-size:1.2rem;color:#111;margin-bottom:8px">Confirmer votre rôle</h2>
+        <p id="c-sub" style="font-size:.85rem;color:#6b7280;margin-bottom:16px"></p>
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px;font-size:.75rem;color:#92400e;margin-bottom:16px">
+            ⚠️ Ce rôle est <strong>définitif</strong>.
+        </div>
+        <button id="c-btn" class="btn" onclick="confirm_()" style="color:#fff">✅ Confirmer</button>
+    </div>
+
+    <!-- Succès -->
+    <div id="s-ok" style="display:none">
+        <div style="font-size:3.5rem;margin-bottom:16px">✅</div>
+        <h2 style="font-weight:900;font-size:1.3rem;color:#111;margin-bottom:8px">Confirmé !</h2>
+        <p style="font-size:.85rem;color:#6b7280;margin-bottom:16px">Retournez sur votre PC.</p>
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px;font-size:.82rem;color:#166534">
+            🖥️ Votre PC se redirige automatiquement vers la suite.
+        </div>
+    </div>
+
+    <!-- Erreur -->
+    <div id="s-err" style="display:none">
+        <div id="e-icon" style="font-size:2.5rem;margin-bottom:12px">❌</div>
+        <h2 id="e-title" style="font-weight:900;font-size:1.2rem;color:#111;margin-bottom:8px"></h2>
+        <p id="e-sub" style="font-size:.82rem;color:#6b7280"></p>
+    </div>
 </div>
 
 <script>
-const params    = new URLSearchParams(location.search);
-const sessionId = params.get('session');
-let   token     = localStorage.getItem('camunolearn_token');
+var API_BASE = window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'
+    ? 'http://localhost:3000/api'
+    : 'https://camunolearn-api.onrender.com/api';
 
-const ROLES = {
-  etudiant:   { icon:'🎓', label:'Étudiant',   color:'#00602a' },
-  enseignant: { icon:'👨‍🏫', label:'Enseignant', color:'#1d4ed8' },
-  admin:      { icon:'⚙️',  label:'Admin',      color:'#7c3aed' }
+var params    = new URLSearchParams(location.search);
+var sessionId = params.get('session');
+var token     = localStorage.getItem('camunolearn_token');
+var userRole  = null;
+
+var ROLES = {
+    etudiant:   {icon:'🎓', label:'Étudiant',   color:'#00602a'},
+    enseignant: {icon:'👨‍🏫', label:'Enseignant', color:'#1d4ed8'},
+    admin:      {icon:'⚙️',  label:'Admin',      color:'#7c3aed'}
 };
 
-function showState(s) {
-  ['Loading','Login','Confirm','Success','Error'].forEach(x => {
-    document.getElementById('state'+x).style.display = x===s ? 'block' : 'none';
-  });
+function show(id) {
+    ['s-load','s-login','s-confirm','s-ok','s-err'].forEach(function(x){
+        document.getElementById(x).style.display = x===id ? 'block' : 'none';
+    });
 }
 
-function showError(icon, title, sub) {
-  document.getElementById('errIcon').textContent  = icon;
-  document.getElementById('errTitle').textContent = title;
-  document.getElementById('errSub').textContent   = sub;
-  showState('Error');
+function showErr(icon, title, sub) {
+    document.getElementById('e-icon').textContent  = icon;
+    document.getElementById('e-title').textContent = title;
+    document.getElementById('e-sub').textContent   = sub;
+    show('s-err');
 }
 
 async function init() {
-  if (!token) { showState('Login'); return; }
-  try {
-    const r = await fetch(API_BASE + '/auth/me', { headers:{ Authorization:'Bearer '+token } });
-    const d = await r.json();
-    if (!d.success) { token = null; showState('Login'); return; }
-    showConfirm(d.user.role);
-  } catch(e) { showState('Login'); }
+    if (!sessionId) { showErr('❌','Lien invalide','QR code invalide ou expiré.'); return; }
+
+    // Vérifier session
+    try {
+        var sr = await fetch(API_BASE + '/qrsession/status/' + sessionId);
+        var sd = await sr.json();
+        if (sd.status === 'expired')   { showErr('⏱️','QR expiré','Revenez sur votre PC et réessayez.'); return; }
+        if (sd.status === 'validated') { showErr('✅','Déjà confirmé','Ce QR a déjà été utilisé.'); return; }
+    } catch(e) { showErr('❌','Serveur inaccessible','Vérifiez votre connexion.'); return; }
+
+    // Pas de token → login
+    if (!token) { show('s-login'); return; }
+
+    // Vérifier token
+    try {
+        var r = await fetch(API_BASE + '/auth/me', {headers:{Authorization:'Bearer '+token}});
+        var d = await r.json();
+        if (!d.success) { show('s-login'); return; }
+        showConfirm(d.user.role);
+    } catch(e) { show('s-login'); }
 }
 
-function showConfirm(userRole) {
-  const info = ROLES[userRole] || { icon:'👤', label: userRole, color:'#374151' };
-  document.getElementById('roleIcon').textContent        = info.icon;
-  document.getElementById('roleSub').textContent         = 'Vous allez vous identifier en tant que ' + info.label;
-  document.getElementById('confirmBtn').style.background = info.color;
-  document.getElementById('confirmBtn').textContent      = '✅ Confirmer — ' + info.label;
-  document.getElementById('confirmBtn').dataset.role     = userRole;
-  showState('Confirm');
+function showConfirm(role) {
+    userRole = role;
+    var info = ROLES[role] || {icon:'👤', label:role, color:'#374151'};
+    document.getElementById('c-icon').textContent       = info.icon;
+    document.getElementById('c-sub').textContent        = 'Vous allez vous identifier en tant que ' + info.label;
+    document.getElementById('c-btn').style.background   = info.color;
+    document.getElementById('c-btn').textContent        = '✅ Confirmer — ' + info.label;
+    show('s-confirm');
 }
 
 async function doLogin() {
-  const email    = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const errDiv   = document.getElementById('loginError');
-  errDiv.style.display = 'none';
-  if (!email || !password) { errDiv.textContent='Remplissez email et mot de passe.'; errDiv.style.display='block'; return; }
-  const btn = document.querySelector('#stateLogin button');
-  btn.textContent = 'Connexion...'; btn.disabled = true;
-  try {
-    const r = await fetch(API_BASE + '/auth/login', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email, password})
-    });
-    const d = await r.json();
-    if (d.success) {
-      token = d.token;
-      // NE PAS sauvegarder dans localStorage ici — évite le routing automatique
-      showConfirm(d.user.role);
-    } else {
-      errDiv.textContent = d.message || 'Email ou mot de passe incorrect.';
-      errDiv.style.display = 'block';
-      btn.textContent = 'Se connecter & confirmer'; btn.disabled = false;
+    var email    = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+    var errDiv   = document.getElementById('err');
+    errDiv.style.display = 'none';
+    if (!email||!password) { errDiv.textContent='Remplissez email et mot de passe.'; errDiv.style.display='block'; return; }
+
+    var btn = document.querySelector('#s-login .btn');
+    btn.textContent='Connexion...'; btn.disabled=true;
+
+    try {
+        var r = await fetch(API_BASE+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+        var d = await r.json();
+        if (d.success) {
+            token = d.token;
+            // NE PAS sauvegarder userRole dans localStorage
+            localStorage.setItem('camunolearn_token', token);
+            showConfirm(d.user.role);
+        } else {
+            errDiv.textContent = d.message||'Identifiants incorrects.';
+            errDiv.style.display='block';
+            btn.textContent='Se connecter'; btn.disabled=false;
+        }
+    } catch(e) {
+        errDiv.textContent='Serveur inaccessible.';
+        errDiv.style.display='block';
+        btn.textContent='Se connecter'; btn.disabled=false;
     }
-  } catch(e) {
-    errDiv.textContent = 'Serveur inaccessible.';
-    errDiv.style.display = 'block';
-    btn.textContent = 'Se connecter & confirmer'; btn.disabled = false;
-  }
 }
 
-async function confirmRole() {
-  document.getElementById('confirmBtn').textContent = 'Validation...';
-  document.getElementById('confirmBtn').disabled    = true;
-  try {
-    const r = await fetch(API_BASE + '/qrsession/validate/' + sessionId, {
-      method:'POST',
-      headers:{'Content-Type':'application/json', Authorization:'Bearer '+token},
-      body: JSON.stringify({})
-    });
-    const d = await r.json();
-    if (d.success) {
-      showState('Success');
-    } else {
-      showError('❌', d.message || 'Erreur', 'Réessayez.');
-    }
-  } catch(e) {
-    showError('❌','Erreur réseau','Vérifiez votre connexion mobile.');
-  }
-}
+async function confirm_() {
+    document.getElementById('c-btn').textContent='Validation...';
+    document.getElementById('c-btn').disabled=true;
 
-document.addEventListener('keydown', e => {
-  if (e.key==='Enter' && document.getElementById('stateLogin').style.display!=='none') doLogin();
-});
+    try {
+        var r = await fetch(API_BASE+'/qrsession/validate/'+sessionId,{
+            method:'POST',
+            headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+            body:JSON.stringify({})
+        });
+        var d = await r.json();
+        if (d.success) {
+            show('s-ok');
+        } else {
+            showErr('❌', d.message||'Erreur', 'Réessayez.');
+        }
+    } catch(e) {
+        showErr('❌','Erreur réseau','Vérifiez votre connexion.');
+    }
+}
 
 init();
 </script>
