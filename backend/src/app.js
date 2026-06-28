@@ -143,6 +143,17 @@ app.listen(PORT, async () => {
       console.warn('⚠️  cross_access_requests MANQUANTE → exécutez create_cross_table.sql dans pgAdmin');
     }
 
+    // Créer la table qr_sessions si elle n'existe pas
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS qr_sessions (
+        session_id VARCHAR(36) PRIMARY KEY,
+        status VARCHAR(20) DEFAULT 'pending',
+        role VARCHAR(20),
+        created_at TIMESTAMP DEFAULT NOW(),
+        expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '15 minutes'
+      )
+    `);
+    console.log('✅ qr_sessions : OK');
     console.log('\n✅ Serveur prêt !\n');
   } catch(e) {
     console.error('❌ PostgreSQL non connecté:', e.message);
