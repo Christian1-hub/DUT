@@ -114,6 +114,10 @@ window.addEventListener('DOMContentLoaded', function() {
     if (!token) { location.href = 'indexconnexion.html'; return; }
 });
 
+function isMobile() {
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+}
+
 async function showQR(role) {
     pendingRole = role;
     var info = ROLES[role];
@@ -122,6 +126,16 @@ async function showQR(role) {
     document.getElementById('qrTitle').textContent = info.title;
     document.getElementById('overlay').style.display = 'flex';
     document.getElementById('waitMsg').style.display = 'none';
+
+    // Sur mobile → bouton direct, pas de QR
+    if (isMobile()) {
+        document.getElementById('qrImg').innerHTML =
+            '<button onclick="confirmDirectly(\'' + role + '\')" style="width:100%;padding:14px;background:' + info.color + ';color:#fff;border:none;border-radius:12px;font-weight:800;font-size:1rem;cursor:pointer;margin-top:8px">' +
+            info.icon + ' Confirmer en tant que ' + role.charAt(0).toUpperCase() + role.slice(1) +
+            '</button>';
+        return;
+    }
+
     document.getElementById('qrImg').innerHTML = '<div class="spinner"></div>';
 
     // 1. Créer session
@@ -157,6 +171,11 @@ async function showQR(role) {
             }
         } catch(e) {}
     }, 2000);
+}
+
+async function confirmDirectly(role) {
+    document.getElementById('overlay').style.display = 'none';
+    await saveRole(role);
 }
 
 async function saveRole(role) {
