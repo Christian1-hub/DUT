@@ -9,10 +9,11 @@ const SECRET = process.env.JWT_SECRET || 'camunolearn_secret_dev';
 router.post('/create', async (req, res) => {
   try {
     const sessionId = require('crypto').randomUUID();
+    const { pendingRole } = req.body;
     await pool.query(
-      `INSERT INTO qr_sessions (session_id, status, created_at, expires_at)
-       VALUES ($1, 'pending', NOW(), NOW() + INTERVAL '5 minutes')`,
-      [sessionId]
+      `INSERT INTO qr_sessions (session_id, status, role, created_at, expires_at)
+       VALUES ($1, 'pending', $2, NOW(), NOW() + INTERVAL '15 minutes')`,
+      [sessionId, pendingRole || null]
     );
     res.json({ success: true, sessionId });
   } catch(e) {
@@ -31,7 +32,10 @@ router.post('/validate/:sessionId', async (req, res) => {
     const userResult = await pool.query('SELECT role FROM users WHERE id=$1', [decoded.id]);
     if (!userResult.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
 
-    const realRole = userResult.rows[0].role;
+    // Lire le pendingRole stocké dans la session
+    const sessionResult = await pool.query('SELECT role FROM qr_sessions WHERE session_id=$1', [req.params.sessionId]);
+    const pendingRole = sessionResult.rows[0]?.role;
+    const realRole = pendingRole || userResult.rows[0].role || 'etudiant';
 
     const r = await pool.query(
       `UPDATE qr_sessions SET status='validated', role=$1

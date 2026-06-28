@@ -131,7 +131,7 @@ async function showQR(role) {
         var r = await fetch(API_BASE + '/qrsession/create', {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({})
+            body: JSON.stringify({pendingRole: role})
         });
         var d = await r.json();
         sessionId = d.sessionId;
