@@ -127,9 +127,9 @@ function showConfirm(role) {
     userRole = role;
     var info = ROLES[role] || {icon:'👤', label:role, color:'#374151'};
     document.getElementById('c-icon').textContent       = info.icon;
-    document.getElementById('c-sub').textContent        = 'Vous allez vous identifier en tant que ' + info.label;
+    document.getElementById('c-sub').textContent        = 'Vous confirmez votre rôle en tant que ' + info.label + ' sur CamunoLearn.';
     document.getElementById('c-btn').style.background   = info.color;
-    document.getElementById('c-btn').textContent        = '✅ Confirmer — ' + info.label;
+    document.getElementById('c-btn').textContent        = '✅ Confirmer en tant que ' + info.label;
     show('s-confirm');
 }
 
