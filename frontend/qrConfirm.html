@@ -16,27 +16,8 @@ input:focus { border-color:#00602a; }
 
 <!-- BLOQUER TOUT ROUTING AUTOMATIQUE SUR CETTE PAGE -->
 <script>
-// Cette page ne doit JAMAIS rediriger automatiquement
-// On neutralise localStorage.getItem pour le routing
-const _originalGetItem = localStorage.getItem.bind(localStorage);
-const _blockedKeys = ['userRole', 'camunolearn_token'];
-// On ne bloque pas, mais on empêche tout script de routing de nous rediriger
-// en remplaçant location.replace et location.href temporairement
-const _originalReplace = location.replace.bind(location);
-let _allowRedirect = false;
-Object.defineProperty(window, 'location', {
-  get: function() {
-    return {
-      replace: function(url) { if (_allowRedirect) _originalReplace(url); },
-      href: location.href,
-      hostname: location.hostname,
-      search: location.search,
-      hash: location.hash,
-      pathname: location.pathname
-    };
-  },
-  configurable: true
-});
+// Supprimer userRole pour empêcher toute redirection automatique
+localStorage.removeItem('userRole');
 </script>
 </head>
 <body class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -105,7 +86,7 @@ const API_BASE = (function() {
 <script>
 const params    = new URLSearchParams(location.search);
 const sessionId = params.get('session');
-let   token     = _originalGetItem('camunolearn_token');
+let   token     = localStorage.getItem('camunolearn_token');
 
 const ROLES = {
   etudiant:   { icon:'🎓', label:'Étudiant',   color:'#00602a' },
