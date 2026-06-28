@@ -78,6 +78,7 @@ var API_BASE = window.location.hostname==='localhost'||window.location.hostname=
 
 var params    = new URLSearchParams(location.search);
 var sessionId = params.get('session');
+var roleFromQR = params.get('role'); // rôle choisi sur PC
 var token     = localStorage.getItem('camunolearn_token');
 var userRole  = null;
 
@@ -119,7 +120,7 @@ async function init() {
         var r = await fetch(API_BASE + '/auth/me', {headers:{Authorization:'Bearer '+token}});
         var d = await r.json();
         if (!d.success) { show('s-login'); return; }
-        showConfirm(d.user.role);
+        showConfirm(roleFromQR || d.user.role);
     } catch(e) { show('s-login'); }
 }
 
@@ -150,7 +151,7 @@ async function doLogin() {
             token = d.token;
             // NE PAS sauvegarder userRole dans localStorage
             localStorage.setItem('camunolearn_token', token);
-            showConfirm(d.user.role);
+            showConfirm(roleFromQR || d.user.role);
         } else {
             errDiv.textContent = d.message||'Identifiants incorrects.';
             errDiv.style.display='block';
