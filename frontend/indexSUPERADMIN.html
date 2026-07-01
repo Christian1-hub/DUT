@@ -197,6 +197,8 @@ const STATUS_CFG   = {
       <button class="nb"    data-s="subs"        onclick="goTo('subs')"><span class="ms">credit_card</span>Abonnements</button>
       <div class="nb-sep"></div>
       <button class="nb"    data-s="validation"  onclick="goTo('validation')"><span class="ms">verified_user</span>Validation rôles</button>
+      <button class="nb"    data-s="codes"       onclick="goTo('codes')"><span class="ms">key</span>Codes d'accès</button>
+      <button class="nb"    data-s="registrations" onclick="goTo('registrations')"><span class="ms">assignment_ind</span>Inscriptions</button>
       <button class="nb"    data-s="createadmin" onclick="goTo('createadmin')"><span class="ms">person_add</span>Créer Admin</button>
       <button class="nb"    data-s="createteacher" onclick="goTo('createteacher')"><span class="ms">school</span>Créer Prof</button>
       <button class="nb"    data-s="createuniv"  onclick="goTo('createuniv')"><span class="ms">domain_add</span>Créer Université</button>
@@ -418,6 +420,72 @@ const STATUS_CFG   = {
       </div>
     </div>
 
+
+    <!-- ══ CODES D'ACCÈS ══ -->
+    <div id="sec-codes" class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Codes d'accès</h1>
+          <p style="font-size:.85rem;color:#64748b;margin-top:4px">Codes professeurs (4 caractères) et admins (6 caractères).</p>
+        </div>
+        <button onclick="loadCodes()" class="btn ghost sm"><span class="ms">refresh</span>Actualiser</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card" style="overflow:hidden">
+          <div style="padding:16px 20px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center">
+            <h2 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#f8fafc;margin:0">👨‍🏫 Codes Professeurs</h2>
+            <span id="prof-codes-count" style="font-size:.78rem;color:#64748b"></span>
+          </div>
+          <div id="prof-codes-list" style="padding:16px;max-height:500px;overflow-y:auto">
+            <div class="sk" style="height:40px;border-radius:8px;margin-bottom:8px"></div>
+          </div>
+        </div>
+        <div class="card" style="overflow:hidden">
+          <div style="padding:16px 20px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center">
+            <h2 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#f8fafc;margin:0">⚙️ Codes Admins</h2>
+            <span id="admin-codes-count" style="font-size:.78rem;color:#64748b"></span>
+          </div>
+          <div id="admin-codes-list" style="padding:16px;max-height:500px;overflow-y:auto">
+            <div class="sk" style="height:40px;border-radius:8px;margin-bottom:8px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ INSCRIPTIONS & VALIDATIONS ══ -->
+    <div id="sec-registrations" class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Inscriptions & Validations</h1>
+          <p style="font-size:.85rem;color:#64748b;margin-top:4px">Historique complet des inscriptions et des validations de rôles.</p>
+        </div>
+        <button onclick="loadRegistrations()" class="btn ghost sm"><span class="ms">refresh</span>Actualiser</button>
+      </div>
+      <!-- Tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button id="tab-inscriptions" onclick="switchTab('inscriptions')" class="btn primary sm">Inscriptions</button>
+        <button id="tab-validations"  onclick="switchTab('validations')"  class="btn ghost sm">Validations rôles</button>
+      </div>
+      <!-- Inscriptions -->
+      <div id="tab-inscriptions-content" class="card" style="overflow:hidden">
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>École</th><th>Date inscription</th><th>Statut</th></tr></thead>
+            <tbody id="inscriptions-tbody"><tr><td colspan="6" style="padding:20px"><div class="sk" style="height:36px;border-radius:8px"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Validations -->
+      <div id="tab-validations-content" class="card" style="overflow:hidden;display:none">
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Nom</th><th>Email</th><th>Rôle demandé</th><th>École</th><th>Date demande</th><th>Statut</th></tr></thead>
+            <tbody id="validations-tbody"><tr><td colspan="6" style="padding:20px"><div class="sk" style="height:36px;border-radius:8px"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- fin main -->
 </div><!-- fin app-screen -->
 
@@ -565,7 +633,7 @@ async function api(path, opts) {
 const TITLES = {
   overview:'Vue globale', univs:'Universités', users:'Utilisateurs',
   communities:'Communautés', logs:'Activité', subs:'Abonnements',
-  validation:'Validation des rôles', createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
+  validation:'Validation des rôles', codes:'Codes d\'accès', registrations:'Inscriptions & Validations', createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
 };
 
 function goTo(s) {
@@ -580,6 +648,8 @@ function goTo(s) {
   if (s==='logs'        && !loaded.logs)        loadLogs();
   if (s==='subs'        && !loaded.subs)        loadSubs();
   if (s==='validation')                         loadValidation();
+  if (s==='codes')                              loadCodes();
+  if (s==='registrations')                      loadRegistrations();
 }
 
 // ════════════════════════════════════════════════
@@ -921,6 +991,10 @@ async function deleteAllComms() {
 //  ACTIVITÉ / LOGS
 // ════════════════════════════════════════════════
 const LOG_TYPES = {
+  role_demande:   {col:'#f59e0b',icon:'pending',             label:'Demande rôle'},
+  role_approuve:  {col:'#4ade80',icon:'verified',            label:'Rôle approuvé'},
+  role_refuse:    {col:'#f87171',icon:'cancel',              label:'Rôle refusé'},
+  post_communaute:{col:'#34d399',icon:'forum',               label:'Post communauté'},
   inscription:  {col:'#60a5fa',icon:'person_add',   label:'Inscription'},
   nouveau_cours:{col:'#4ade80',icon:'auto_stories',  label:'Cours'},
   devoir_rendu: {col:'#f59e0b',icon:'assignment_turned_in',label:'Devoir'},
@@ -1289,6 +1363,111 @@ async function quickSearch() {
   } else {
     toast('Aucun résultat pour "'+q+'".','err');
   }
+}
+
+// ════════════════════════════════════════════════
+//  CODES D'ACCÈS
+// ════════════════════════════════════════════════
+async function loadCodes() {
+  document.getElementById('prof-codes-list').innerHTML = '<div class="sk" style="height:40px;border-radius:8px;margin-bottom:8px"></div>';
+  document.getElementById('admin-codes-list').innerHTML = '<div class="sk" style="height:40px;border-radius:8px;margin-bottom:8px"></div>';
+  const d = await api('/superadmin/codes');
+  if (!d || !d.success) {
+    document.getElementById('prof-codes-list').innerHTML = '<p style="color:#f87171;padding:12px">Erreur chargement.</p>';
+    document.getElementById('admin-codes-list').innerHTML = '<p style="color:#f87171;padding:12px">Erreur chargement.</p>';
+    return;
+  }
+
+  const profUsed  = d.prof_codes.filter(function(c){ return c.is_used; }).length;
+  const adminUsed = d.admin_codes.filter(function(c){ return c.is_used; }).length;
+  document.getElementById('prof-codes-count').textContent  = profUsed+'/'+d.prof_codes.length+' utilisés';
+  document.getElementById('admin-codes-count').textContent = adminUsed+'/'+d.admin_codes.length+' utilisés';
+
+  function renderCode(code, color) {
+    var used = code.is_used;
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;margin-bottom:6px;background:'+(used?'#0f172a':'#1e293b')+';border:1px solid '+(used?'#334155':'#475569')+';opacity:'+(used?'.6':'1')+'">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<span style="font-family:Manrope;font-weight:900;font-size:1.1rem;color:'+(used?'#475569':color)+';letter-spacing:.1em">'+code.code+'</span>'
+      +(used && code.used_by_name
+        ? '<div><p style="font-size:.75rem;color:#64748b;margin:0">'+code.used_by_name+'</p><p style="font-size:.7rem;color:#334155;margin:0">'+code.used_by_email+'</p>'+(code.school?'<p style="font-size:.7rem;color:#334155;margin:0">'+code.school+'</p>':'')+'</div>'
+        : '')
+      +'</div>'
+      +'<span class="bdg" style="background:'+(used?'#450a0a':'#052e16')+';color:'+(used?'#f87171':'#4ade80')+'">'+(used?'Utilisé':'Disponible')+'</span>'
+      +'</div>';
+  }
+
+  document.getElementById('prof-codes-list').innerHTML  = d.prof_codes.map(function(c){ return renderCode(c,'#60a5fa'); }).join('');
+  document.getElementById('admin-codes-list').innerHTML = d.admin_codes.map(function(c){ return renderCode(c,'#a78bfa'); }).join('');
+}
+
+// ════════════════════════════════════════════════
+//  INSCRIPTIONS & VALIDATIONS
+// ════════════════════════════════════════════════
+var regData = { inscriptions:[], validations:[] };
+
+async function loadRegistrations() {
+  const d = await api('/superadmin/registrations');
+  if (!d || !d.success) return;
+  regData = d;
+  renderInscriptions();
+  renderValidations();
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-inscriptions-content').style.display = tab==='inscriptions'?'block':'none';
+  document.getElementById('tab-validations-content').style.display  = tab==='validations'?'block':'none';
+  document.getElementById('tab-inscriptions').className = tab==='inscriptions'?'btn primary sm':'btn ghost sm';
+  document.getElementById('tab-validations').className  = tab==='validations'?'btn primary sm':'btn ghost sm';
+}
+
+function renderInscriptions() {
+  var roleColor = {etudiant:'#60a5fa',enseignant:'#4ade80',admin:'#f59e0b',superadmin:'#a78bfa'};
+  var roleLabel = {etudiant:'Étudiant',enseignant:'Prof',admin:'Admin',superadmin:'Super Admin'};
+  var tbody = document.getElementById('inscriptions-tbody');
+  if (!regData.inscriptions.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#475569;padding:24px">Aucune inscription.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = regData.inscriptions.map(function(u) {
+    var col = roleColor[u.role]||'#94a3b8';
+    var lbl = roleLabel[u.role]||u.role;
+    var date = new Date(u.created_at).toLocaleString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    return '<tr>'
+      +'<td style="font-weight:600;color:#f8fafc">'+u.first_name+' '+u.last_name+'</td>'
+      +'<td style="color:#475569;font-size:.8rem">'+u.email+'</td>'
+      +'<td><span class="bdg" style="background:'+col+'20;color:'+col+'">'+lbl+'</span></td>'
+      +'<td style="color:#64748b;font-size:.8rem">'+(u.school||'—')+'</td>'
+      +'<td style="color:#475569;font-size:.78rem">'+date+'</td>'
+      +'<td><span class="bdg '+(u.is_active!==false?'status-active':'status-inactive')+'">'+(u.is_active!==false?'Actif':'Inactif')+'</span></td>'
+      +'</tr>';
+  }).join('');
+}
+
+function renderValidations() {
+  var statusColor = {approved:'#4ade80',rejected:'#f87171',pending:'#f59e0b'};
+  var statusLabel = {approved:'Approuvé',rejected:'Refusé',pending:'En attente'};
+  var roleColor   = {enseignant:'#60a5fa',admin:'#a78bfa'};
+  var roleLabel   = {enseignant:'Professeur',admin:'Admin'};
+  var tbody = document.getElementById('validations-tbody');
+  if (!regData.validations.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#475569;padding:24px">Aucune demande de validation.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = regData.validations.map(function(v) {
+    var sc = statusColor[v.status]||'#94a3b8';
+    var sl = statusLabel[v.status]||v.status;
+    var rc = roleColor[v.requested_role]||'#94a3b8';
+    var rl = roleLabel[v.requested_role]||v.requested_role;
+    var date = new Date(v.created_at).toLocaleString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    return '<tr>'
+      +'<td style="font-weight:600;color:#f8fafc">'+v.first_name+' '+v.last_name+'</td>'
+      +'<td style="color:#475569;font-size:.8rem">'+v.email+'</td>'
+      +'<td><span class="bdg" style="background:'+rc+'20;color:'+rc+'">'+rl+'</span></td>'
+      +'<td style="color:#64748b;font-size:.8rem">'+(v.school||'—')+'</td>'
+      +'<td style="color:#475569;font-size:.78rem">'+date+'</td>'
+      +'<td><span class="bdg" style="background:'+sc+'20;color:'+sc+'">'+sl+'</span></td>'
+      +'</tr>';
+  }).join('');
 }
 
 // ════════════════════════════════════════════════
