@@ -1228,8 +1228,8 @@ async function loadValidation() {
     return;
   }
   const requests = d.requests || [];
-  const profs  = requests.filter(r => r.requested_role==='enseignant');
-  const admins = requests.filter(r => r.requested_role==='admin');
+  const profs  = requests.filter(function(r){ return r.requested_role==='enseignant'; });
+  const admins = requests.filter(function(r){ return r.requested_role==='admin'; });
   document.getElementById('v-count-all').textContent   = requests.length;
   document.getElementById('v-count-prof').textContent  = profs.length;
   document.getElementById('v-count-admin').textContent = admins.length;
@@ -1238,30 +1238,29 @@ async function loadValidation() {
       '<div style="text-align:center;color:#475569;padding:40px;font-size:.9rem">✅ Aucune demande en attente</div>';
     return;
   }
-  document.getElementById('v-list').innerHTML = requests.map(req => {
-    const isProf = req.requested_role==='enseignant';
-    const color  = isProf ? '#60a5fa' : '#a78bfa';
-    const bg     = isProf ? '#1e3a5f' : '#2e1065';
-    const label  = isProf ? 'Professeur' : 'Admin';
-    const icon   = isProf ? '👨‍🏫' : '⚙️';
-    const date   = new Date(req.created_at).toLocaleString('fr-FR');
-    return \`<div id="vreq-\${req.id}" style="border:1px solid #334155;border-radius:14px;padding:18px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:#0f172a">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:48px;height:48px;border-radius:50%;background:\${bg};display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">\${icon}</div>
-        <div>
-          <p style="font-weight:700;color:#f8fafc;margin:0">\${req.first_name} \${req.last_name}</p>
-          <p style="font-size:.8rem;color:#64748b;margin:2px 0">\${req.email}</p>
-          <span style="display:inline-block;background:\${bg};color:\${color};padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:700;margin-top:4px">\${label}</span>
-          <p style="font-size:.7rem;color:#475569;margin:4px 0 0">Demande le \${date}</p>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button onclick="approveRole(\${req.id})" class="btn primary sm">✅ Approuver</button>
-        <button onclick="rejectRole(\${req.id})" class="btn danger sm">❌ Refuser</button>
-      </div>
-    </div>\`;
+  document.getElementById('v-list').innerHTML = requests.map(function(req) {
+    var isProf = req.requested_role==='enseignant';
+    var color  = isProf ? '#60a5fa' : '#a78bfa';
+    var bg     = isProf ? '#1e3a5f' : '#2e1065';
+    var label  = isProf ? 'Professeur' : 'Admin';
+    var icon   = isProf ? '👨‍🏫' : '⚙️';
+    var date   = new Date(req.created_at).toLocaleString('fr-FR');
+    return '<div id="vreq-'+req.id+'" style="border:1px solid #334155;border-radius:14px;padding:18px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:#0f172a">'
+      +'<div style="display:flex;align-items:center;gap:12px">'
+      +'<div style="width:48px;height:48px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">'+icon+'</div>'
+      +'<div>'
+      +'<p style="font-weight:700;color:#f8fafc;margin:0">'+req.first_name+' '+req.last_name+'</p>'
+      +'<p style="font-size:.8rem;color:#64748b;margin:2px 0">'+req.email+'</p>'
+      +'<span style="display:inline-block;background:'+bg+';color:'+color+';padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:700;margin-top:4px">'+label+'</span>'
+      +'<p style="font-size:.7rem;color:#475569;margin:4px 0 0">Demande le '+date+'</p>'
+      +'</div></div>'
+      +'<div style="display:flex;gap:8px">'
+      +'<button onclick="approveRole('+req.id+')" class="btn primary sm">✅ Approuver</button>'
+      +'<button onclick="rejectRole('+req.id+')" class="btn danger sm">❌ Refuser</button>'
+      +'</div></div>';
   }).join('');
 }
+
 
 async function approveRole(id) {
   document.querySelector('#vreq-'+id).style.opacity = '.5';
