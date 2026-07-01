@@ -198,6 +198,7 @@ const STATUS_CFG   = {
       <div class="nb-sep"></div>
       <button class="nb"    data-s="validation"  onclick="goTo('validation')"><span class="ms">verified_user</span>Validation rôles</button>
       <button class="nb"    data-s="codes"       onclick="goTo('codes')"><span class="ms">key</span>Codes d'accès</button>
+      <button class="nb"    data-s="school-codes" onclick="goTo('school-codes')"><span class="ms">business</span>Codes écoles</button>
       <button class="nb"    data-s="registrations" onclick="goTo('registrations')"><span class="ms">assignment_ind</span>Inscriptions</button>
       <button class="nb"    data-s="createadmin" onclick="goTo('createadmin')"><span class="ms">person_add</span>Créer Admin</button>
       <button class="nb"    data-s="createteacher" onclick="goTo('createteacher')"><span class="ms">school</span>Créer Prof</button>
@@ -452,6 +453,22 @@ const STATUS_CFG   = {
       </div>
     </div>
 
+    <!-- ══ CODES PAR ÉCOLE ══ -->
+    <div id="sec-school-codes" class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Codes par école</h1>
+          <p style="font-size:.85rem;color:#64748b;margin-top:4px">Codes secrets partagés entre collègues d'un même établissement.</p>
+        </div>
+        <button onclick="loadSchoolCodes()" class="btn ghost sm"><span class="ms">refresh</span>Actualiser</button>
+      </div>
+      <div id="school-codes-list">
+        <div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div>
+        <div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div>
+        <div class="sk" style="height:80px;border-radius:14px"></div>
+      </div>
+    </div>
+
     <!-- ══ INSCRIPTIONS & VALIDATIONS ══ -->
     <div id="sec-registrations" class="sec">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
@@ -633,7 +650,7 @@ async function api(path, opts) {
 const TITLES = {
   overview:'Vue globale', univs:'Universités', users:'Utilisateurs',
   communities:'Communautés', logs:'Activité', subs:'Abonnements',
-  validation:'Validation des rôles', codes:'Codes d\'accès', registrations:'Inscriptions & Validations', createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
+  validation:'Validation des rôles', codes:'Codes d\'accès', 'school-codes':'Codes par école', registrations:'Inscriptions & Validations', createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
 };
 
 function goTo(s) {
@@ -649,6 +666,7 @@ function goTo(s) {
   if (s==='subs'        && !loaded.subs)        loadSubs();
   if (s==='validation')                         loadValidation();
   if (s==='codes')                              loadCodes();
+  if (s==='school-codes')                       loadSchoolCodes();
   if (s==='registrations')                      loadRegistrations();
 }
 
@@ -1319,35 +1337,67 @@ async function loadValidation() {
     var label  = isProf ? 'Professeur' : 'Admin';
     var icon   = isProf ? '👨‍🏫' : '⚙️';
     var date   = new Date(req.created_at).toLocaleString('fr-FR');
-    return '<div id="vreq-'+req.id+'" style="border:1px solid #334155;border-radius:14px;padding:18px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:#0f172a">'
-      +'<div style="display:flex;align-items:center;gap:12px">'
-      +'<div style="width:48px;height:48px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">'+icon+'</div>'
+    return '<div id="vreq-'+req.id+'" style="border:1px solid #334155;border-radius:14px;padding:18px;margin-bottom:10px;background:#0f172a">'
+      // Ligne principale
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">'
+      +'<div style="display:flex;align-items:center;gap:14px">'
+      +'<div style="width:52px;height:52px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">'+icon+'</div>'
       +'<div>'
-      +'<p style="font-weight:700;color:#f8fafc;margin:0">'+req.first_name+' '+req.last_name+'</p>'
-      +'<p style="font-size:.8rem;color:#64748b;margin:2px 0">'+req.email+'</p>'
-      +'<span style="display:inline-block;background:'+bg+';color:'+color+';padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:700;margin-top:4px">'+label+'</span>'
-      +'<p style="font-size:.7rem;color:#475569;margin:4px 0 0">Demande le '+date+'</p>'
+      +'<p style="font-weight:800;color:#f8fafc;margin:0;font-size:1rem">'+req.first_name+' '+req.last_name+'</p>'
+      +'<p style="font-size:.82rem;color:#64748b;margin:3px 0">'+req.email+'</p>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'
+      +'<span class="vreq-status" style="display:inline-block;background:'+bg+';color:'+color+';padding:3px 12px;border-radius:999px;font-size:.72rem;font-weight:700">'+label+'</span>'
+      +(req.school ? '<span style="display:inline-block;background:#1e293b;color:#94a3b8;padding:3px 12px;border-radius:999px;font-size:.72rem;font-weight:600">🏫 '+req.school+'</span>' : '')
+      +'<span style="display:inline-block;background:#1e293b;color:#475569;padding:3px 12px;border-radius:999px;font-size:.72rem">📅 '+date+'</span>'
+      +'</div>'
       +'</div></div>'
-      +'<div style="display:flex;gap:8px">'
+      +'<div class="vreq-btns" style="display:flex;gap:8px;align-items:center">'
       +'<button onclick="approveRole('+req.id+')" class="btn primary sm">✅ Approuver</button>'
       +'<button onclick="rejectRole('+req.id+')" class="btn danger sm">❌ Refuser</button>'
-      +'</div></div>';
+      +'</div>'
+      +'</div>'
+      +'</div>';
   }).join('');
 }
 
 
 async function approveRole(id) {
-  document.querySelector('#vreq-'+id).style.opacity = '.5';
+  var el = document.querySelector('#vreq-'+id);
+  if (!el) return;
+  var btns = el.querySelector('.vreq-btns');
+  if (btns) btns.innerHTML = '<span style="font-size:.8rem;color:#64748b">Validation...</span>';
+
   const d = await api('/auth/role-requests/'+id+'/approve', {method:'POST'});
-  if (d?.success) { toast('Demande approuvée !'); setTimeout(loadValidation, 800); }
-  else { toast(d?.message||'Erreur.','err'); document.querySelector('#vreq-'+id).style.opacity='1'; }
+  if (d?.success) {
+    // Ne pas supprimer la carte — juste mettre à jour le statut
+    el.style.border = '1px solid #16a34a';
+    el.style.background = '#052e16';
+    if (btns) btns.innerHTML = '<span style="background:#052e16;color:#4ade80;padding:6px 14px;border-radius:8px;font-weight:700;font-size:.85rem">✅ Approuvé</span>';
+    // Mettre à jour le badge de statut
+    var statusEl = el.querySelector('.vreq-status');
+    if (statusEl) { statusEl.textContent='Approuvé'; statusEl.style.background='#052e16'; statusEl.style.color='#4ade80'; }
+    document.getElementById('v-count-all').textContent = Math.max(0, parseInt(document.getElementById('v-count-all').textContent||'0') - 1);
+    toast('Demande approuvée !');
+  } else {
+    if (btns) btns.innerHTML = '<button onclick="approveRole('+id+')" class="btn primary sm">✅ Approuver</button><button onclick="rejectRole('+id+')" class="btn danger sm">❌ Refuser</button>';
+    toast(d?.message||'Erreur.','err');
+  }
 }
 
 async function rejectRole(id) {
   if (!confirm('Refuser cette demande ?')) return;
+  var el = document.querySelector('#vreq-'+id);
+  var btns = el ? el.querySelector('.vreq-btns') : null;
+
   const d = await api('/auth/role-requests/'+id+'/reject', {method:'POST'});
-  if (d?.success) { toast('Demande refusée.'); setTimeout(loadValidation, 800); }
-  else toast(d?.message||'Erreur.','err');
+  if (d?.success) {
+    if (el) { el.style.border='1px solid #7f1d1d'; el.style.background='#1c0a0a'; el.style.opacity='.7'; }
+    if (btns) btns.innerHTML = '<span style="background:#450a0a;color:#f87171;padding:6px 14px;border-radius:8px;font-weight:700;font-size:.85rem">❌ Refusé</span>';
+    var statusEl = el ? el.querySelector('.vreq-status') : null;
+    if (statusEl) { statusEl.textContent='Refusé'; statusEl.style.background='#450a0a'; statusEl.style.color='#f87171'; }
+    document.getElementById('v-count-all').textContent = Math.max(0, parseInt(document.getElementById('v-count-all').textContent||'0') - 1);
+    toast('Demande refusée.');
+  } else toast(d?.message||'Erreur.','err');
 }
 
 // ════════════════════════════════════════════════
@@ -1468,6 +1518,66 @@ function renderValidations() {
       +'<td><span class="bdg" style="background:'+sc+'20;color:'+sc+'">'+sl+'</span></td>'
       +'</tr>';
   }).join('');
+}
+
+// ════════════════════════════════════════════════
+//  CODES PAR ÉCOLE
+// ════════════════════════════════════════════════
+async function loadSchoolCodes() {
+  document.getElementById('school-codes-list').innerHTML =
+    '<div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div>'.repeat(3);
+  const d = await api('/superadmin/school-codes');
+  if (!d || !d.success) {
+    document.getElementById('school-codes-list').innerHTML =
+      '<div class="card card-pad" style="color:#f87171">Erreur chargement.</div>';
+    return;
+  }
+  if (!d.codes.length) {
+    document.getElementById('school-codes-list').innerHTML =
+      '<div class="card card-pad" style="text-align:center;color:#475569">Aucun code configuré.</div>';
+    return;
+  }
+  document.getElementById('school-codes-list').innerHTML = d.codes.map(function(sc) {
+    var active = sc.is_active;
+    return '<div class="card card-pad" style="margin-bottom:10px;opacity:'+(active?'1':'.6')+'">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">'
+      +'<div>'
+      +'<h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#f8fafc;margin:0">🏫 '+sc.school+'</h3>'
+      +'<span class="bdg '+(active?'status-active':'status-inactive')+'" style="margin-top:6px;display:inline-block">'+(active?'Actif':'Désactivé')+'</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px">'
+      +'<button onclick="toggleSchoolCode('+sc.id+')" class="btn ghost sm">'+(active?'Désactiver':'Activer')+'</button>'
+      +'</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+      // Code prof
+      +'<div style="background:#0f172a;border-radius:12px;padding:14px">'
+      +'<p style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin-bottom:8px">👨‍🏫 Code Professeurs</p>'
+      +'<p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#60a5fa;letter-spacing:.15em;margin:0 0 10px">'+sc.prof_code+'</p>'
+      +'<button onclick="regenCode('+sc.id+','prof')" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span>Régénérer</button>'
+      +'</div>'
+      // Code admin
+      +'<div style="background:#0f172a;border-radius:12px;padding:14px">'
+      +'<p style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin-bottom:8px">⚙️ Code Admins</p>'
+      +'<p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#a78bfa;letter-spacing:.15em;margin:0 0 10px">'+sc.admin_code+'</p>'
+      +'<button onclick="regenCode('+sc.id+','admin')" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span>Régénérer</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+async function toggleSchoolCode(id) {
+  const d = await api('/superadmin/school-codes/'+id+'/toggle', {method:'PUT'});
+  if (d?.success) { toast(d.code.is_active ? 'Codes activés.' : 'Codes désactivés.'); loadSchoolCodes(); }
+  else toast(d?.message||'Erreur.','err');
+}
+
+async function regenCode(id, type) {
+  if (!confirm('Régénérer le code '+(type==='prof'?'professeurs':'admins')+' ? Les anciens codes ne fonctionneront plus.')) return;
+  const d = await api('/superadmin/school-codes/'+id+'/regenerate', {method:'PUT', body:JSON.stringify({type})});
+  if (d?.success) { toast('Nouveau code : '+d.new_code); loadSchoolCodes(); }
+  else toast(d?.message||'Erreur.','err');
 }
 
 // ════════════════════════════════════════════════

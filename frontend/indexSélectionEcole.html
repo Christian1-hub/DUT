@@ -107,6 +107,36 @@
       </div>
 
       <!-- ═══════════════════════════════════════
+           ÉTAPE CODE — PROF / ADMIN
+      ════════════════════════════════════════ -->
+      <div class="step" id="step-code">
+        <button onclick="goStep(1)" style="display:flex;align-items:center;gap:6px;color:#9ca3af;font-size:.8rem;font-weight:600;border:none;background:none;cursor:pointer;margin-bottom:16px;font-family:inherit">
+          <span class="ms" style="font-size:16px">arrow_back</span> Retour
+        </button>
+        <div id="code-icon" style="font-size:3rem;text-align:center;margin-bottom:12px">👨‍🏫</div>
+        <h2 style="font-family:Manrope;font-weight:800;font-size:1.3rem;color:#111;margin-bottom:6px;text-align:center">Code d'accès établissement</h2>
+        <p id="code-sub" style="font-size:.875rem;color:#9ca3af;margin-bottom:8px;text-align:center">Entrez le code secret de votre établissement.</p>
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 14px;margin-bottom:20px;font-size:.8rem;color:#166534;text-align:center">
+          🔒 Ce code est partagé entre collègues de <strong id="code-school-name"></strong>
+        </div>
+
+        <input id="school-code-input" type="text"
+               placeholder="------"
+               maxlength="8"
+               autocomplete="off"
+               style="width:100%;padding:16px;border-radius:12px;border:2px solid #e5e7eb;font-size:1.6rem;font-weight:800;font-family:Manrope;letter-spacing:.3em;text-align:center;text-transform:uppercase;outline:none;margin-bottom:10px"
+               oninput="this.value=this.value.toUpperCase();validateCodeInput()"
+               onfocus="this.style.borderColor='#00602a'" onblur="this.style.borderColor='#e5e7eb'"/>
+
+        <div id="code-error" style="display:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.82rem;margin-bottom:10px;text-align:center"></div>
+
+        <button id="btn-code" class="btn-main" disabled onclick="submitCodeAndSchool()">
+          <span class="ms">lock_open</span> Valider le code
+        </button>
+        <p style="text-align:center;font-size:.75rem;color:#9ca3af;margin-top:10px">Code oublié ? Contactez un collègue ou le super-administrateur.</p>
+      </div>
+
+      <!-- ═══════════════════════════════════════
            ÉTAPE 2 — FILIÈRE (étudiant uniquement)
       ════════════════════════════════════════ -->
       <div class="step" id="step2">
@@ -356,13 +386,66 @@ async function handleStep1Continue() {
   if (!selectedSchool) return;
   const role = currentUser.role;
 
-  // Pour prof et admin → soumettre directement, pas d'étapes 2 et 3
-  if (role === 'enseignant' || role === 'admin' || role === 'superadmin') {
+  if (role === 'superadmin') {
     await submitSchool({ school: selectedSchool });
+  } else if (role === 'enseignant' || role === 'admin') {
+    // Afficher étape code
+    document.getElementById('code-icon').textContent = role === 'enseignant' ? '👨‍🏫' : '⚙️';
+    document.getElementById('code-sub').textContent = role === 'enseignant'
+      ? 'Entrez le code prof secret de votre établissement.'
+      : 'Entrez le code admin secret de votre établissement.';
+    document.getElementById('code-school-name').textContent = selectedSchool;
+    document.getElementById('school-code-input').value = '';
+    document.getElementById('btn-code').disabled = true;
+    document.getElementById('code-error').style.display = 'none';
+    // Aller à l'étape code
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('on'));
+    document.getElementById('step-code').classList.add('on');
+    setTimeout(() => document.getElementById('school-code-input').focus(), 100);
   } else {
     // Étudiant → aller à l'étape 2
     renderFilieres();
     goStep(2);
+  }
+}
+
+function validateCodeInput() {
+  const val = document.getElementById('school-code-input').value.trim();
+  const role = currentUser.role;
+  const minLen = role === 'enseignant' ? 6 : 8;
+  document.getElementById('btn-code').disabled = val.length < minLen;
+}
+
+async function submitCodeAndSchool() {
+  const code = document.getElementById('school-code-input').value.trim().toUpperCase();
+  const errDiv = document.getElementById('code-error');
+  const btn = document.getElementById('btn-code');
+  errDiv.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite">autorenew</span> Vérification...';
+
+  try {
+    const r = await fetch(API_BASE + '/auth/verify-school-code', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + token},
+      body: JSON.stringify({ school: selectedSchool, code })
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      // Code valide → soumettre l'école
+      await submitSchool({ school: selectedSchool });
+    } else {
+      errDiv.textContent = d.message || 'Code incorrect.';
+      errDiv.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<span class="ms">lock_open</span> Valider le code';
+    }
+  } catch(e) {
+    errDiv.textContent = 'Erreur réseau — réessayez.';
+    errDiv.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<span class="ms">lock_open</span> Valider le code';
   }
 }
 

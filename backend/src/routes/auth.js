@@ -415,4 +415,35 @@ router.post('/role-requests/:id/reject', auth, async (req, res) => {
   }
 });
 
+
+// POST /api/auth/verify-school-code — vérifier code école pour prof/admin
+router.post('/verify-school-code', auth, async (req, res) => {
+  try {
+    const { school, code } = req.body;
+    if (!school || !code) return res.status(400).json({ success: false, message: 'École et code requis.' });
+
+    const role = req.user.role;
+    if (role !== 'enseignant' && role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Réservé aux profs et admins.' });
+    }
+
+    const r = await pool.query(
+      'SELECT prof_code, admin_code, is_active FROM school_codes WHERE school=$1',
+      [school]
+    );
+    if (!r.rows.length) return res.status(404).json({ success: false, message: 'Aucun code trouvé pour cet établissement.' });
+    if (!r.rows[0].is_active) return res.status(403).json({ success: false, message: 'Les codes de cet établissement sont désactivés.' });
+
+    const expectedCode = role === 'enseignant' ? r.rows[0].prof_code : r.rows[0].admin_code;
+    if (code.toUpperCase().trim() !== expectedCode) {
+      return res.status(401).json({ success: false, message: 'Code incorrect. Vérifiez avec vos collègues.' });
+    }
+
+    res.json({ success: true, message: 'Code valide !' });
+  } catch(e) {
+    console.error('[VERIFY-SCHOOL-CODE]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 module.exports = router;

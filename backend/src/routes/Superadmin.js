@@ -542,4 +542,48 @@ router.get('/subscriptions/stats', async (req, res) => {
   }
 });
 
+
+// ── GET /api/superadmin/school-codes ─────────────────────────
+router.get('/school-codes', async (req, res) => {
+  try {
+    const r = await pool.query('SELECT * FROM school_codes ORDER BY school ASC');
+    res.json({ success: true, codes: r.rows });
+  } catch(e) {
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// ── PUT /api/superadmin/school-codes/:school/toggle ───────────
+router.put('/school-codes/:id/toggle', async (req, res) => {
+  try {
+    const r = await pool.query(
+      'UPDATE school_codes SET is_active = NOT is_active WHERE id=$1 RETURNING *',
+      [req.params.id]
+    );
+    if (!r.rows.length) return res.status(404).json({ success: false, message: 'Introuvable.' });
+    res.json({ success: true, code: r.rows[0] });
+  } catch(e) {
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// ── PUT /api/superadmin/school-codes/:id/regenerate ───────────
+router.put('/school-codes/:id/regenerate', async (req, res) => {
+  try {
+    const { type } = req.body; // 'prof' ou 'admin'
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const gen = (len) => Array.from({length:len}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+    const newCode = type === 'prof' ? gen(6) : gen(8);
+    const field   = type === 'prof' ? 'prof_code' : 'admin_code';
+    const r = await pool.query(
+      `UPDATE school_codes SET ${field}=$1 WHERE id=$2 RETURNING *`,
+      [newCode, req.params.id]
+    );
+    if (!r.rows.length) return res.status(404).json({ success: false, message: 'Introuvable.' });
+    res.json({ success: true, code: r.rows[0], new_code: newCode });
+  } catch(e) {
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 module.exports = router;

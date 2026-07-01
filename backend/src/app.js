@@ -178,6 +178,38 @@ app.listen(PORT, async () => {
     `);
     console.log('✅ prof_codes + admin_codes : OK');
 
+    // Créer la table school_codes si elle n'existe pas
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS school_codes (
+        id SERIAL PRIMARY KEY,
+        school VARCHAR(100) UNIQUE NOT NULL,
+        prof_code VARCHAR(6) NOT NULL,
+        admin_code VARCHAR(8) NOT NULL,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    // Insérer les codes par défaut si table vide
+    const scCount = await pool.query('SELECT COUNT(*) FROM school_codes');
+    if (parseInt(scCount.rows[0].count) === 0) {
+      await pool.query(`
+        INSERT INTO school_codes (school, prof_code, admin_code) VALUES
+        ('IUT de Douala', '7VUVMG', 'ZSENCLRN'),
+        ('ENSET de Douala', 'ZNC32A', 'KH67L6Y4'),
+        ('Université de Douala', 'U3YVCV', 'AXX8QG9B'),
+        ('UCAC - ICAM', 'Q8F24D', 'H7RGCB82'),
+        ('FMSP Douala', 'A8ML8X', 'RZAMQZDL'),
+        ('Institut Universitaire de la Côte', 'MD3ZLV', 'GY978Z7R'),
+        ('ESSEC Douala', 'G5VYVQ', 'SMDCCQL8'),
+        ('Université de Yaoundé I', 'BAZ54K', 'C4FY5PS7'),
+        ('Université de Yaoundé II', 'AB4TDT', 'HVFP2SSF'),
+        ('SUP''PTIC Douala', '3LHVRE', 'M6RJBRJ9')
+        ON CONFLICT DO NOTHING
+      `);
+      console.log('✅ school_codes : codes insérés');
+    }
+    console.log('✅ school_codes : OK');
+
     // Créer la table role_requests si elle n'existe pas
     await pool.query(`
       CREATE TABLE IF NOT EXISTS role_requests (
