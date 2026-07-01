@@ -572,6 +572,8 @@ async function saLogin() {
     const d = await r.json();
     if (d.success && d.user.role === 'superadmin') {
       localStorage.setItem('sa_token', d.token);
+      localStorage.setItem('camunolearn_token', d.token);
+      localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
       ME = d.user;
       startApp();
     } else if (d.success) {
@@ -609,12 +611,13 @@ function saLogout() {
 
 // Auto-login si token présent
 window.addEventListener('DOMContentLoaded', async () => {
-  const t = TK();
+  const t = TK() || localStorage.getItem('camunolearn_token');
   if (!t) return;
   try {
     const r = await fetch(API + '/auth/me', {headers:{'Authorization':'Bearer '+t}});
     const d = await r.json();
     if (d.success && d.user.role === 'superadmin') {
+      localStorage.setItem('sa_token', t);
       ME = d.user;
       startApp();
     } else {
@@ -1525,7 +1528,7 @@ function renderValidations() {
 // ════════════════════════════════════════════════
 async function loadSchoolCodes() {
   document.getElementById('school-codes-list').innerHTML =
-    '<div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div>'.repeat(3);
+    '<div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:80px;border-radius:14px"></div>';
   const d = await api('/superadmin/school-codes');
   if (!d || !d.success) {
     document.getElementById('school-codes-list').innerHTML =
@@ -1550,23 +1553,20 @@ async function loadSchoolCodes() {
       +'</div>'
       +'</div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
-      // Code prof
       +'<div style="background:#0f172a;border-radius:12px;padding:14px">'
       +'<p style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin-bottom:8px">👨‍🏫 Code Professeurs</p>'
       +'<p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#60a5fa;letter-spacing:.15em;margin:0 0 10px">'+sc.prof_code+'</p>'
-      +'<button onclick="regenCode('+sc.id+','prof')" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span>Régénérer</button>'
+      +'<button onclick="regenCode('+sc.id+',&quot;prof&quot;)" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span> Régénérer</button>'
       +'</div>'
-      // Code admin
       +'<div style="background:#0f172a;border-radius:12px;padding:14px">'
       +'<p style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin-bottom:8px">⚙️ Code Admins</p>'
       +'<p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#a78bfa;letter-spacing:.15em;margin:0 0 10px">'+sc.admin_code+'</p>'
-      +'<button onclick="regenCode('+sc.id+','admin')" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span>Régénérer</button>'
+      +'<button onclick="regenCode('+sc.id+',&quot;admin&quot;)" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span> Régénérer</button>'
       +'</div>'
       +'</div>'
       +'</div>';
   }).join('');
 }
-
 async function toggleSchoolCode(id) {
   const d = await api('/superadmin/school-codes/'+id+'/toggle', {method:'PUT'});
   if (d?.success) { toast(d.code.is_active ? 'Codes activés.' : 'Codes désactivés.'); loadSchoolCodes(); }
