@@ -143,6 +143,41 @@ app.listen(PORT, async () => {
       console.warn('⚠️  cross_access_requests MANQUANTE → exécutez create_cross_table.sql dans pgAdmin');
     }
 
+    // Créer les tables de codes si elles n'existent pas
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS prof_codes (
+        code VARCHAR(4) PRIMARY KEY,
+        is_used BOOLEAN DEFAULT FALSE,
+        used_by UUID REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS admin_codes (
+        code VARCHAR(6) PRIMARY KEY,
+        is_used BOOLEAN DEFAULT FALSE,
+        used_by UUID REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Insérer les codes s'ils n'existent pas encore
+    await pool.query(`
+      INSERT INTO prof_codes (code) VALUES
+      ('2H8L'),('3VQH'),('4F9C'),('4JQ5'),('7WSK'),('AJDD'),('AKTD'),('BKWJ'),('BZR7'),('C8G9'),
+      ('DYXQ'),('EFXB'),('FYWL'),('G4UF'),('G92Z'),('HNPK'),('L2L4'),('ML82'),('MNHF'),('NWGA'),
+      ('P4UW'),('PLC2'),('QEFV'),('RDEU'),('S2RJ'),('SMXY'),('W3VX'),('WN3T'),('XCZE'),('XNYY')
+      ON CONFLICT DO NOTHING
+    `);
+    await pool.query(`
+      INSERT INTO admin_codes (code) VALUES
+      ('23P4ZE'),('2V7MWQ'),('47WCAC'),('4N79LD'),('5BLMHW'),('5P6L26'),('5V8J2Q'),('74YUUY'),('7R2DVA'),('9BG62G'),
+      ('9JEGR5'),('DDG3V3'),('DZRZ6X'),('EXQHC7'),('FBGA76'),('KLMGY6'),('KVMREC'),('MHG89Y'),('MMC45Y'),('MNMQL3'),
+      ('PDDSVN'),('PLXUDC'),('RW9CMV'),('U8MY32'),('USLLXM'),('V9WBB2'),('VWND5X'),('X8HU6N'),('YES68T'),('YXDJNU')
+      ON CONFLICT DO NOTHING
+    `);
+    console.log('✅ prof_codes + admin_codes : OK');
+
     // Créer la table role_requests si elle n'existe pas
     await pool.query(`
       CREATE TABLE IF NOT EXISTS role_requests (
