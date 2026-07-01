@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Validation des rôles - CamunoLearn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+body{font-family:'Inter',sans-serif;background:#f8f9fb}
+.ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 1,'wght' 400;user-select:none;line-height:1;vertical-align:middle}
+.spinner{border:4px solid #f3f3f3;border-top:4px solid #00602a;border-radius:50%;width:36px;height:36px;animation:spin 1s linear infinite;margin:0 auto}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+</style>
+</head>
+<body class="min-h-screen">
+
+<nav style="background:#fff;border-bottom:1px solid #e5e7eb;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
+    <div style="display:flex;align-items:center;gap:8px">
+        <span class="ms" style="color:#00602a;font-size:28px">school</span>
+        <span style="font-family:Manrope;font-weight:900;font-size:1.2rem"><span style="color:#191c1e">Camuno</span><span style="color:#00602a">Learn</span></span>
+        <span style="background:#7c3aed;color:#fff;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;margin-left:8px">SuperAdmin</span>
+    </div>
+    <a href="indexSUPERADMIN.html" style="color:#6b7280;font-size:.85rem;text-decoration:none;display:flex;align-items:center;gap:4px">
+        <span class="ms" style="font-size:18px">arrow_back</span> Dashboard
+    </a>
+</nav>
+
+<main style="max-width:860px;margin:0 auto;padding:32px 24px">
+    <div style="margin-bottom:28px">
+        <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#191c1e;margin-bottom:6px">Validation des rôles</h1>
+        <p style="color:#6b7280;font-size:.9rem">Approuvez ou refusez les demandes de professeurs et administrateurs.</p>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px">
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:20px;text-align:center">
+            <p id="count-pending" style="font-family:Manrope;font-weight:900;font-size:2rem;color:#f59e0b;margin:0">–</p>
+            <p style="font-size:.82rem;color:#6b7280;margin-top:4px">En attente</p>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:20px;text-align:center">
+            <p id="count-prof" style="font-family:Manrope;font-weight:900;font-size:2rem;color:#1d4ed8;margin:0">–</p>
+            <p style="font-size:.82rem;color:#6b7280;margin-top:4px">Professeurs</p>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:20px;text-align:center">
+            <p id="count-admin" style="font-family:Manrope;font-weight:900;font-size:2rem;color:#7c3aed;margin:0">–</p>
+            <p style="font-size:.82rem;color:#6b7280;margin-top:4px">Admins</p>
+        </div>
+    </div>
+
+    <!-- Liste des demandes -->
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:20px;overflow:hidden">
+        <div style="padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between">
+            <h2 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#191c1e;margin:0">Demandes en attente</h2>
+            <button onclick="loadRequests()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#f3f4f6;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer">
+                <span class="ms" style="font-size:16px;color:#6b7280">refresh</span> Actualiser
+            </button>
+        </div>
+        <div id="requests-list" style="padding:24px">
+            <div class="spinner"></div>
+        </div>
+    </div>
+</main>
+
+<script>
+var API_BASE = window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'
+    ? 'http://localhost:3000/api' : 'https://camunolearn-api.onrender.com/api';
+var token = localStorage.getItem('camunolearn_token');
+
+if (!token) location.href = 'indexconnexion.html';
+
+async function loadRequests() {
+    document.getElementById('requests-list').innerHTML = '<div class="spinner"></div>';
+    try {
+        var r = await fetch(API_BASE + '/auth/role-requests', {
+            headers: {Authorization: 'Bearer ' + token}
+        });
+        var d = await r.json();
+        if (!d.success) { showEmpty('Erreur : ' + d.message); return; }
+
+        var requests = d.requests;
+        var profs  = requests.filter(function(r){ return r.requested_role === 'enseignant'; });
+        var admins = requests.filter(function(r){ return r.requested_role === 'admin'; });
+
+        document.getElementById('count-pending').textContent = requests.length;
+        document.getElementById('count-prof').textContent    = profs.length;
+        document.getElementById('count-admin').textContent   = admins.length;
+
+        if (!requests.length) { showEmpty('Aucune demande en attente ✅'); return; }
+
+        document.getElementById('requests-list').innerHTML = requests.map(function(req) {
+            var isProf  = req.requested_role === 'enseignant';
+            var color   = isProf ? '#1d4ed8' : '#7c3aed';
+            var bg      = isProf ? '#eff6ff' : '#f5f3ff';
+            var label   = isProf ? 'Professeur' : 'Admin';
+            var icon    = isProf ? '👨‍🏫' : '⚙️';
+            var date    = new Date(req.created_at).toLocaleString('fr-FR');
+
+            return '<div id="req-'+req.id+'" style="border:1px solid #e5e7eb;border-radius:14px;padding:20px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
+                + '<div style="display:flex;align-items:center;gap:14px">'
+                + '<div style="width:48px;height:48px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">'+icon+'</div>'
+                + '<div>'
+                + '<p style="font-weight:700;color:#191c1e;margin:0;font-size:.95rem">'+req.first_name+' '+req.last_name+'</p>'
+                + '<p style="font-size:.82rem;color:#6b7280;margin:2px 0">'+req.email+'</p>'
+                + '<span style="display:inline-block;background:'+bg+';color:'+color+';padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:700;margin-top:4px">'+label+'</span>'
+                + '<p style="font-size:.72rem;color:#9ca3af;margin:4px 0 0">Demande le '+date+'</p>'
+                + '</div></div>'
+                + '<div style="display:flex;gap:8px">'
+                + '<button onclick="approve('+req.id+')" style="padding:9px 20px;background:#00602a;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.85rem;cursor:pointer">✅ Approuver</button>'
+                + '<button onclick="reject('+req.id+')" style="padding:9px 20px;background:#fef2f2;color:#b91c1c;border:1.5px solid #fecaca;border-radius:10px;font-weight:700;font-size:.85rem;cursor:pointer">❌ Refuser</button>'
+                + '</div>'
+                + '</div>';
+        }).join('');
+
+    } catch(e) {
+        showEmpty('Erreur réseau — vérifiez votre connexion.');
+    }
+}
+
+function showEmpty(msg) {
+    document.getElementById('requests-list').innerHTML =
+        '<div style="text-align:center;padding:40px;color:#9ca3af;font-size:.9rem">'+msg+'</div>';
+}
+
+async function approve(id) {
+    var btn = document.querySelector('#req-'+id+' button');
+    if (btn) { btn.textContent = '⏳...'; btn.disabled = true; }
+    try {
+        var r = await fetch(API_BASE+'/auth/role-requests/'+id+'/approve', {
+            method:'POST', headers:{Authorization:'Bearer '+token}
+        });
+        var d = await r.json();
+        if (d.success) {
+            document.getElementById('req-'+id).style.background = '#f0fdf4';
+            document.getElementById('req-'+id).innerHTML +=
+                '<div style="width:100%;text-align:center;color:#16a34a;font-weight:700;margin-top:8px">✅ Approuvé !</div>';
+            setTimeout(loadRequests, 1500);
+        } else {
+            alert(d.message || 'Erreur');
+            loadRequests();
+        }
+    } catch(e) { alert('Erreur réseau'); loadRequests(); }
+}
+
+async function reject(id) {
+    if (!confirm('Refuser cette demande ?')) return;
+    try {
+        var r = await fetch(API_BASE+'/auth/role-requests/'+id+'/reject', {
+            method:'POST', headers:{Authorization:'Bearer '+token}
+        });
+        var d = await r.json();
+        if (d.success) {
+            document.getElementById('req-'+id).style.opacity = '.5';
+            setTimeout(loadRequests, 1000);
+        } else {
+            alert(d.message || 'Erreur');
+        }
+    } catch(e) { alert('Erreur réseau'); }
+}
+
+// Actualiser toutes les 15 secondes automatiquement
+loadRequests();
+setInterval(loadRequests, 15000);
+</script>
+</body>
+</html>

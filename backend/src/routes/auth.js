@@ -302,4 +302,117 @@ router.post('/pricing-interest', async (req, res) => {
   }
 });
 
+
+// POST /api/auth/verify-code — vérifier code + créer demande en attente SuperAdmin
+router.post('/verify-code', auth, async (req, res) => {
+  try {
+    const { code, role, sessionId } = req.body;
+    if (!code || !role) return res.status(400).json({ success: false, message: 'Code et rôle requis.' });
+
+    const table = role === 'enseignant' ? 'prof_codes' : role === 'admin' ? 'admin_codes' : null;
+    if (!table) return res.status(400).json({ success: false, message: 'Rôle invalide.' });
+
+    // Vérifier le code
+    const r = await pool.query(
+      `SELECT code, is_used FROM ${table} WHERE code=$1`,
+      [code.toUpperCase().trim()]
+    );
+    if (!r.rows.length) return res.status(401).json({ success: false, message: 'Code invalide.' });
+    if (r.rows[0].is_used) return res.status(401).json({ success: false, message: 'Ce code a déjà été utilisé.' });
+
+    // Marquer le code comme utilisé
+    await pool.query(
+      `UPDATE ${table} SET is_used=true, used_by=$1 WHERE code=$2`,
+      [req.user.id, code.toUpperCase().trim()]
+    );
+
+    // Créer une demande en attente de validation SuperAdmin
+    await pool.query(
+      `INSERT INTO role_requests (user_id, requested_role, session_id, status, created_at)
+       VALUES ($1, $2, $3, 'pending', NOW())
+       ON CONFLICT (user_id) DO UPDATE SET requested_role=$2, session_id=$3, status='pending', created_at=NOW()`,
+      [req.user.id, role, sessionId || null]
+    );
+
+    console.log('[VERIFY-CODE] Demande créée pour', req.user.id, '→', role);
+    res.json({ success: true, message: 'Code valide ! Demande envoyée au super-administrateur.' });
+  } catch(e) {
+    console.error('[VERIFY-CODE]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// GET /api/auth/role-requests — liste des demandes en attente (SuperAdmin)
+router.get('/role-requests', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'superadmin') return res.status(403).json({ success: false, message: 'Accès refusé.' });
+    const r = await pool.query(
+      `SELECT rr.id, rr.user_id, rr.requested_role, rr.session_id, rr.status, rr.created_at,
+              u.first_name, u.last_name, u.email
+       FROM role_requests rr
+       JOIN users u ON u.id = rr.user_id
+       WHERE rr.status = 'pending'
+       ORDER BY rr.created_at DESC`
+    );
+    res.json({ success: true, requests: r.rows });
+  } catch(e) {
+    console.error('[ROLE-REQUESTS]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// POST /api/auth/role-requests/:id/approve — approuver une demande
+router.post('/role-requests/:id/approve', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'superadmin') return res.status(403).json({ success: false, message: 'Accès refusé.' });
+
+    // Récupérer la demande
+    const rq = await pool.query(`SELECT * FROM role_requests WHERE id=$1`, [req.params.id]);
+    if (!rq.rows.length) return res.status(404).json({ success: false, message: 'Demande introuvable.' });
+    const request = rq.rows[0];
+
+    // Mettre à jour le rôle de l'utilisateur
+    await pool.query(`UPDATE users SET role=$1 WHERE id=$2`, [request.requested_role, request.user_id]);
+
+    // Mettre à jour la session QR si elle existe
+    if (request.session_id) {
+      await pool.query(
+        `UPDATE qr_sessions SET status='validated', role=$1 WHERE session_id=$2`,
+        [request.requested_role, request.session_id]
+      );
+    }
+
+    // Marquer la demande comme approuvée
+    await pool.query(`UPDATE role_requests SET status='approved' WHERE id=$1`, [req.params.id]);
+
+    console.log('[APPROVE]', request.user_id, '→', request.requested_role);
+    res.json({ success: true, message: 'Demande approuvée !' });
+  } catch(e) {
+    console.error('[APPROVE]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// POST /api/auth/role-requests/:id/reject — refuser une demande
+router.post('/role-requests/:id/reject', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'superadmin') return res.status(403).json({ success: false, message: 'Accès refusé.' });
+
+    const rq = await pool.query(`SELECT * FROM role_requests WHERE id=$1`, [req.params.id]);
+    if (!rq.rows.length) return res.status(404).json({ success: false, message: 'Demande introuvable.' });
+    const request = rq.rows[0];
+
+    // Session QR → expired
+    if (request.session_id) {
+      await pool.query(`UPDATE qr_sessions SET status='expired' WHERE session_id=$1`, [request.session_id]);
+    }
+
+    await pool.query(`UPDATE role_requests SET status='rejected' WHERE id=$1`, [req.params.id]);
+    res.json({ success: true, message: 'Demande refusée.' });
+  } catch(e) {
+    console.error('[REJECT]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 module.exports = router;

@@ -143,6 +143,20 @@ app.listen(PORT, async () => {
       console.warn('⚠️  cross_access_requests MANQUANTE → exécutez create_cross_table.sql dans pgAdmin');
     }
 
+    // Créer la table role_requests si elle n'existe pas
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS role_requests (
+        id SERIAL PRIMARY KEY,
+        user_id UUID REFERENCES users(id),
+        requested_role VARCHAR(20),
+        session_id VARCHAR(36),
+        status VARCHAR(20) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id)
+      )
+    `);
+    console.log('✅ role_requests : OK');
+
     // Créer la table qr_sessions si elle n'existe pas
     await pool.query(`
       CREATE TABLE IF NOT EXISTS qr_sessions (
