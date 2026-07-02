@@ -147,16 +147,12 @@ app.listen(PORT, async () => {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS prof_codes (
         code VARCHAR(4) PRIMARY KEY,
-        is_used BOOLEAN DEFAULT FALSE,
-        used_by UUID REFERENCES users(id),
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
     await pool.query(`
       CREATE TABLE IF NOT EXISTS admin_codes (
         code VARCHAR(6) PRIMARY KEY,
-        is_used BOOLEAN DEFAULT FALSE,
-        used_by UUID REFERENCES users(id),
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
