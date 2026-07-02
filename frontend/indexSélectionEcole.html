@@ -444,15 +444,14 @@ async function submitCodeAndSchool() {
     const d = await r.json();
 
     if (d.success) {
-      // Mettre à jour le rôle en base avant de soumettre l'école
-      try {
-        await fetch(API_BASE + '/auth/role', {
-          method: 'PUT',
-          headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + token},
-          body: JSON.stringify({ role: currentUser.role })
-        });
-      } catch(e) {}
-      // Code valide → soumettre l'école
+      // Forcer le rôle dans localStorage avant redirection
+      const role = currentUser.role;
+      localStorage.setItem('userRole', role);
+      const user = JSON.parse(localStorage.getItem('camunolearn_user') || '{}');
+      user.role = role;
+      localStorage.setItem('camunolearn_user', JSON.stringify(user));
+
+      // Soumettre l'école
       await submitSchool({ school: selectedSchool });
     } else {
       errDiv.textContent = d.message || 'Code incorrect.';
@@ -593,8 +592,9 @@ async function submitSchool(body) {
       localStorage.setItem('userSchool', selectedSchool);
       if (selectedFiliere) localStorage.setItem('userFiliere', selectedFiliere);
 
-      // Redirection selon le rôle ACTUEL (pas celui retourné par /auth/school)
+      // Redirection selon le rôle ACTUEL
       const role = currentUser.role;
+      if (role === 'superadmin') { location.href = 'indexSUPERADMIN.html'; return; }
       if (role === 'enseignant') { location.href = 'indexEnseignant.html'; return; }
       if (role === 'admin')      { location.href = 'indexADMIN.html';      return; }
       if (role === 'etudiant')   { location.href = 'indexETUDIANT.html';   return; }
@@ -615,7 +615,8 @@ async function submitSchool(body) {
       enseignant: 'indexEnseignant.html',
       etudiant:   'indexETUDIANT.html',
     };
-    location.href = routes[role] || 'indexETUDIANT.html';
+    const finalRole = localStorage.getItem('userRole') || role;
+    location.href = routes[finalRole] || 'indexETUDIANT.html';
   }
 }
 
