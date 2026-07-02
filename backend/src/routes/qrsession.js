@@ -25,33 +25,21 @@ router.post('/create', async (req, res) => {
 // POST /api/qrsession/validate/:sessionId
 router.post('/validate/:sessionId', async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ success: false, message: 'Non authentifié.' });
-
-    const decoded = jwt.verify(authHeader.replace('Bearer ', ''), SECRET);
-    const userResult = await pool.query('SELECT role FROM users WHERE id=$1', [decoded.id]);
-    if (!userResult.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
-
-    // Lire le pendingRole stocké dans la session
-    const sessionResult = await pool.query('SELECT role FROM qr_sessions WHERE session_id=$1', [req.params.sessionId]);
-    const pendingRole = sessionResult.rows[0]?.role;
-    const realRole = pendingRole || userResult.rows[0].role || 'etudiant';
-
+    const { role } = req.body;
     const r = await pool.query(
-      `UPDATE qr_sessions SET status='validated', role=$1
+      `UPDATE qr_sessions SET status='validated', role=COALESCE($1, role)
        WHERE session_id=$2 AND expires_at > NOW() AND status='pending'
-       RETURNING session_id`,
-      [realRole, req.params.sessionId]
+       RETURNING session_id, role`,
+      [role || null, req.params.sessionId]
     );
-
     if (!r.rows.length) return res.status(400).json({ success: false, message: 'Session expirée ou déjà utilisée.' });
-
-    res.json({ success: true, role: realRole });
+    res.json({ success: true, role: r.rows[0].role });
   } catch(e) {
     console.error('[QR VALIDATE]', e.message);
     res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 });
+
 
 // GET /api/qrsession/status/:sessionId
 router.get('/status/:sessionId', async (req, res) => {

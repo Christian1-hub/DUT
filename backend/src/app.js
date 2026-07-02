@@ -211,13 +211,16 @@ app.listen(PORT, async () => {
       CREATE TABLE IF NOT EXISTS role_requests (
         id SERIAL PRIMARY KEY,
         user_id UUID REFERENCES users(id),
+        user_email VARCHAR(255),
+        user_name VARCHAR(255),
         requested_role VARCHAR(20),
-        session_id VARCHAR(36),
+        session_id VARCHAR(36) UNIQUE,
         status VARCHAR(20) DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(user_id)
+        created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+    await pool.query(`ALTER TABLE role_requests ADD COLUMN IF NOT EXISTS user_email VARCHAR(255)`);
+    await pool.query(`ALTER TABLE role_requests ADD COLUMN IF NOT EXISTS user_name VARCHAR(255)`);
     console.log('✅ role_requests : OK');
 
     // Créer la table qr_sessions si elle n'existe pas

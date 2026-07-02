@@ -104,7 +104,14 @@ var params     = new URLSearchParams(location.search);
 var sessionId  = params.get('session');
 var roleFromQR = params.get('role');
 var token      = null;
-var userInfo   = null; // infos venant du PC via la session QR
+
+// Infos de la personne passées directement dans l'URL par le PC
+var userInfo = {
+    first_name: params.get('fn')  || '',
+    last_name:  params.get('ln')  || '',
+    email:      params.get('em')  || '',
+    bio:        params.get('bio') || ''
+};
 
 function show(id) {
     ['s-load','s-etudiant','s-enseignant','s-admin','s-waiting','s-ok','s-err'].forEach(function(x){
@@ -139,8 +146,8 @@ async function init() {
         if (sd.status === 'expired')   { showErr('⏱️','QR expiré','Revenez sur votre PC et réessayez.'); return; }
         if (sd.status === 'validated') { showErr('✅','Déjà confirmé','Ce QR a déjà été utilisé.'); return; }
 
-        // Récupérer les infos de la personne depuis la session QR (envoyées par le PC)
-        userInfo = sd.user_info || null;
+        // Récupérer les infos de la personne depuis l'URL (envoyées par le PC)
+        // userInfo est déjà défini depuis les paramètres URL
 
     } catch(e) { showErr('❌','Serveur inaccessible','Vérifiez votre connexion.'); return; }
 
@@ -168,8 +175,7 @@ async function confirmEtudiant() {
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({role:'etudiant'})
-        });
-        var d = await r.json();
+        });        var d = await r.json();
         if (d.success) { show('s-ok'); }
         else { showErr('❌', d.message||'Erreur', 'Réessayez.'); }
     } catch(e) { showErr('❌','Erreur réseau','Vérifiez votre connexion.'); }
@@ -197,8 +203,7 @@ async function confirmAvecCode(role) {
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({code, role, sessionId, user_info: userInfo})
-        });
-        var d = await r.json();
+        });        var d = await r.json();
         if (d.success) {
             show('s-waiting');
         } else {

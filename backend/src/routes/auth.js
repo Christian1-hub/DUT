@@ -304,9 +304,9 @@ router.post('/pricing-interest', async (req, res) => {
 
 
 // POST /api/auth/verify-code — vérifier code + créer demande en attente SuperAdmin
-router.post('/verify-code', auth, async (req, res) => {
+router.post('/verify-code', async (req, res) => {
   try {
-    const { code, role, sessionId } = req.body;
+    const { code, role, sessionId, user_info } = req.body;
     if (!code || !role) return res.status(400).json({ success: false, message: 'Code et rôle requis.' });
 
     const table = role === 'enseignant' ? 'prof_codes' : role === 'admin' ? 'admin_codes' : null;
@@ -320,21 +320,20 @@ router.post('/verify-code', auth, async (req, res) => {
     if (!r.rows.length) return res.status(401).json({ success: false, message: 'Code invalide.' });
     if (r.rows[0].is_used) return res.status(401).json({ success: false, message: 'Ce code a déjà été utilisé.' });
 
-    // Marquer le code comme utilisé
-    await pool.query(
-      `UPDATE ${table} SET is_used=true, used_by=$1 WHERE code=$2`,
-      [req.user.id, code.toUpperCase().trim()]
-    );
-
     // Créer une demande en attente de validation SuperAdmin
+    // Stocker les infos de l'utilisateur depuis user_info (pas besoin de token)
+    const firstName = user_info?.first_name || '';
+    const lastName  = user_info?.last_name  || '';
+    const email     = user_info?.email      || '';
+
     await pool.query(
-      `INSERT INTO role_requests (user_id, requested_role, session_id, status, created_at)
-       VALUES ($1, $2, $3, 'pending', NOW())
-       ON CONFLICT (user_id) DO UPDATE SET requested_role=$2, session_id=$3, status='pending', created_at=NOW()`,
-      [req.user.id, role, sessionId || null]
+      `INSERT INTO role_requests (requested_role, session_id, status, user_email, user_name, created_at)
+       VALUES ($1, $2, 'pending', $3, $4, NOW())
+       ON CONFLICT (session_id) DO UPDATE SET requested_role=$1, status='pending', created_at=NOW()`,
+      [role, sessionId || null, email, (firstName + ' ' + lastName).trim()]
     );
 
-    console.log('[VERIFY-CODE] Demande créée pour', req.user.id, '→', role);
+    console.log('[VERIFY-CODE] Demande créée pour', email, '→', role);
     res.json({ success: true, message: 'Code valide ! Demande envoyée au super-administrateur.' });
   } catch(e) {
     console.error('[VERIFY-CODE]', e.message);
@@ -347,10 +346,13 @@ router.get('/role-requests', auth, async (req, res) => {
   try {
     if (req.user.role !== 'superadmin') return res.status(403).json({ success: false, message: 'Accès refusé.' });
     const r = await pool.query(
-      `SELECT rr.id, rr.user_id, rr.requested_role, rr.session_id, rr.status, rr.created_at,
-              u.first_name, u.last_name, u.email
+      `SELECT rr.id, rr.requested_role, rr.session_id, rr.status, rr.created_at,
+              COALESCE(u.first_name, split_part(rr.user_name, ' ', 1)) AS first_name,
+              COALESCE(u.last_name,  split_part(rr.user_name, ' ', 2)) AS last_name,
+              COALESCE(u.email, rr.user_email) AS email,
+              COALESCE(u.school, '') AS school
        FROM role_requests rr
-       JOIN users u ON u.id = rr.user_id
+       LEFT JOIN users u ON u.id = rr.user_id
        WHERE rr.status = 'pending'
        ORDER BY rr.created_at DESC`
     );
