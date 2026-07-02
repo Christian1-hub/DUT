@@ -348,14 +348,13 @@ router.get('/role-requests', auth, async (req, res) => {
     if (req.user.role !== 'superadmin') return res.status(403).json({ success: false, message: 'Accès refusé.' });
     const r = await pool.query(
       `SELECT rr.id, rr.requested_role, rr.session_id, rr.status, rr.created_at,
-              COALESCE(u.first_name, split_part(rr.user_name, ' ', 1)) AS first_name,
-              COALESCE(u.last_name,  split_part(rr.user_name, ' ', 2)) AS last_name,
-              COALESCE(u.email, rr.user_email) AS email,
-              COALESCE(u.school, '') AS school
+              split_part(rr.user_name, ' ', 1) AS first_name,
+              split_part(rr.user_name, ' ', 2) AS last_name,
+              rr.user_email AS email,
+              '' AS school
        FROM role_requests rr
-       LEFT JOIN users u ON u.id = rr.user_id
-       WHERE rr.status = 'pending'
-       ORDER BY rr.created_at DESC`
+       ORDER BY rr.created_at DESC
+       LIMIT 100`
     );
     res.json({ success: true, requests: r.rows });
   } catch(e) {

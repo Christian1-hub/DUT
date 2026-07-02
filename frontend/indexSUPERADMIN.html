@@ -1328,12 +1328,28 @@ async function loadValidation() {
   document.getElementById('v-count-all').textContent   = requests.length;
   document.getElementById('v-count-prof').textContent  = profs.length;
   document.getElementById('v-count-admin').textContent = admins.length;
+  // Séparer en attente et traitées
+  var pending  = requests.filter(function(r){ return r.status==='pending'; });
+  var treated  = requests.filter(function(r){ return r.status!=='pending'; });
+
+  document.getElementById('v-count-all').textContent   = pending.length;
+  document.getElementById('v-count-prof').textContent  = pending.filter(function(r){ return r.requested_role==='enseignant'; }).length;
+  document.getElementById('v-count-admin').textContent = pending.filter(function(r){ return r.requested_role==='admin'; }).length;
+
   if (!requests.length) {
     document.getElementById('v-list').innerHTML =
-      '<div style="text-align:center;color:#475569;padding:40px;font-size:.9rem">✅ Aucune demande en attente</div>';
+      '<div style="text-align:center;color:#475569;padding:40px;font-size:.9rem">✅ Aucune demande</div>';
     return;
   }
-  document.getElementById('v-list').innerHTML = requests.map(function(req) {
+  var allRequests = pending.concat(treated);
+  document.getElementById('v-list').innerHTML =
+    (pending.length ? '<p style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#f59e0b;letter-spacing:.05em;margin-bottom:10px">⏳ En attente ('+pending.length+')</p>' : '')
+    + pending.map(function(req) { return renderReq(req); }).join('')
+    + (treated.length ? '<p style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin:16px 0 10px">✅ Traitées ('+treated.length+')</p>' : '')
+    + treated.map(function(req) { return renderReq(req); }).join('');
+}
+
+function renderReq(req) {
     var isProf = req.requested_role==='enseignant';
     var color  = isProf ? '#60a5fa' : '#a78bfa';
     var bg     = isProf ? '#1e3a5f' : '#2e1065';
