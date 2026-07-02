@@ -245,6 +245,34 @@ document.head.appendChild(spinStyle);
 #toast.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
 #sidebar{transition:transform .28s cubic-bezier(.4,0,.2,1)}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:99px}
+
+/* ── RESPONSIVE GLOBAL ─────────────────────────────── */
+@media (max-width: 768px) {
+  /* Sidebar cachée par défaut sur mobile */
+  #sidebar { transform: translateX(-100%) !important; }
+  /* Grilles → 1 colonne sur mobile */
+  .grid { grid-template-columns: 1fr !important; }
+  /* Textes plus petits */
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.25rem !important; }
+  /* Padding réduit */
+  main { padding: 12px 8px !important; }
+  /* Tableaux scrollables */
+  table { display: block; overflow-x: auto; }
+  /* Modaux plein écran */
+  .mbox, .modal { width: 100% !important; max-width: 100% !important; border-radius: 16px 16px 0 0 !important; }
+  /* Cards flex → column */
+  .card > div[style*="display:flex"] { flex-direction: column !important; }
+  /* Boutons pleine largeur sur mobile */
+  .btn-group { flex-direction: column !important; }
+  /* Stats grid → 2 colonnes */
+  #stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+}
+@media (max-width: 480px) {
+  .pin-box { width: 42px !important; height: 54px !important; font-size: 1.4rem !important; }
+  #stats-grid { grid-template-columns: 1fr 1fr !important; }
+}
+
 </style>
 </head>
 <body style="background:#f8f9fb;min-height:100vh">
@@ -283,6 +311,7 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
     <button class="nb"    data-s="classroom"   onclick="goTo('classroom')">  <span class="ms">school</span>      Ma Classe</button>
     <button class="nb"    data-s="communities" onclick="goTo('communities')"><span class="ms">forum</span>       Communautés</button>
     <button class="nb"    data-s="interuniv"   onclick="goTo('interuniv')">  <span class="ms">language</span>    Inter-Universités</button>
+    <button class="nb"    data-s="calendrier" onclick="location.href='indexCalendrier.html'"><span class="ms">calendar_month</span>Calendrier</button>
     <div class="my-2 border-t border-gray-100"></div>
     <button class="nb"    data-s="profile"     onclick="goTo('profile')">    <span class="ms">manage_accounts</span>Mon Profil</button>
   </nav>
@@ -331,6 +360,21 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
     </div>
     <div id="recent-courses"><div class="sk" style="height:48px;margin-bottom:8px"></div><div class="sk" style="height:48px"></div></div>
   </div>
+
+    <!-- Carte Calendrier -->
+    <div class="card mt-5" style="border-radius:16px;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f3f4f6">
+        <h3 style="font-weight:700;font-size:.95rem;color:#111;display:flex;align-items:center;gap:8px">
+          <span class="ms" style="color:#00602a">calendar_month</span>Prochains événements
+        </h3>
+        <button onclick="location.href='indexCalendrier.html'" style="font-size:.78rem;font-weight:700;color:#00602a;border:none;background:none;cursor:pointer">Voir tout →</button>
+      </div>
+      <div id="upcoming-events" style="padding:12px 20px">
+        <div class="sk" style="height:40px;border-radius:8px;margin-bottom:8px"></div>
+        <div class="sk" style="height:40px;border-radius:8px;margin-bottom:8px"></div>
+        <div class="sk" style="height:40px;border-radius:8px"></div>
+      </div>
+    </div>
 </div>
 
 <!-- ── COURS ──────────────────────────────────────── -->
@@ -802,7 +846,39 @@ function goTo(s) {
   if (s === 'communities' && !loaded.communities)  loadCommunities();
   if (s === 'interuniv'   && !loaded.interuniv)    loadInterUniv();
   if (s === 'profile'     && !loaded.profile)      loadProfile();
+  if (s === 'overview') loadUpcomingEvents();
 }
+
+async function loadUpcomingEvents() {
+  const el = document.getElementById('upcoming-events');
+  if (!el) return;
+  try {
+    const r = await fetch(API + '/calendar/events/upcoming?limit=4', {
+      headers: { Authorization: 'Bearer ' + TOKEN }
+    });
+    const d = await r.json();
+    if (!d.success || !d.events.length) {
+      el.innerHTML = '<p style="text-align:center;color:#9ca3af;font-size:.82rem;padding:16px">Aucun événement à venir</p>';
+      return;
+    }
+    const COLORS = {cours:'#3b82f6',cc:'#f59e0b',examen:'#ef4444',tp:'#8b5cf6',rattrapage:'#f97316',reunion:'#6b7280',caq:'#0ea5e9',vie_etudiante:'#10b981',conge:'#94a3b8',stage:'#84cc16'};
+    const LABELS = {cours:'Cours',cc:'CC',examen:'Examen',tp:'TP',rattrapage:'Rattrapage',reunion:'Réunion',caq:'CAQ',vie_etudiante:'Vie Étudiante',conge:'Congé',stage:'Stage'};
+    el.innerHTML = d.events.map(e => {
+      const col  = e.color || COLORS[e.category] || '#3b82f6';
+      const date = new Date(e.start_date).toLocaleDateString('fr-FR', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6">
+        <div style="width:4px;height:36px;border-radius:4px;background:${col};flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <p style="font-weight:600;font-size:.85rem;color:#111;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.title}</p>
+          <p style="font-size:.72rem;color:#9ca3af;margin:2px 0 0">${date} · <span style="color:${col}">${LABELS[e.category]||e.category}</span>${e.department?' · '+e.department:''}</p>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('upcoming-events').innerHTML = '<p style="color:#9ca3af;font-size:.82rem;padding:8px">Erreur chargement</p>';
+  }
+}
+
 
 // ══════════════════════════════════════════════════════
 //  DASHBOARD
