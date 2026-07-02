@@ -210,7 +210,6 @@ app.listen(PORT, async () => {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS role_requests (
         id SERIAL PRIMARY KEY,
-        user_id UUID REFERENCES users(id),
         user_email VARCHAR(255),
         user_name VARCHAR(255),
         requested_role VARCHAR(20),
@@ -219,8 +218,6 @@ app.listen(PORT, async () => {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
-    await pool.query(`ALTER TABLE role_requests ADD COLUMN IF NOT EXISTS user_email VARCHAR(255)`);
-    await pool.query(`ALTER TABLE role_requests ADD COLUMN IF NOT EXISTS user_name VARCHAR(255)`);
     console.log('✅ role_requests : OK');
 
     // Créer la table qr_sessions si elle n'existe pas
