@@ -4,7 +4,11 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Confirmation - CamunoLearn</title>
-<script>localStorage.removeItem('userRole');</script>
+<script>
+localStorage.removeItem('userRole');
+localStorage.removeItem('camunolearn_token');
+localStorage.removeItem('camunolearn_user');
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'DM Sans',sans-serif}
 body{background:#f8f9fb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
@@ -113,7 +117,7 @@ var API_BASE = window.location.hostname==='localhost'||window.location.hostname=
 var params    = new URLSearchParams(location.search);
 var sessionId = params.get('session');
 var roleFromQR = params.get('role');
-var token     = localStorage.getItem('camunolearn_token');
+var token     = null; // toujours null au départ — la personne doit se connecter
 var currentUser = null;
 
 function show(id) {
