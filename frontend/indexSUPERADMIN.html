@@ -117,6 +117,33 @@ tr:hover td{background:#1e293b55}
   .btn-group { flex-direction: column !important; }
   /* Stats grid → 2 colonnes */
   #stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+  /* Header */
+  header { padding: 0 12px !important; }
+  header h1 { font-size: .95rem !important; }
+  /* Section padding */
+  .sec { padding: 12px 8px !important; }
+  /* Card pad */
+  .card-pad { padding: 14px !important; }
+  /* Validation rows → column */
+  #v-list > div { flex-direction: column !important; }
+  .vreq-btns { width: 100% !important; }
+  .vreq-btns button { flex: 1 !important; }
+  /* Codes grid → 1 colonne */
+  #prof-codes-list, #admin-codes-list { max-height: 300px !important; }
+  /* Calendriers grid */
+  #cal-schools-list { grid-template-columns: 1fr !important; }
+  /* Topbar */
+  .top-bar { padding: 0 10px !important; gap: 6px !important; }
+  /* Boutons sm plus petits */
+  .btn.sm, .btn-sm { padding: 5px 10px !important; font-size: .72rem !important; }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.2rem !important; }
+  .card-pad { padding: 10px !important; }
+  #stats-grid { grid-template-columns: 1fr 1fr !important; }
+  .mbox { border-radius: 12px 12px 0 0 !important; }
+  nav, header { height: 52px !important; }
 }
 @media (max-width: 480px) {
   .pin-box { width: 42px !important; height: 54px !important; font-size: 1.4rem !important; }

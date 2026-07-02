@@ -130,6 +130,33 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 .csb:hover,.csb.on{border-color:#00602a}
 .csb.on{color:#fff}
 
+/* RESPONSIVE */
+@media(max-width:768px){
+  .layout{flex-direction:column}
+  .sidebar{display:none}
+  .toolbar{padding:8px 12px;gap:6px}
+  .ml{font-size:.9rem;min-width:120px}
+  .mc{min-height:70px;padding:3px}
+  .dn{font-size:.65rem;width:18px;height:18px}
+  .chip{font-size:.6rem;padding:1px 4px}
+  .wk-hd{grid-template-columns:32px repeat(7,1fr)}
+  .wk-body{grid-template-columns:32px repeat(7,1fr)}
+  .wk-tc{width:32px}
+  .wk-dn{font-size:.55rem}
+  .wk-dd{font-size:.9rem}
+  .wk-tl{font-size:.55rem}
+  .btn{padding:5px 10px;font-size:.75rem}
+  .vsw{display:flex}
+  .vb{padding:5px 10px;font-size:.75rem}
+}
+@media(max-width:480px){
+  .mc{min-height:55px;padding:2px}
+  .chip{display:none}
+  .more{font-size:.6rem}
+  .mhl{font-size:.55rem}
+  .wk-hd,.wk-body{grid-template-columns:28px repeat(7,1fr)}
+}
+
 /* TOAST */
 .toast{position:fixed;bottom:18px;right:18px;background:#1e293b;border:1px solid #334155;border-radius:9px;padding:9px 15px;font-size:.8rem;font-weight:600;z-index:2000;display:flex;align-items:center;gap:7px}
 .toast.ok{border-color:#00602a;color:#4ade80}
