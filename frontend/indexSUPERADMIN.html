@@ -98,52 +98,50 @@ tr:hover td{background:#1e293b55}
 
 /* ── RESPONSIVE GLOBAL ─────────────────────────────── */
 @media (max-width: 768px) {
-  /* Sidebar cachée par défaut sur mobile */
-  #sidebar { transform: translateX(-100%) !important; }
-  /* Grilles → 1 colonne sur mobile */
-  .grid { grid-template-columns: 1fr !important; }
-  /* Textes plus petits */
-  h1 { font-size: 1.5rem !important; }
-  h2 { font-size: 1.25rem !important; }
-  /* Padding réduit */
-  main { padding: 12px 8px !important; }
-  /* Tableaux scrollables */
-  table { display: block; overflow-x: auto; }
-  /* Modaux plein écran */
-  .mbox, .modal { width: 100% !important; max-width: 100% !important; border-radius: 16px 16px 0 0 !important; }
-  /* Cards flex → column */
-  .card > div[style*="display:flex"] { flex-direction: column !important; }
-  /* Boutons pleine largeur sur mobile */
-  .btn-group { flex-direction: column !important; }
-  /* Stats grid → 2 colonnes */
-  #stats-grid { grid-template-columns: repeat(2,1fr) !important; }
-  /* Header */
-  header { padding: 0 12px !important; }
-  header h1 { font-size: .95rem !important; }
-  /* Section padding */
-  .sec { padding: 12px 8px !important; }
-  /* Card pad */
-  .card-pad { padding: 14px !important; }
-  /* Validation rows → column */
-  #v-list > div { flex-direction: column !important; }
-  .vreq-btns { width: 100% !important; }
-  .vreq-btns button { flex: 1 !important; }
-  /* Codes grid → 1 colonne */
-  #prof-codes-list, #admin-codes-list { max-height: 300px !important; }
-  /* Calendriers grid */
-  #cal-schools-list { grid-template-columns: 1fr !important; }
+  /* Sidebar — cachée, slide depuis la gauche */
+  #sidebar {
+    transform: translateX(-100%) !important;
+    transition: transform .25s ease !important;
+    z-index: 200 !important;
+  }
+  #sidebar.open { transform: translateX(0) !important; }
+  /* Overlay sidebar */
+  #sb-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 199; }
+  #sb-overlay.on { display: block; }
+  /* Main prend tout l'espace */
+  #main { margin-left: 0 !important; padding: 12px 10px !important; }
   /* Topbar */
-  .top-bar { padding: 0 10px !important; gap: 6px !important; }
-  /* Boutons sm plus petits */
-  .btn.sm, .btn-sm { padding: 5px 10px !important; font-size: .72rem !important; }
+  #topbar { padding: 0 10px !important; }
+  #topbar input { width: 130px !important; }
+  /* Bouton hamburger visible */
+  #ham-btn { display: flex !important; }
+  /* Sections */
+  .sec h1 { font-size: 1.3rem !important; }
+  .sec > div:first-child { flex-direction: column !important; gap: 8px !important; }
+  /* Cards */
+  .card-pad { padding: 12px !important; }
+  /* Grilles stats → 2 colonnes */
+  #stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+  /* Tables scrollables */
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+  /* Modaux */
+  .mbox { width: calc(100vw - 24px) !important; max-width: 100% !important; max-height: 90vh !important; overflow-y: auto !important; }
+  /* Validation */
+  #v-list > div { flex-direction: column !important; }
+  .vreq-btns { width: 100% !important; display: flex !important; }
+  .vreq-btns button { flex: 1 !important; }
+  /* Codes grille */
+  #prof-codes-list > div, #admin-codes-list > div { flex-direction: column !important; }
+  /* Calendriers */
+  #cal-schools-list { grid-template-columns: 1fr !important; }
+  /* Codes école grille */
+  [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
 }
-
 @media (max-width: 480px) {
-  h1 { font-size: 1.2rem !important; }
-  .card-pad { padding: 10px !important; }
   #stats-grid { grid-template-columns: 1fr 1fr !important; }
-  .mbox { border-radius: 12px 12px 0 0 !important; }
-  nav, header { height: 52px !important; }
+  .card-pad { padding: 10px !important; }
+  .sec h1 { font-size: 1.1rem !important; }
+  #topbar input { display: none !important; }
 }
 @media (max-width: 480px) {
   .pin-box { width: 42px !important; height: 54px !important; font-size: 1.4rem !important; }
@@ -1188,6 +1186,13 @@ function openSchoolCal(schoolEnc) {
 // ════════════════════════════════════════════════
 //  TOAST
 // ════════════════════════════════════════════════
+function toggleSidebar(){
+  var sb  = document.getElementById('sidebar');
+  var ov  = document.getElementById('sb-overlay');
+  var open = sb.classList.toggle('open');
+  if(ov) ov.classList.toggle('on', open);
+}
+
 function toast(msg, type) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -1692,7 +1697,11 @@ function toast(msg, type) {
   <!-- MAIN -->
   <div id="main">
     <!-- TOPBAR -->
+    <div id="sb-overlay" onclick="toggleSidebar()"></div>
     <div id="topbar">
+      <button id="ham-btn" onclick="toggleSidebar()" style="display:none;background:none;border:none;cursor:pointer;color:#94a3b8;padding:6px;border-radius:8px;align-items:center">
+        <span class="ms" style="font-size:22px">menu</span>
+      </button>
       <h2 class="pg-title" id="pg-title">Vue globale</h2>
       <div style="display:flex;align-items:center;gap:10px">
         <input id="quick-search" type="text" placeholder="Recherche rapide..." class="fld" style="width:220px;padding:7px 12px;font-size:.82rem" onkeyup="if(event.key==='Enter')quickSearch()"/>
