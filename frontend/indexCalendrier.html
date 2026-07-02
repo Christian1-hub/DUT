@@ -362,71 +362,146 @@ function renderMonth(){
   const today=new Date();
   const evs=filtered();
   const total=Math.ceil((dow+last.getDate())/7)*7;
+  const weeks=total/7;
 
-  // Construire tableau des jours
-  const days=[];
-  for(let i=0;i<total;i++){
-    const dn=i-dow+1;
-    days.push(new Date(y,m,dn));
+  // Construire tableau des jours par semaine
+  const grid=[];
+  for(let w=0;w<weeks;w++){
+    const week=[];
+    for(let d=0;d<7;d++){
+      const dn=w*7+d-dow+1;
+      week.push(new Date(y,m,dn));
+    }
+    grid.push(week);
   }
 
-  // Pour chaque événement multi-day, calculer les positions
-  // On utilise un système de "rows" pour éviter les chevauchements
-  function getEventsForDay(dt){
-    return evs.filter(e=>isBetween(dt,eStart(e),eEnd(e)));
-  }
+  // Placement des événements par semaine avec système de rows
+  // rowMap[semaine][row] = eventId occupé
+  const weekLayouts=grid.map(week=>{
+    const rows=[]; // rows[row] = liste d'events placés
+    const placed=[]; // [{event, row, startCol, endCol}]
+
+    evs.forEach(e=>{
+      const es=eStart(e),ee=eEnd(e);
+      // Trouver les colonnes de cette semaine occupées par cet événement
+      let startCol=-1,endCol=-1;
+      week.forEach((dt,ci)=>{
+        if(isBetween(dt,es,ee)){
+          if(startCol===-1) startCol=ci;
+          endCol=ci;
+        }
+      });
+      if(startCol===-1) return; // pas dans cette semaine
+
+      // Trouver une row libre
+      let row=0;
+      while(true){
+        if(!rows[row]) rows[row]=[];
+        const conflict=rows[row].some(p=>!(p.endCol<startCol||p.startCol>endCol));
+        if(!conflict) break;
+        row++;
+      }
+      if(!rows[row]) rows[row]=[];
+      rows[row].push({event:e,startCol,endCol});
+      placed.push({event:e,row,startCol,endCol});
+    });
+
+    return placed;
+  });
+
+  const ROW_H=20; // hauteur par row en px
+  const DAY_H=Math.max(80, weeks>5?90:100); // hauteur min par cellule
 
   let html=`<div>
     <div class="mh">${DFR.map(d=>`<div class="mhl">${d}</div>`).join('')}</div>
-    <div class="mg">`;
+    <div class="mg" style="grid-auto-rows:${DAY_H}px">`;
 
-  days.forEach((dt,i)=>{
-    const isT=sameDay(dt,today);
-    const isO=dt.getMonth()!==m;
-    const ds=dt.toISOString().split('T')[0];
-    const dayEvs=getEventsForDay(dt);
+  grid.forEach((week,wi)=>{
+    const placed=weekLayouts[wi];
+    const maxRow=placed.length?Math.max(...placed.map(p=>p.row)):0;
+    const cellH=Math.max(DAY_H,(maxRow+2)*ROW_H+28);
 
-    html+=`<div class="mc${isT?' tod':''}${isO?' out':''}" onclick="onDay('${ds}')">
-      <div class="dn">${dt.getDate()}</div>`;
+    // Compter événements par cellule pour "+N autres"
+    const countByCol=Array(7).fill(0);
+    const maxVisible=Math.floor((cellH-28)/ROW_H);
 
-    // Afficher jusqu'à 3 événements
-    const visible=dayEvs.slice(0,3);
-    const extra=dayEvs.length-3;
+    placed.forEach(p=>{
+      for(let c=p.startCol;c<=p.endCol;c++) countByCol[c]++;
+    });
 
-    visible.forEach(e=>{
-      const cat=CM[e.category]||{c:'#3b82f6'};
-      const col=e.color||cat.c;
-      const s=eStart(e),en=eEnd(e);
-      const isMulti=!sameDay(s,en);
-      const isStart=sameDay(dt,s)||(!sameDay(dt,s)&&dt.getDay()===1&&i%7===0)||(dt.getDay()===1);
-      const isEnd=sameDay(dt,en);
+    week.forEach((dt,ci)=>{
+      const isT=sameDay(dt,today);
+      const isO=dt.getMonth()!==m;
+      const ds=dt.toISOString().split('T')[0];
+      const col=ci;
 
-      // Position du chip pour multi-day
-      let cls='chip chip-solo';
-      if(isMulti){
-        if(sameDay(dt,s)) cls='chip chip-start';
-        else if(sameDay(dt,en)) cls='chip chip-end';
-        else cls='chip chip-mid';
-        // Nouveau début de semaine
-        const col7=i%7;
-        if(col7===0&&!sameDay(dt,s)) cls='chip chip-start';
-        const lastCol=6;
-        if(col7===lastCol&&!sameDay(dt,en)) cls='chip chip-end';
-      }
+      // Placer les chips positionnés en absolute dans chaque cellule
+      // On calcule les chips qui commencent dans cette colonne
+      const myPlaced=placed.filter(p=>p.startCol===col);
+      const hidden=placed.filter(p=>p.startCol===col&&p.row>=maxVisible);
 
-      const showTitle=sameDay(dt,s)||(i%7===0);
-      html+=`<div class="${cls}" style="background:${col}22;color:${col};border-left:3px solid ${col}"
+      html+=`<div class="mc${isT?' tod':''}${isO?' out':''}" style="position:relative;height:${cellH}px" onclick="onDay('${ds}')">
+        <div class="dn">${dt.getDate()}</div>`;
+
+      // Afficher chips
+      placed.forEach(p=>{
+        if(p.startCol!==col) return;
+        if(p.row>=maxVisible-1) return; // caché
+        const e=p.event;
+        const cat=CM[e.category]||{c:'#3b82f6'};
+        const ecol=e.color||cat.c;
+        const span=p.endCol-p.startCol+1;
+        const top=28+p.row*ROW_H;
+        // Calculer la largeur en % sur plusieurs colonnes
+        // On utilise position absolute et width calculé via JS post-render
+        // Pour simplifier: on utilise data-span
+        const es=eStart(e),ee=eEnd(e);
+        const isStart=true;
+        const roundL=sameDay(dt,es)||col===0;
+        const roundR=sameDay(new Date(week[p.endCol]),ee)||p.endCol===6;
+        const borderR=roundR?'4px':'0';
+        const borderL=roundL?'4px':'0';
+        html+=`<div class="chip" data-id="${e.id}" data-span="${span}" data-col="${col}"
+               style="position:absolute;top:${top}px;left:2px;right:2px;
+                      background:${ecol}22;color:${ecol};
+                      border-left:${roundL?'3px solid '+ecol:'none'};
+                      border-radius:${borderL} ${borderR} ${borderR} ${borderL};
+                      height:${ROW_H-2}px;line-height:${ROW_H-2}px;z-index:${p.row+1}"
                onclick="event.stopPropagation();showPop(event,'${e.id}')"
                title="${e.title}">
-               ${showTitle?e.title:'&nbsp;'}
+               ${e.title}
              </div>`;
+      });
+
+      // "+N autres" si besoin
+      const hiddenCount=placed.filter(p=>p.startCol===col&&p.row>=maxVisible-1).length;
+      if(hiddenCount>0) html+=`<div class="more" style="position:absolute;bottom:3px;left:4px" onclick="event.stopPropagation()">+${hiddenCount} autres</div>`;
+
+      html+=`</div>`;
     });
-    if(extra>0) html+=`<div class="more" onclick="event.stopPropagation()">+${extra} autres</div>`;
-    html+=`</div>`;
   });
 
   html+=`</div></div>`;
   document.getElementById('cal').innerHTML=html;
+
+  // Post-render: étendre les chips multi-colonnes
+  extendChips();
+}
+
+function extendChips(){
+  const grid=document.querySelector('.mg');
+  if(!grid) return;
+  const cells=Array.from(grid.querySelectorAll('.mc'));
+  if(!cells.length) return;
+  const cellW=cells[0].getBoundingClientRect().width;
+
+  document.querySelectorAll('.chip[data-span]').forEach(chip=>{
+    const span=parseInt(chip.dataset.span)||1;
+    if(span>1){
+      chip.style.right='-'+(( span-1)*cellW-4)+'px';
+      chip.style.width='auto';
+    }
+  });
 }
 
 // ── WEEK RENDER ───────────────────────────────────────────────
