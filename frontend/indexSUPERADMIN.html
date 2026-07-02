@@ -198,7 +198,7 @@ const STATUS_CFG   = {
       <div class="nb-sep"></div>
       <button class="nb"    data-s="validation"  onclick="goTo('validation')"><span class="ms">verified_user</span>Validation rôles</button>
       <button class="nb"    data-s="codes"       onclick="goTo('codes')"><span class="ms">key</span>Codes d'accès</button>
-      <button class="nb"    data-s="school-codes" onclick="goTo('school-codes')"><span class="ms">business</span>Codes écoles</button>
+      <button class="nb"    data-s="schoolcodes" onclick="goTo('schoolcodes')"><span class="ms">business</span>Codes écoles</button>
       <button class="nb"    data-s="registrations" onclick="goTo('registrations')"><span class="ms">assignment_ind</span>Inscriptions</button>
       <button class="nb"    data-s="createadmin" onclick="goTo('createadmin')"><span class="ms">person_add</span>Créer Admin</button>
       <button class="nb"    data-s="createteacher" onclick="goTo('createteacher')"><span class="ms">school</span>Créer Prof</button>
@@ -454,7 +454,7 @@ const STATUS_CFG   = {
     </div>
 
     <!-- ══ CODES PAR ÉCOLE ══ -->
-    <div id="sec-school-codes" class="sec">
+    <div id="sec-schoolcodes" class="sec">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
         <div>
           <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Codes par école</h1>
@@ -653,7 +653,7 @@ async function api(path, opts) {
 const TITLES = {
   overview:'Vue globale', univs:'Universités', users:'Utilisateurs',
   communities:'Communautés', logs:'Activité', subs:'Abonnements',
-  validation:'Validation des rôles', codes:'Codes d\'accès', 'school-codes':'Codes par école', registrations:'Inscriptions & Validations', createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
+  validation:'Validation des rôles', codes:'Codes d\'accès', schoolcodes:'Codes par école', registrations:'Inscriptions & Validations', createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
 };
 
 function goTo(s) {
@@ -669,7 +669,7 @@ function goTo(s) {
   if (s==='subs'        && !loaded.subs)        loadSubs();
   if (s==='validation')                         loadValidation();
   if (s==='codes')                              loadCodes();
-  if (s==='school-codes')                       loadSchoolCodes();
+  if (s==='schoolcodes')                        loadSchoolCodes();
   if (s==='registrations')                      loadRegistrations();
 }
 
