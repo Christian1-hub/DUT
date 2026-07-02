@@ -151,85 +151,7 @@ const STATUS_CFG   = {
   suspended:{col:'#94a3b8',bg:'#1e293b',label:'Suspendu'},
 };
 
-async function saLogin() {
-  const email = document.getElementById('sa-email').value.trim();
-  const pass  = document.getElementById('sa-pass').value;
-  const errEl = document.getElementById('login-err');
-  const btn   = document.getElementById('sa-btn');
-  if (!email || !pass) { errEl.textContent='Remplissez tous les champs.'; errEl.style.display='block'; return; }
-  errEl.style.display = 'none';
-  btn.disabled = true;
-  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite;display:block">autorenew</span>';
-  try {
-    const r = await fetch(API + '/auth/login', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({email, password: pass})
-    });
-    const d = await r.json();
-    if (d.success && d.user.role === 'superadmin') {
-      localStorage.setItem('sa_token', d.token);
-      localStorage.setItem('camunolearn_token', d.token);
-      localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
-      ME = d.user;
-      startApp();
-    } else if (d.success) {
-      errEl.innerHTML = '<b>Ce compte n\'a pas le r\u00f4le superadmin.</b><br/><span style="font-size:.75rem">Dans pgAdmin, ex\u00e9cutez :<br/><code style="background:#1e293b;padding:2px 8px;border-radius:4px;color:#4ade80">UPDATE users SET role=\'superadmin\' WHERE email=\'' + email + '\';</code></span>';
-      errEl.style.display = 'block';
-      btn.disabled = false;
-      btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
-    } else {
-      errEl.textContent = d.message || 'Identifiants incorrects.';
-      errEl.style.display = 'block';
-      btn.disabled = false;
-      btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
-    }
-  } catch(e) {
-    errEl.textContent = 'Serveur inaccessible. Lancez: cd backend && node src/app.js';
-    errEl.style.display = 'block';
-    btn.disabled = false;
-    btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
-  }
-}
 
-function startApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'block';
-  const init = ME.first_name[0] + (ME.last_name[0] || '');
-  document.getElementById('sa-av').textContent   = init;
-  document.getElementById('sa-name').textContent = ME.first_name + ' ' + ME.last_name;
-  loadOverview();
-}
-
-function saLogout() {
-  localStorage.removeItem('sa_token');
-  location.reload();
-}
-
-// Auto-login si token présent
-window.addEventListener('DOMContentLoaded', async () => {
-  const t = TK() || localStorage.getItem('camunolearn_token');
-  if (!t) return;
-  try {
-    const r = await fetch(API + '/auth/me', {headers:{'Authorization':'Bearer '+t}});
-    const d = await r.json();
-    if (d.success && d.user.role === 'superadmin') {
-      localStorage.setItem('sa_token', t);
-      ME = d.user;
-      startApp();
-    } else {
-      localStorage.removeItem('sa_token');
-    }
-  } catch(e) {}
-});
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') saLogin();
-});
-
-// ════════════════════════════════════════════════
-//  API HELPER
-// ════════════════════════════════════════════════
 async function api(path, opts) {
   opts = opts || {};
   try {
@@ -1220,9 +1142,36 @@ function toast(msg, type) {
       <div id="login-err" style="display:none;background:#450a0a;border:1px solid #7f1d1d;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.83rem;color:#fca5a5"></div>
       <div style="margin-bottom:14px"><label class="lbl">EMAIL</label><input id="sa-email" type="email" class="fld" value="superadmin@camunolearn.cm" placeholder="email@exemple.cm"/></div>
       <div style="margin-bottom:20px"><label class="lbl">MOT DE PASSE</label><input id="sa-pass" type="password" class="fld" placeholder="••••••••"/></div>
-      <button onclick="saLogin()" id="sa-btn" class="btn primary" style="width:100%;justify-content:center;padding:12px">
+      <button onclick="doSALogin()" id="sa-btn" class="btn primary" style="width:100%;justify-content:center;padding:12px">
         <span class="ms">login</span>Accéder
       </button>
+      <script>
+      async function doSALogin(){
+        var API=location.hostname==='localhost'?'http://localhost:3000/api':'https://camunolearn-api.onrender.com/api';
+        var email=document.getElementById('sa-email').value.trim();
+        var pass=document.getElementById('sa-pass').value;
+        var errEl=document.getElementById('login-err');
+        var btn=document.getElementById('sa-btn');
+        if(!email||!pass){errEl.textContent='Remplissez tous les champs.';errEl.style.display='block';return;}
+        btn.disabled=true;btn.textContent='Connexion...';
+        try{
+          var r=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})});
+          var d=await r.json();
+          if(d.success&&d.user.role==='superadmin'){
+            localStorage.setItem('sa_token',d.token);
+            localStorage.setItem('camunolearn_token',d.token);
+            localStorage.setItem('camunolearn_user',JSON.stringify(d.user));
+            location.reload();
+          }else{
+            errEl.textContent=d.message||'Accès refusé.';errEl.style.display='block';
+            btn.disabled=false;btn.innerHTML='<span class="ms">login</span>Accéder';
+          }
+        }catch(e){
+          errEl.textContent='Erreur réseau.';errEl.style.display='block';
+          btn.disabled=false;btn.innerHTML='<span class="ms">login</span>Accéder';
+        }
+      }
+      </script>
       <a href="indexconnexion.html" style="display:block;text-align:center;margin-top:14px;font-size:.78rem;color:#475569;text-decoration:none">← Connexion normale</a>
     </div>
   </div>
