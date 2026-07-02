@@ -422,7 +422,11 @@ router.post('/verify-school-code', auth, async (req, res) => {
     const { school, code } = req.body;
     if (!school || !code) return res.status(400).json({ success: false, message: 'École et code requis.' });
 
-    const role = req.user.role;
+    // Lire le vrai rôle depuis la base (pas le JWT qui peut être ancien)
+    const userResult = await pool.query('SELECT role FROM users WHERE id=$1', [req.user.id]);
+    if (!userResult.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
+    const role = userResult.rows[0].role;
+
     if (role !== 'enseignant' && role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Réservé aux profs et admins.' });
     }

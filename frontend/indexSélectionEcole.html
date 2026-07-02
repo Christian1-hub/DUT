@@ -306,8 +306,19 @@ let allSchoolsList  = [...SCHOOLS];
 // ══════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if (!token) { location.href = 'indexconnexion.html'; return; }
+
+  // Rafraîchir le rôle réel depuis l'API
+  try {
+    const r = await fetch(API_BASE + '/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+    const d = await r.json();
+    if (d.success) {
+      currentUser = d.user;
+      localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
+      if (d.token) localStorage.setItem('camunolearn_token', d.token);
+    }
+  } catch(e) {}
 
   // Masquer la barre de progression pour prof et admin
   const role = currentUser.role;
