@@ -76,7 +76,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 /* EVENT CHIPS — supporte multi-day span */
 .ev-row{position:relative;height:18px;margin-bottom:2px}
 /* chip normal */
-.chip{position:absolute;left:0;right:0;top:0;height:17px;font-size:.66rem;font-weight:600;padding:1px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:15px}
+.chip{position:absolute;left:0;right:0;top:0;height:17px;font-size:.66rem;font-weight:600;padding:1px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:15px;margin-bottom:3px}
 .chip:hover{filter:brightness(1.2)}
 /* multi-day — s'étend sur la grille */
 .chip-start{border-radius:4px 0 0 4px;left:0;right:-1px}
@@ -409,7 +409,7 @@ function renderMonth(){
     return placed;
   });
 
-  const ROW_H=20; // hauteur par row en px
+  const ROW_H=22; // hauteur par row en px
   const DAY_H=Math.max(80, weeks>5?90:100); // hauteur min par cellule
 
   let html=`<div>
