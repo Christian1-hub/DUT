@@ -5,140 +5,133 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Calendrier Académique - CamunoLearn</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f8fafc;--muted:#94a3b8;--sub:#475569;
-  --green:#00602a;
+  --bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f8fafc;--muted:#94a3b8;--sub:#475569;--green:#00602a;
 }
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-
-/* Material Symbols fix */
-.material-symbols-outlined{
-  font-family:'Material Symbols Outlined';
-  font-weight:normal;font-style:normal;font-size:20px;
-  display:inline-block;line-height:1;text-transform:none;
-  letter-spacing:normal;word-wrap:normal;white-space:nowrap;direction:ltr;
-  font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;
-  vertical-align:middle;user-select:none;
-}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
 /* NAV */
 nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.nav-l{display:flex;align-items:center;gap:12px}
-.nav-logo{font-family:Manrope;font-weight:900;font-size:1.1rem;color:#00602a;text-decoration:none}
-.nav-logo b{color:var(--text)}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-family:inherit;font-weight:600;font-size:.82rem;cursor:pointer;border:none;transition:.15s}
-.btn-primary{background:#00602a;color:#fff}.btn-primary:hover{background:#004d22}
-.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{background:var(--surface);color:var(--text)}
-.btn-sm{padding:6px 14px;font-size:.78rem}
+.logo{font-family:Manrope;font-weight:900;font-size:1.1rem;color:#00602a;text-decoration:none}
+.logo b{color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;font-family:inherit;font-weight:600;font-size:.8rem;cursor:pointer;border:none}
+.btn-g{background:#00602a;color:#fff}.btn-g:hover{background:#004d22}
+.btn-o{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-o:hover{color:var(--text);background:var(--surface)}
 
 /* LAYOUT */
 .layout{display:flex;height:calc(100vh - 60px)}
 
 /* SIDEBAR */
-.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);padding:16px;overflow-y:auto;flex-shrink:0}
-@media(max-width:768px){.sidebar{display:none}}
-
-.sid-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--sub);margin-bottom:10px;margin-top:16px}
-.sid-title:first-child{margin-top:0}
+.sidebar{width:230px;background:var(--surface);border-right:1px solid var(--border);padding:16px;overflow-y:auto;flex-shrink:0}
+@media(max-width:700px){.sidebar{display:none}}
+.s-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--sub);margin:16px 0 8px}
+.s-title:first-child{margin-top:0}
 
 /* Mini cal */
-.mini-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.mini-header span{font-family:Manrope;font-weight:700;font-size:.82rem}
-.mini-nav-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:3px;border-radius:6px;display:flex;align-items:center;justify-content:center}
-.mini-nav-btn:hover{background:var(--border);color:var(--text)}
-.mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
-.mini-lbl{font-size:.6rem;font-weight:700;color:var(--sub);text-align:center;padding:3px 0}
-.mini-d{font-size:.7rem;text-align:center;padding:3px 1px;border-radius:5px;cursor:pointer;color:var(--muted)}
-.mini-d:hover{background:var(--border);color:var(--text)}
-.mini-d.today{background:#00602a;color:#fff;font-weight:700}
-.mini-d.fade{opacity:.3}
+.mc-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.mc-hd span{font-family:Manrope;font-weight:700;font-size:.82rem}
+.mc-nav{background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;padding:2px 5px;border-radius:5px}
+.mc-nav:hover{background:var(--border);color:var(--text)}
+.mc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.mc-lbl{font-size:.58rem;font-weight:700;color:var(--sub);text-align:center;padding:2px}
+.mc-d{font-size:.68rem;text-align:center;padding:3px 1px;border-radius:4px;cursor:pointer;color:var(--muted)}
+.mc-d:hover{background:var(--border);color:var(--text)}
+.mc-d.today{background:#00602a;color:#fff;font-weight:700}
+.mc-d.out{opacity:.25}
 
-/* Cat filters */
-.cat-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:.78rem;margin-bottom:3px}
+/* Cat */
+.cat-item{display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:7px;cursor:pointer;font-size:.77rem;margin-bottom:2px;transition:.1s}
 .cat-item:hover{background:var(--border)}
-.cat-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.cat-name{flex:1}
-.cat-x{color:var(--sub);font-size:.65rem;font-weight:700;opacity:0}
-.cat-item.off .cat-x{opacity:1}
-.cat-item.off .cat-name{text-decoration:line-through;opacity:.5}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cat-lbl{flex:1}
+.cat-off{font-size:.6rem;font-weight:700;color:var(--sub);opacity:0}
+.cat-item.off .cat-lbl{text-decoration:line-through;opacity:.45}
+.cat-item.off .cat-off{opacity:1}
 
 /* MAIN */
 .main{flex:1;overflow:hidden;display:flex;flex-direction:column}
-
-/* TOOLBAR */
 .toolbar{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.toolbar-l{display:flex;align-items:center;gap:8px;flex:1}
-.month-title{font-family:Manrope;font-weight:800;font-size:1.15rem;min-width:180px}
-.view-sw{display:flex;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.view-btn{padding:6px 14px;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--muted);background:none;border:none;font-family:inherit}
-.view-btn.on{background:#00602a;color:#fff}
+.tl{display:flex;align-items:center;gap:8px;flex:1}
+.ml{font-family:Manrope;font-weight:800;font-size:1.1rem;min-width:175px}
+.vsw{display:flex;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.vb{padding:6px 13px;font-size:.77rem;font-weight:600;cursor:pointer;color:var(--muted);background:none;border:none;font-family:inherit}
+.vb.on{background:#00602a;color:#fff}
 
-/* CAL WRAP */
-.cal-wrap{flex:1;overflow-y:auto}
+/* CAL */
+.cal{flex:1;overflow-y:auto}
 
 /* MONTH */
-.mth-head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:5}
-.mth-hlbl{padding:8px 0;text-align:center;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sub)}
-.mth-grid{display:grid;grid-template-columns:repeat(7,1fr)}
-.mth-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px;min-height:100px;cursor:pointer;position:relative}
-.mth-cell:hover{background:rgba(255,255,255,.02)}
-.mth-cell.today{background:rgba(0,96,42,.1)}
-.mth-cell.fade .cday{opacity:.3}
-.cday{font-size:.78rem;font-weight:700;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:4px}
-.today .cday{background:#00602a;color:#fff}
-.chip{font-size:.67rem;font-weight:600;padding:2px 7px;border-radius:5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-left:3px solid transparent;display:block}
-.chip:hover{filter:brightness(1.15)}
-.more{font-size:.63rem;color:var(--sub);padding:1px 4px;cursor:pointer}
+.mh{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:5}
+.mhl{padding:7px 0;text-align:center;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sub)}
+.mg{display:grid;grid-template-columns:repeat(7,1fr)}
+.mc{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px;min-height:110px;cursor:pointer;position:relative;overflow:hidden}
+.mc:hover{background:rgba(255,255,255,.02)}
+.mc.tod{background:rgba(0,96,42,.12)}
+.mc.out .dn{opacity:.28}
+.dn{font-size:.76rem;font-weight:700;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:3px}
+.tod .dn{background:#00602a;color:#fff}
+
+/* EVENT CHIPS — supporte multi-day span */
+.ev-row{position:relative;height:18px;margin-bottom:2px}
+/* chip normal */
+.chip{position:absolute;left:0;right:0;top:0;height:17px;font-size:.66rem;font-weight:600;padding:1px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:15px}
+.chip:hover{filter:brightness(1.2)}
+/* multi-day — s'étend sur la grille */
+.chip-start{border-radius:4px 0 0 4px;left:0;right:-1px}
+.chip-mid  {border-radius:0;left:-1px;right:-1px}
+.chip-end  {border-radius:0 4px 4px 0;left:-1px;right:0}
+.chip-solo {border-radius:4px}
+.more{font-size:.62rem;color:var(--sub);padding:0 3px;cursor:pointer}
 .more:hover{color:var(--text)}
 
 /* WEEK */
 .wk-wrap{display:flex;flex-direction:column;height:100%}
-.wk-head{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:5}
-.wk-time-h{border-right:1px solid var(--border)}
-.wk-dcol-h{padding:8px 0;text-align:center;border-right:1px solid var(--border)}
-.wk-dname{font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--sub)}
-.wk-dnum{font-size:1.2rem;font-weight:800;font-family:Manrope;line-height:1.2}
-.wk-dcol-h.today .wk-dnum{background:#00602a;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.wk-hd{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:5}
+.wk-th{border-right:1px solid var(--border)}
+.wk-dh{padding:8px 0;text-align:center;border-right:1px solid var(--border)}
+.wk-dn{font-size:.62rem;font-weight:700;text-transform:uppercase;color:var(--sub)}
+.wk-dd{font-size:1.2rem;font-weight:800;font-family:Manrope}
+.wk-dh.tod .wk-dd{background:#00602a;color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:2px auto 0}
 .wk-body{display:grid;grid-template-columns:52px repeat(7,1fr);overflow-y:auto;flex:1}
-.wk-timecol{border-right:1px solid var(--border)}
-.wk-tslot{height:56px;border-bottom:1px dashed rgba(255,255,255,.04);padding:3px 5px}
-.wk-tlbl{font-size:.6rem;color:var(--sub);font-weight:600}
-.wk-daycol{border-right:1px solid var(--border);position:relative}
-.wk-slot{height:56px;border-bottom:1px dashed rgba(255,255,255,.04);cursor:pointer}
-.wk-slot:hover{background:rgba(255,255,255,.02)}
-.wk-ev{position:absolute;left:2px;right:2px;border-radius:6px;padding:3px 6px;font-size:.67rem;font-weight:600;cursor:pointer;overflow:hidden;z-index:3;border-left:3px solid transparent}
+.wk-tc{border-right:1px solid var(--border)}
+.wk-ts{height:56px;border-bottom:1px dashed rgba(255,255,255,.04);padding:3px 5px}
+.wk-tl{font-size:.6rem;color:var(--sub);font-weight:600}
+.wk-dc{border-right:1px solid var(--border);position:relative}
+.wk-sl{height:56px;border-bottom:1px dashed rgba(255,255,255,.04);cursor:pointer}
+.wk-sl:hover{background:rgba(255,255,255,.02)}
+.wk-ev{position:absolute;left:2px;right:2px;border-radius:5px;padding:3px 6px;font-size:.66rem;font-weight:600;cursor:pointer;overflow:hidden;z-index:3;border-left:3px solid transparent}
 .wk-ev:hover{opacity:.85;z-index:10}
 
 /* POPUP */
-.ev-popup{position:fixed;z-index:900;background:#1e293b;border:1px solid #334155;border-radius:14px;padding:16px;width:270px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
-.pop-badge{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:999px;display:inline-block;margin-bottom:8px}
-.pop-title{font-family:Manrope;font-weight:800;font-size:.9rem;margin-bottom:6px;color:#f8fafc}
-.pop-row{font-size:.75rem;color:#94a3b8;display:flex;align-items:center;gap:5px;margin-bottom:3px}
-.pop-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.popup{position:fixed;z-index:900;background:#1e293b;border:1px solid #334155;border-radius:13px;padding:15px;width:265px;box-shadow:0 20px 60px rgba(0,0,0,.65);animation:pop .15s ease}
+@keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.pb{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 9px;border-radius:999px;display:inline-block;margin-bottom:7px}
+.pt{font-family:Manrope;font-weight:800;font-size:.9rem;margin-bottom:5px;color:#f8fafc}
+.pr{font-size:.74rem;color:#94a3b8;margin-bottom:3px}
+.pa{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
 
 /* MODAL */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
-.overlay.on{display:flex}
-.modal{background:#1e293b;border:1px solid #334155;border-radius:18px;width:100%;max-width:460px;box-shadow:0 32px 80px rgba(0,0,0,.5)}
-.mhd{padding:18px 22px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between}
-.mhd h2{font-family:Manrope;font-weight:800;font-size:.95rem}
-.mbody{padding:18px 22px;max-height:65vh;overflow-y:auto}
-.mfoot{padding:14px 22px;border-top:1px solid #334155;display:flex;gap:8px;justify-content:flex-end}
-.fld{width:100%;background:#0f172a;border:1.5px solid #334155;border-radius:9px;padding:9px 13px;color:#f8fafc;font-family:inherit;font-size:.85rem;outline:none}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
+.ov.on{display:flex}
+.mdl{background:#1e293b;border:1px solid #334155;border-radius:16px;width:100%;max-width:450px;box-shadow:0 32px 80px rgba(0,0,0,.5)}
+.mhd{padding:16px 20px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between}
+.mhd h2{font-family:Manrope;font-weight:800;font-size:.92rem}
+.mbody{padding:16px 20px;max-height:60vh;overflow-y:auto}
+.mft{padding:12px 20px;border-top:1px solid #334155;display:flex;gap:8px;justify-content:flex-end}
+.fld{width:100%;background:#0f172a;border:1.5px solid #334155;border-radius:8px;padding:8px 12px;color:#f8fafc;font-family:inherit;font-size:.83rem;outline:none}
 .fld:focus{border-color:#00602a}
-.lbl{display:block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#475569;margin-bottom:4px}
-.frow{margin-bottom:12px}
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.csel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
-.csel-btn{padding:7px 10px;border-radius:8px;border:1.5px solid #334155;background:transparent;color:#94a3b8;cursor:pointer;font-family:inherit;font-size:.75rem;font-weight:600;display:flex;align-items:center;gap:5px;transition:.15s}
-.csel-btn:hover,.csel-btn.on{border-color:#00602a}
-.csel-btn.on{color:#fff}
+.lbl{display:block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#475569;margin-bottom:4px}
+.fr{margin-bottom:11px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.csg{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+.csb{padding:6px 9px;border-radius:7px;border:1.5px solid #334155;background:transparent;color:#94a3b8;cursor:pointer;font-family:inherit;font-size:.73rem;font-weight:600;display:flex;align-items:center;gap:5px}
+.csb:hover,.csb.on{border-color:#00602a}
+.csb.on{color:#fff}
 
 /* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px 16px;font-size:.82rem;font-weight:600;z-index:2000;display:flex;align-items:center;gap:8px}
+.toast{position:fixed;bottom:18px;right:18px;background:#1e293b;border:1px solid #334155;border-radius:9px;padding:9px 15px;font-size:.8rem;font-weight:600;z-index:2000;display:flex;align-items:center;gap:7px}
 .toast.ok{border-color:#00602a;color:#4ade80}
 .toast.err{border-color:#ef4444;color:#f87171}
 </style>
@@ -146,78 +139,70 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 <body>
 
 <nav>
-  <div class="nav-l">
-    <a href="#" class="nav-logo"><b>Camuno</b>Learn</a>
-    <span style="color:#475569">|</span>
-    <span style="font-size:.82rem;color:#94a3b8">Calendrier Académique</span>
-  </div>
+  <a href="#" class="logo"><b>Camuno</b>Learn &nbsp;|&nbsp; <span style="font-size:.82rem;color:#94a3b8;font-weight:500">Calendrier Académique</span></a>
   <div style="display:flex;gap:8px">
-    <button class="btn btn-ghost btn-sm" onclick="history.back()">&#8592; Retour</button>
-    <button class="btn btn-primary btn-sm" onclick="openModal(null,null)" id="btn-add" style="display:none">+ Ajouter</button>
+    <button class="btn btn-o" onclick="history.back()">&#8592; Retour</button>
+    <button class="btn btn-g" onclick="openModal(null,null)" id="btn-add" style="display:none">+ Ajouter</button>
   </div>
 </nav>
 
 <div class="layout">
   <aside class="sidebar">
-    <p class="sid-title">Navigation</p>
-    <div class="mini-header">
-      <button class="mini-nav-btn" onclick="miniPrev()">&#8249;</button>
-      <span id="mini-lbl"></span>
-      <button class="mini-nav-btn" onclick="miniNext()">&#8250;</button>
+    <p class="s-title">Navigation</p>
+    <div class="mc-hd">
+      <button class="mc-nav" onclick="miniPrev()">&#8249;</button>
+      <span id="mc-lbl"></span>
+      <button class="mc-nav" onclick="miniNext()">&#8250;</button>
     </div>
-    <div class="mini-grid" id="mini-grid">
-      <div class="mini-lbl">L</div><div class="mini-lbl">M</div><div class="mini-lbl">M</div>
-      <div class="mini-lbl">J</div><div class="mini-lbl">V</div><div class="mini-lbl">S</div><div class="mini-lbl">D</div>
+    <div class="mc-grid" id="mc-grid">
+      <div class="mc-lbl">L</div><div class="mc-lbl">M</div><div class="mc-lbl">M</div>
+      <div class="mc-lbl">J</div><div class="mc-lbl">V</div><div class="mc-lbl">S</div><div class="mc-lbl">D</div>
     </div>
-
-    <p class="sid-title" style="margin-top:20px">Catégories</p>
-    <div id="cat-filters"></div>
+    <p class="s-title">Catégories</p>
+    <div id="cats"></div>
   </aside>
 
   <div class="main">
     <div class="toolbar">
-      <div class="toolbar-l">
-        <button class="btn btn-ghost btn-sm" onclick="prev()">&#8249;</button>
-        <span class="month-title" id="main-lbl"></span>
-        <button class="btn btn-ghost btn-sm" onclick="next()">&#8250;</button>
-        <button class="btn btn-ghost btn-sm" onclick="goToday()">Aujourd'hui</button>
+      <div class="tl">
+        <button class="btn btn-o" onclick="prev()">&#8249;</button>
+        <span class="ml" id="ml"></span>
+        <button class="btn btn-o" onclick="next()">&#8250;</button>
+        <button class="btn btn-o" onclick="goToday()">Aujourd'hui</button>
       </div>
-      <div class="view-sw">
-        <button class="view-btn on" id="vb-month" onclick="setView('month')">Mois</button>
-        <button class="view-btn"    id="vb-week"  onclick="setView('week')">Semaine</button>
+      <div class="vsw">
+        <button class="vb on" id="vb-m" onclick="setView('month')">Mois</button>
+        <button class="vb"    id="vb-w" onclick="setView('week')">Semaine</button>
       </div>
     </div>
-    <div class="cal-wrap" id="cal"></div>
+    <div class="cal" id="cal"></div>
   </div>
 </div>
 
 <!-- MODAL -->
-<div class="overlay" id="modal">
-  <div class="modal">
+<div class="ov" id="modal">
+  <div class="mdl">
     <div class="mhd">
-      <h2 id="mtitle">Nouvel événement</h2>
+      <h2 id="m-title">Nouvel événement</h2>
       <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1.2rem">&#x2715;</button>
     </div>
     <div class="mbody">
-      <div class="frow"><label class="lbl">Titre *</label><input id="f-title" class="fld" placeholder="Ex: Examen Algorithmique"/></div>
-      <div class="frow">
-        <label class="lbl">Catégorie *</label>
-        <div class="csel-grid" id="csel"></div>
-      </div>
-      <div class="frow fgrid">
+      <div class="fr"><label class="lbl">Titre *</label><input id="f-title" class="fld" placeholder="Ex: Examen Algorithmique S1"/></div>
+      <div class="fr"><label class="lbl">Catégorie *</label><div class="csg" id="csel"></div></div>
+      <div class="fr fg">
         <div><label class="lbl">Début *</label><input id="f-start" class="fld" type="datetime-local"/></div>
-        <div><label class="lbl">Fin *</label><input id="f-end"   class="fld" type="datetime-local"/></div>
+        <div><label class="lbl">Fin *</label><input id="f-end" class="fld" type="datetime-local"/></div>
       </div>
-      <div class="frow" style="display:flex;align-items:center;gap:8px">
-        <input type="checkbox" id="f-allday" style="accent-color:#00602a"/>
-        <label for="f-allday" style="font-size:.82rem;cursor:pointer">Journée entière</label>
+      <div class="fr" style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="f-all" style="accent-color:#00602a"/>
+        <label for="f-all" style="font-size:.82rem;cursor:pointer">Journée entière</label>
       </div>
-      <div class="frow"><label class="lbl">Département / Filière</label><input id="f-dept" class="fld" placeholder="Ex: Génie Informatique"/></div>
-      <div class="frow"><label class="lbl">Description</label><textarea id="f-desc" class="fld" rows="3" style="resize:vertical" placeholder="Détails, salle, intervenants..."></textarea></div>
+      <div class="fr"><label class="lbl">Département / Filière</label><input id="f-dept" class="fld" placeholder="Ex: Génie Informatique"/></div>
+      <div class="fr"><label class="lbl">Description</label><textarea id="f-desc" class="fld" rows="2" style="resize:vertical"></textarea></div>
     </div>
-    <div class="mfoot">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Annuler</button>
-      <button class="btn btn-primary btn-sm" onclick="saveEvent()" id="save-btn">Enregistrer</button>
+    <div class="mft">
+      <button class="btn btn-o" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-g" onclick="saveEvent()" id="save-btn">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -226,85 +211,93 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 const API   = location.hostname==='localhost'?'http://localhost:3000/api':'https://camunolearn-api.onrender.com/api';
 const TOKEN = localStorage.getItem('camunolearn_token');
 const USER  = JSON.parse(localStorage.getItem('camunolearn_user')||'{}');
-if (!TOKEN) location.href='indexconnexion.html';
+if(!TOKEN) location.href='indexconnexion.html';
 
-const CAN_EDIT = ['enseignant','admin','superadmin'].includes(USER.role);
-if (CAN_EDIT) document.getElementById('btn-add').style.display='flex';
+const CAN = ['enseignant','admin','superadmin'].includes(USER.role);
+if(CAN) document.getElementById('btn-add').style.display='flex';
 
-const CATS = [
-  {k:'cours',       n:'Cours',           c:'#3b82f6'},
-  {k:'cc',          n:'Contrôle Continu',c:'#f59e0b'},
-  {k:'examen',      n:'Examen',          c:'#ef4444'},
-  {k:'tp',          n:'TP',              c:'#8b5cf6'},
-  {k:'rattrapage',  n:'Rattrapage',      c:'#f97316'},
-  {k:'reunion',     n:'Réunion Admin',   c:'#6b7280'},
-  {k:'caq',         n:'Éval. CAQ',       c:'#0ea5e9'},
-  {k:'vie_etudiante',n:'Vie Étudiante', c:'#10b981'},
-  {k:'conge',       n:'Congé / Férié',   c:'#94a3b8'},
-  {k:'stage',       n:'Stage',           c:'#84cc16'},
+const CATS=[
+  {k:'cours',        n:'Cours',            c:'#3b82f6'},
+  {k:'cc',           n:'Contrôle Continu', c:'#f59e0b'},
+  {k:'examen',       n:'Examen',           c:'#ef4444'},
+  {k:'tp',           n:'TP',               c:'#8b5cf6'},
+  {k:'rattrapage',   n:'Rattrapage',       c:'#f97316'},
+  {k:'reunion',      n:'Réunion Admin',    c:'#6b7280'},
+  {k:'caq',          n:'Éval. CAQ',        c:'#0ea5e9'},
+  {k:'vie_etudiante',n:'Vie Étudiante',    c:'#10b981'},
+  {k:'conge',        n:'Congé / Férié',    c:'#94a3b8'},
+  {k:'stage',        n:'Stage',            c:'#84cc16'},
 ];
-const CMAP = Object.fromEntries(CATS.map(c=>[c.k,c]));
-const MFR  = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-const DFR  = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+const CM = Object.fromEntries(CATS.map(c=>[c.k,c]));
+const MFR=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const DFR=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
 
-let cur     = new Date();
-let view    = 'month';
-let events  = [];
-let active  = new Set(CATS.map(c=>c.k));
-let editId  = null;
-let selCat  = null;
+// ── DONNÉES RÉELLES IUT DE DOUALA 2025/2026 ──────────────────
+const REAL_EVENTS = [
+  // ── CONGÉS & JOURS FÉRIÉS
+  {id:'c1', title:'Fête Nationale du Cameroun',    category:'conge', color:'#94a3b8', start_date:'2025-05-20', end_date:'2025-05-20', all_day:true},
+  {id:'c2', title:'Fête de l\'Assomption',          category:'conge', color:'#94a3b8', start_date:'2025-08-15', end_date:'2025-08-15', all_day:true},
+  {id:'c3', title:'Fête de la Jeunesse',            category:'conge', color:'#94a3b8', start_date:'2026-02-11', end_date:'2026-02-11', all_day:true},
+  {id:'c4', title:'Fête du Travail',                category:'conge', color:'#94a3b8', start_date:'2026-05-01', end_date:'2026-05-01', all_day:true},
+  {id:'c5', title:'Congés de Noël & Nouvel An',    category:'conge', color:'#94a3b8', start_date:'2025-12-20', end_date:'2026-01-04', all_day:true},
+  {id:'c6', title:'Congés de Pâques',              category:'conge', color:'#94a3b8', start_date:'2026-04-02', end_date:'2026-04-13', all_day:true},
 
-// ── INIT
+  // ── SEMESTRE 1
+  {id:'s1', title:'Rentrée académique 2025/2026',  category:'vie_etudiante', color:'#10b981', start_date:'2025-09-15', end_date:'2025-09-19', all_day:true},
+  {id:'s2', title:'Cours S1',                      category:'cours',         color:'#3b82f6', start_date:'2025-09-22', end_date:'2025-11-07', all_day:true},
+  {id:'s3', title:'Contrôle Continu 1 — S1',       category:'cc',            color:'#f59e0b', start_date:'2025-11-10', end_date:'2025-11-14', all_day:true},
+  {id:'s4', title:'Cours S1 (suite)',               category:'cours',         color:'#3b82f6', start_date:'2025-11-17', end_date:'2025-12-05', all_day:true},
+  {id:'s5', title:'Contrôle Continu 2 — S1',       category:'cc',            color:'#f59e0b', start_date:'2025-12-08', end_date:'2025-12-12', all_day:true},
+  {id:'s6', title:'Révisions S1',                  category:'cours',         color:'#3b82f6', start_date:'2025-12-15', end_date:'2025-12-19', all_day:true},
+  {id:'s7', title:'Examens S1 — Session ordinaire',category:'examen',         color:'#ef4444', start_date:'2026-01-05', end_date:'2026-01-16', all_day:true},
+  {id:'s8', title:'Délibérations S1',              category:'reunion',        color:'#6b7280', start_date:'2026-01-19', end_date:'2026-01-23', all_day:true},
+
+  // ── SEMESTRE 2
+  {id:'t1', title:'Cours S2',                      category:'cours',         color:'#3b82f6', start_date:'2026-02-02', end_date:'2026-03-13', all_day:true},
+  {id:'t2', title:'Contrôle Continu 1 — S2',       category:'cc',            color:'#f59e0b', start_date:'2026-03-16', end_date:'2026-03-20', all_day:true},
+  {id:'t3', title:'Cours S2 (suite)',               category:'cours',         color:'#3b82f6', start_date:'2026-03-23', end_date:'2026-04-01', all_day:true},
+  {id:'t4', title:'Contrôle Continu 2 — S2',       category:'cc',            color:'#f59e0b', start_date:'2026-04-27', end_date:'2026-05-01', all_day:true},
+  {id:'t5', title:'Révisions S2',                  category:'cours',         color:'#3b82f6', start_date:'2026-05-04', end_date:'2026-05-08', all_day:true},
+  {id:'t6', title:'Examens S2 — Session ordinaire',category:'examen',         color:'#ef4444', start_date:'2026-05-25', end_date:'2026-06-05', all_day:true},
+  {id:'t7', title:'Délibérations S2',              category:'reunion',        color:'#6b7280', start_date:'2026-06-08', end_date:'2026-06-12', all_day:true},
+
+  // ── RATTRAPAGES
+  {id:'r1', title:'Rattrapages S1 & S2',           category:'rattrapage',    color:'#f97316', start_date:'2026-06-15', end_date:'2026-06-26', all_day:true},
+  {id:'r2', title:'Délibérations finales',          category:'reunion',        color:'#6b7280', start_date:'2026-07-06', end_date:'2026-07-10', all_day:true},
+
+  // ── TP
+  {id:'p1', title:'TP Algorithmique — GI',         category:'tp',            color:'#8b5cf6', start_date:'2025-10-06', end_date:'2025-10-10', all_day:true, department:'Génie Informatique'},
+  {id:'p2', title:'TP Bases de données — GI',      category:'tp',            color:'#8b5cf6', start_date:'2025-11-24', end_date:'2025-11-28', all_day:true, department:'Génie Informatique'},
+  {id:'p3', title:'TP Réseaux — GI',               category:'tp',            color:'#8b5cf6', start_date:'2026-03-23', end_date:'2026-03-27', all_day:true, department:'Génie Informatique'},
+  {id:'p4', title:'TP Électronique — GE',          category:'tp',            color:'#8b5cf6', start_date:'2025-10-13', end_date:'2025-10-17', all_day:true, department:'Génie Électrique'},
+
+  // ── ÉVALUATIONS CAQ
+  {id:'q1', title:'Évaluation CAQ — Semestre 1',   category:'caq',           color:'#0ea5e9', start_date:'2025-12-01', end_date:'2025-12-05', all_day:true},
+  {id:'q2', title:'Évaluation CAQ — Semestre 2',   category:'caq',           color:'#0ea5e9', start_date:'2026-05-11', end_date:'2026-05-15', all_day:true},
+
+  // ── STAGES
+  {id:'g1', title:'Stage de fin d\'études DUT2',   category:'stage',         color:'#84cc16', start_date:'2026-06-29', end_date:'2026-08-28', all_day:true, department:'Tous départements'},
+  {id:'g2', title:'Stage de découverte DUT1',      category:'stage',         color:'#84cc16', start_date:'2026-07-13', end_date:'2026-08-07', all_day:true, department:'Tous départements'},
+
+  // ── VIE ÉTUDIANTE
+  {id:'v1', title:'Élections CGEC',                category:'vie_etudiante', color:'#10b981', start_date:'2025-10-20', end_date:'2025-10-20', all_day:true},
+  {id:'v2', title:'Journée Portes Ouvertes IUT',   category:'vie_etudiante', color:'#10b981', start_date:'2025-11-29', end_date:'2025-11-29', all_day:true},
+  {id:'v3', title:'Séminaire Entrepreneuriat',     category:'vie_etudiante', color:'#10b981', start_date:'2026-03-07', end_date:'2026-03-07', all_day:true},
+  {id:'v4', title:'Cérémonie de remise des diplômes',category:'vie_etudiante',color:'#10b981',start_date:'2026-07-25', end_date:'2026-07-25', all_day:true},
+
+  // ── RÉUNIONS ADMIN
+  {id:'m1', title:'Conseil pédagogique S1',        category:'reunion',        color:'#6b7280', start_date:'2025-10-13T14:00', end_date:'2025-10-13T17:00', all_day:false},
+  {id:'m2', title:'Conseil pédagogique S2',        category:'reunion',        color:'#6b7280', start_date:'2026-03-09T14:00', end_date:'2026-03-09T17:00', all_day:false},
+  {id:'m3', title:'Réunion coordination départements',category:'reunion',    color:'#6b7280', start_date:'2025-09-29T09:00', end_date:'2025-09-29T12:00', all_day:false},
+];
+
+let cur=new Date(), view='month', events=[], active=new Set(CATS.map(c=>c.k)), editId=null, selCat=null;
+
 async function init(){
-  buildCatFilters();
-  buildCselGrid();
+  buildCats(); buildCsel();
   await load();
-  render();
-  renderMini();
+  render(); renderMini();
 }
-
-// ── LOAD
-
-// Événements réels IUT de Douala 2025/2026
-const DEMO_EVENTS = [
-  // SEMESTRE 1
-  {id:'d1',title:'Rentrée académique 2025/2026',category:'vie_etudiante',color:'#10b981',start_date:'2025-09-15T08:00',end_date:'2025-09-15T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d2',title:'Début cours S1',category:'cours',color:'#3b82f6',start_date:'2025-09-22T07:30',end_date:'2025-09-22T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d3',title:'CC1 — Tous départements S1',category:'cc',color:'#f59e0b',start_date:'2025-11-10T07:30',end_date:'2025-11-14T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d4',title:'CC2 — Tous départements S1',category:'cc',color:'#f59e0b',start_date:'2025-12-08T07:30',end_date:'2025-12-12T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d5',title:'Examens S1 — Session ordinaire',category:'examen',color:'#ef4444',start_date:'2026-01-05T07:30',end_date:'2026-01-16T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d6',title:'Congé de fin d'année',category:'conge',color:'#94a3b8',start_date:'2025-12-22T00:00',end_date:'2026-01-04T23:59',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d7',title:'Fête de la Jeunesse',category:'conge',color:'#94a3b8',start_date:'2026-02-11T00:00',end_date:'2026-02-11T23:59',all_day:true,department:null,school:'IUT de Douala'},
-
-  // SEMESTRE 2
-  {id:'d8',title:'Début cours S2',category:'cours',color:'#3b82f6',start_date:'2026-02-02T07:30',end_date:'2026-02-02T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d9',title:'CC1 — Tous départements S2',category:'cc',color:'#f59e0b',start_date:'2026-03-16T07:30',end_date:'2026-03-20T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d10',title:'CC2 — Tous départements S2',category:'cc',color:'#f59e0b',start_date:'2026-04-27T07:30',end_date:'2026-05-01T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d11',title:'Fête du Travail',category:'conge',color:'#94a3b8',start_date:'2026-05-01T00:00',end_date:'2026-05-01T23:59',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d12',title:'Examens S2 — Session ordinaire',category:'examen',color:'#ef4444',start_date:'2026-05-25T07:30',end_date:'2026-06-05T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d13',title:'Rattrapage S1 & S2',category:'rattrapage',color:'#f97316',start_date:'2026-06-15T07:30',end_date:'2026-06-26T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d14',title:'Délibérations & Proclamation résultats',category:'reunion',color:'#6b7280',start_date:'2026-07-06T08:00',end_date:'2026-07-10T17:00',all_day:true,department:null,school:'IUT de Douala'},
-
-  // STAGES
-  {id:'d15',title:'Début stage de fin d'études — DUT2',category:'stage',color:'#84cc16',start_date:'2026-06-29T08:00',end_date:'2026-08-28T17:00',all_day:true,department:'Tous départements',school:'IUT de Douala'},
-
-  // ÉVALUATIONS CAQ
-  {id:'d16',title:'Évaluation CAQ — S1',category:'caq',color:'#0ea5e9',start_date:'2025-12-01T08:00',end_date:'2025-12-05T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d17',title:'Évaluation CAQ — S2',category:'caq',color:'#0ea5e9',start_date:'2026-05-11T08:00',end_date:'2026-05-15T17:00',all_day:true,department:null,school:'IUT de Douala'},
-
-  // VIE ETUDIANTE
-  {id:'d18',title:'Journée Portes Ouvertes IUT',category:'vie_etudiante',color:'#10b981',start_date:'2025-11-29T08:00',end_date:'2025-11-29T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d19',title:'Élections CGEC',category:'vie_etudiante',color:'#10b981',start_date:'2025-10-20T08:00',end_date:'2025-10-20T17:00',all_day:true,department:null,school:'IUT de Douala'},
-  {id:'d20',title:'Séminaire Entrepreneuriat & Innovation',category:'vie_etudiante',color:'#10b981',start_date:'2026-03-07T08:00',end_date:'2026-03-07T17:00',all_day:true,department:null,school:'IUT de Douala'},
-
-  // TP GI
-  {id:'d21',title:'TP Algorithmique & Structures de données',category:'tp',color:'#8b5cf6',start_date:'2025-10-06T07:30',end_date:'2025-10-10T17:00',all_day:true,department:'Génie Informatique',school:'IUT de Douala'},
-  {id:'d22',title:'TP Réseaux & Télécommunications',category:'tp',color:'#8b5cf6',start_date:'2026-03-23T07:30',end_date:'2026-03-27T17:00',all_day:true,department:'Génie Informatique',school:'IUT de Douala'},
-
-  // RÉUNIONS
-  {id:'d23',title:'Conseil pédagogique S1',category:'reunion',color:'#6b7280',start_date:'2025-10-13T14:00',end_date:'2025-10-13T17:00',all_day:false,department:null,school:'IUT de Douala'},
-  {id:'d24',title:'Conseil pédagogique S2',category:'reunion',color:'#6b7280',start_date:'2026-03-09T14:00',end_date:'2026-03-09T17:00',all_day:false,department:null,school:'IUT de Douala'},
-];
 
 async function load(){
   try{
@@ -312,143 +305,171 @@ async function load(){
     const sc=encodeURIComponent(USER.school||'IUT de Douala');
     const r=await fetch(`${API}/calendar/events?school=${sc}&month=${m}&year=${y}`,{headers:{Authorization:'Bearer '+TOKEN}});
     const d=await r.json();
-    if(d.success && d.events.length > 0){
-      events=d.events;
-    } else {
-      // Utiliser les données réelles IUT si API vide
-      events=DEMO_EVENTS;
-    }
-  }catch(e){
-    // Fallback sur les données réelles IUT
-    events=DEMO_EVENTS;
-  }
+    events = (d.success && d.events.length) ? d.events : REAL_EVENTS;
+  }catch(e){ events=REAL_EVENTS; }
 }
-
 async function reload(){ await load(); render(); renderMini(); }
+
+// ── HELPERS
+function eStart(e){ return new Date(e.start_date); }
+function eEnd(e){   return new Date(e.end_date); }
+function sameDay(a,b){ return a.toDateString()===b.toDateString(); }
+function isBetween(d,s,e){ return d>=new Date(s.toDateString())&&d<=new Date(e.toDateString()); }
+function toISO(d){ const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
+function filtered(){ return events.filter(e=>active.has(e.category)); }
 
 // ── NAV
 function prev(){ view==='month'?cur.setMonth(cur.getMonth()-1):cur.setDate(cur.getDate()-7); reload(); }
 function next(){ view==='month'?cur.setMonth(cur.getMonth()+1):cur.setDate(cur.getDate()+7); reload(); }
 function goToday(){ cur=new Date(); reload(); }
-function setView(v){ view=v; document.getElementById('vb-month').className='view-btn'+(v==='month'?' on':''); document.getElementById('vb-week').className='view-btn'+(v==='week'?' on':''); render(); }
+function setView(v){ view=v; document.getElementById('vb-m').className='vb'+(v==='month'?' on':''); document.getElementById('vb-w').className='vb'+(v==='week'?' on':''); render(); }
 function miniPrev(){ cur.setMonth(cur.getMonth()-1); reload(); }
 function miniNext(){ cur.setMonth(cur.getMonth()+1); reload(); }
 
-// ── CAT FILTERS
-function buildCatFilters(){
-  document.getElementById('cat-filters').innerHTML = CATS.map(c=>`
+// ── CATS
+function buildCats(){
+  document.getElementById('cats').innerHTML=CATS.map(c=>`
     <div class="cat-item" id="cf-${c.k}" onclick="toggleCat('${c.k}')">
       <div class="cat-dot" style="background:${c.c}"></div>
-      <span class="cat-name">${c.n}</span>
-      <span class="cat-x">OFF</span>
+      <span class="cat-lbl">${c.n}</span>
+      <span class="cat-off">OFF</span>
     </div>`).join('');
 }
 function toggleCat(k){
-  if(active.has(k)) active.delete(k); else active.add(k);
+  active.has(k)?active.delete(k):active.add(k);
   document.getElementById('cf-'+k).classList.toggle('off',!active.has(k));
   render();
 }
-
-// ── CSEL GRID (modal)
-function buildCselGrid(){
+function buildCsel(){
   document.getElementById('csel').innerHTML=CATS.map(c=>`
-    <button class="csel-btn" id="cs-${c.k}" onclick="pickCat('${c.k}')">
-      <span style="width:9px;height:9px;border-radius:50%;background:${c.c};display:inline-block;flex-shrink:0"></span>${c.n}
+    <button class="csb" id="cs-${c.k}" onclick="pickCat('${c.k}')">
+      <span style="width:8px;height:8px;border-radius:50%;background:${c.c};display:inline-block;flex-shrink:0"></span>${c.n}
     </button>`).join('');
 }
 function pickCat(k){
   selCat=k;
-  document.querySelectorAll('.csel-btn').forEach(b=>{b.classList.remove('on');b.style.background='';b.style.borderColor='';});
-  const cat=CMAP[k]; const btn=document.getElementById('cs-'+k);
-  btn.classList.add('on'); btn.style.background=cat.c; btn.style.borderColor=cat.c;
+  document.querySelectorAll('.csb').forEach(b=>{b.classList.remove('on');b.style.background='';b.style.borderColor='';});
+  const btn=document.getElementById('cs-'+k);
+  btn.classList.add('on'); btn.style.background=CM[k].c; btn.style.borderColor=CM[k].c;
 }
 
-// ── ISO LOCAL
-function toISO(d){ const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
-
-// ── FILTERED EVENTS
-function filtered(){ return events.filter(e=>active.has(e.category)); }
-
-// ── MONTH VIEW
+// ── MONTH RENDER ─────────────────────────────────────────────
 function renderMonth(){
   const y=cur.getFullYear(),m=cur.getMonth();
-  document.getElementById('main-lbl').textContent=MFR[m]+' '+y;
-  const first=new Date(y,m,1), last=new Date(y,m+1,0);
-  let dow=first.getDay(); if(dow===0) dow=7; dow--;
+  document.getElementById('ml').textContent=MFR[m]+' '+y;
+  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  let dow=first.getDay(); if(dow===0)dow=7; dow--;
   const today=new Date();
   const evs=filtered();
-
-  let html=`<div>
-    <div class="mth-head">${DFR.map(d=>`<div class="mth-hlbl">${d}</div>`).join('')}</div>
-    <div class="mth-grid">`;
-
   const total=Math.ceil((dow+last.getDate())/7)*7;
+
+  // Construire tableau des jours
+  const days=[];
   for(let i=0;i<total;i++){
     const dn=i-dow+1;
-    const dt=new Date(y,m,dn);
-    const isToday=dt.toDateString()===today.toDateString();
-    const isOther=dn<1||dn>last.getDate();
-    const ds=dt.toISOString().split('T')[0];
-
-    const dayEvs=evs.filter(e=>{
-      const s=new Date(e.start_date),ee=new Date(e.end_date);
-      return dt>=new Date(s.toDateString())&&dt<=new Date(ee.toDateString());
-    });
-
-    html+=`<div class="mth-cell${isToday?' today':''}${isOther?' fade':''}" onclick="onDayClick('${ds}')">
-      <div class="cday">${dt.getDate()}</div>`;
-
-    dayEvs.slice(0,3).forEach(e=>{
-      const cat=CMAP[e.category]||{c:'#3b82f6'};
-      html+=`<span class="chip" style="background:${e.color||cat.c}22;color:${e.color||cat.c};border-left-color:${e.color||cat.c}"
-              onclick="event.stopPropagation();showPopup(event,'${e.id}')">${e.title}</span>`;
-    });
-    if(dayEvs.length>3) html+=`<div class="more" onclick="event.stopPropagation()">+${dayEvs.length-3} autres</div>`;
-    html+=`</div>`;
+    days.push(new Date(y,m,dn));
   }
+
+  // Pour chaque événement multi-day, calculer les positions
+  // On utilise un système de "rows" pour éviter les chevauchements
+  function getEventsForDay(dt){
+    return evs.filter(e=>isBetween(dt,eStart(e),eEnd(e)));
+  }
+
+  let html=`<div>
+    <div class="mh">${DFR.map(d=>`<div class="mhl">${d}</div>`).join('')}</div>
+    <div class="mg">`;
+
+  days.forEach((dt,i)=>{
+    const isT=sameDay(dt,today);
+    const isO=dt.getMonth()!==m;
+    const ds=dt.toISOString().split('T')[0];
+    const dayEvs=getEventsForDay(dt);
+
+    html+=`<div class="mc${isT?' tod':''}${isO?' out':''}" onclick="onDay('${ds}')">
+      <div class="dn">${dt.getDate()}</div>`;
+
+    // Afficher jusqu'à 3 événements
+    const visible=dayEvs.slice(0,3);
+    const extra=dayEvs.length-3;
+
+    visible.forEach(e=>{
+      const cat=CM[e.category]||{c:'#3b82f6'};
+      const col=e.color||cat.c;
+      const s=eStart(e),en=eEnd(e);
+      const isMulti=!sameDay(s,en);
+      const isStart=sameDay(dt,s)||(!sameDay(dt,s)&&dt.getDay()===1&&i%7===0)||(dt.getDay()===1);
+      const isEnd=sameDay(dt,en);
+
+      // Position du chip pour multi-day
+      let cls='chip chip-solo';
+      if(isMulti){
+        if(sameDay(dt,s)) cls='chip chip-start';
+        else if(sameDay(dt,en)) cls='chip chip-end';
+        else cls='chip chip-mid';
+        // Nouveau début de semaine
+        const col7=i%7;
+        if(col7===0&&!sameDay(dt,s)) cls='chip chip-start';
+        const lastCol=6;
+        if(col7===lastCol&&!sameDay(dt,en)) cls='chip chip-end';
+      }
+
+      const showTitle=sameDay(dt,s)||(i%7===0);
+      html+=`<div class="${cls}" style="background:${col}22;color:${col};border-left:3px solid ${col}"
+               onclick="event.stopPropagation();showPop(event,'${e.id}')"
+               title="${e.title}">
+               ${showTitle?e.title:'&nbsp;'}
+             </div>`;
+    });
+    if(extra>0) html+=`<div class="more" onclick="event.stopPropagation()">+${extra} autres</div>`;
+    html+=`</div>`;
+  });
+
   html+=`</div></div>`;
   document.getElementById('cal').innerHTML=html;
 }
 
-// ── WEEK VIEW
+// ── WEEK RENDER ───────────────────────────────────────────────
 function renderWeek(){
   const today=new Date();
   const d=new Date(cur);
   const dow=d.getDay()===0?7:d.getDay();
   d.setDate(d.getDate()-dow+1);
   const days=Array.from({length:7},(_,i)=>{ const dd=new Date(d); dd.setDate(d.getDate()+i); return dd; });
-
-  document.getElementById('main-lbl').textContent=
+  document.getElementById('ml').textContent=
     days[0].getDate()+' '+MFR[days[0].getMonth()].slice(0,3)+' – '+days[6].getDate()+' '+MFR[days[6].getMonth()]+' '+days[6].getFullYear();
-
   const HOURS=Array.from({length:16},(_,i)=>i+7);
   const evs=filtered();
 
   let html=`<div class="wk-wrap">
-    <div class="wk-head">
-      <div class="wk-time-h"></div>
+    <div class="wk-hd">
+      <div class="wk-th"></div>
       ${days.map(dd=>{
-        const isT=dd.toDateString()===today.toDateString();
-        return `<div class="wk-dcol-h${isT?' today':''}">
-          <div class="wk-dname">${DFR[dd.getDay()===0?6:dd.getDay()-1]}</div>
-          <div class="wk-dnum">${dd.getDate()}</div>
+        const isT=sameDay(dd,today);
+        return `<div class="wk-dh${isT?' tod':''}">
+          <div class="wk-dn">${DFR[dd.getDay()===0?6:dd.getDay()-1]}</div>
+          <div class="wk-dd">${dd.getDate()}</div>
         </div>`;
       }).join('')}
     </div>
     <div class="wk-body">
-      <div class="wk-timecol">${HOURS.map(h=>`<div class="wk-tslot"><span class="wk-tlbl">${String(h).padStart(2,'0')}h</span></div>`).join('')}</div>
+      <div class="wk-tc">${HOURS.map(h=>`<div class="wk-ts"><span class="wk-tl">${String(h).padStart(2,'0')}h</span></div>`).join('')}</div>
       ${days.map(dd=>{
         const ds=dd.toISOString().split('T')[0];
-        const dayEvs=evs.filter(e=>new Date(e.start_date).toDateString()===dd.toDateString());
-        return `<div class="wk-daycol">
-          ${HOURS.map(h=>`<div class="wk-slot" onclick="onSlotClick('${ds}',${h})"></div>`).join('')}
+        const dayEvs=evs.filter(e=>sameDay(new Date(e.start_date),dd));
+        return `<div class="wk-dc">
+          ${HOURS.map(h=>`<div class="wk-sl" onclick="onSlot('${ds}',${h})"></div>`).join('')}
           ${dayEvs.map(e=>{
-            const cat=CMAP[e.category]||{c:'#3b82f6'};
-            const s=new Date(e.start_date),ee=new Date(e.end_date);
-            const top=((s.getHours()-7)+s.getMinutes()/60)*56;
-            const ht=Math.max(28,((ee-s)/3600000)*56);
-            return `<div class="wk-ev" style="top:${top}px;height:${Math.min(ht,500)}px;background:${e.color||cat.c}22;border-left-color:${e.color||cat.c};color:${e.color||cat.c}"
-                     onclick="event.stopPropagation();showPopup(event,'${e.id}')">${e.title}</div>`;
+            const cat=CM[e.category]||{c:'#3b82f6'};
+            const col=e.color||cat.c;
+            const s=eStart(e),en=eEnd(e);
+            let top=0,ht=56*2;
+            if(!e.all_day){
+              top=((s.getHours()-7)+s.getMinutes()/60)*56;
+              ht=Math.max(24,((en-s)/3600000)*56);
+            }
+            return `<div class="wk-ev" style="top:${top}px;height:${Math.min(ht,480)}px;background:${col}22;border-left-color:${col};color:${col}"
+                     onclick="event.stopPropagation();showPop(event,'${e.id}')">${e.title}</div>`;
           }).join('')}
         </div>`;
       }).join('')}
@@ -460,138 +481,126 @@ function renderWeek(){
 // ── MINI CAL
 function renderMini(){
   const y=cur.getFullYear(),m=cur.getMonth();
-  document.getElementById('mini-lbl').textContent=MFR[m].slice(0,3)+' '+y;
+  document.getElementById('mc-lbl').textContent=MFR[m].slice(0,3)+' '+y;
   const first=new Date(y,m,1),last=new Date(y,m+1,0);
-  let dow=first.getDay(); if(dow===0) dow=7; dow--;
+  let dow=first.getDay(); if(dow===0)dow=7; dow--;
   const today=new Date();
-  const grid=document.getElementById('mini-grid');
-  const labels=Array.from(grid.querySelectorAll('.mini-lbl'));
-  grid.innerHTML='';
-  labels.forEach(l=>grid.appendChild(l.cloneNode(true)));
-  const total=Math.ceil((dow+last.getDate())/7)*7;
-  for(let i=0;i<total;i++){
-    const dn=i-dow+1;
-    const dt=new Date(y,m,dn);
-    const isT=dt.toDateString()===today.toDateString();
-    const isO=dn<1||dn>last.getDate();
+  const g=document.getElementById('mc-grid');
+  g.innerHTML='<div class="mc-lbl">L</div><div class="mc-lbl">M</div><div class="mc-lbl">M</div><div class="mc-lbl">J</div><div class="mc-lbl">V</div><div class="mc-lbl">S</div><div class="mc-lbl">D</div>';
+  const tot=Math.ceil((dow+last.getDate())/7)*7;
+  for(let i=0;i<tot;i++){
+    const dn=i-dow+1,dt=new Date(y,m,dn);
+    const isT=sameDay(dt,today),isO=dt.getMonth()!==m;
     const div=document.createElement('div');
-    div.className='mini-d'+(isT?' today':'')+(isO?' fade':'');
+    div.className='mc-d'+(isT?' today':'')+(isO?' out':'');
     div.textContent=dt.getDate();
     div.onclick=()=>{ cur=new Date(dt); reload(); };
-    grid.appendChild(div);
+    g.appendChild(div);
   }
 }
 
-// ── MAIN RENDER
 function render(){ view==='month'?renderMonth():renderWeek(); }
 
 // ── POPUP
-function showPopup(evt,id){
-  document.querySelectorAll('.ev-popup').forEach(p=>p.remove());
+function showPop(evt,id){
+  document.querySelectorAll('.popup').forEach(p=>p.remove());
   const e=events.find(ev=>ev.id===id); if(!e) return;
-  const cat=CMAP[e.category]||{c:'#3b82f6',n:e.category};
-  const fmtDt=d=>new Date(d).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const cat=CM[e.category]||{c:'#3b82f6',n:e.category};
+  const col=e.color||cat.c;
+  const fmt=d=>new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  const fmtdt=d=>new Date(d).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 
   const pop=document.createElement('div');
-  pop.className='ev-popup';
-  pop.style.top=Math.min(evt.clientY+8,window.innerHeight-280)+'px';
-  pop.style.left=Math.min(evt.clientX+8,window.innerWidth-285)+'px';
+  pop.className='popup';
+  pop.style.top=Math.min(evt.clientY+10,window.innerHeight-280)+'px';
+  pop.style.left=Math.min(evt.clientX+10,window.innerWidth-275)+'px';
+
+  const dateStr = e.all_day
+    ? (e.start_date===e.end_date ? fmt(e.start_date) : `${fmt(e.start_date)} → ${fmt(e.end_date)}`)
+    : `${fmtdt(e.start_date)} → ${fmtdt(e.end_date)}`;
 
   pop.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-      <span class="pop-badge" style="background:${cat.c}22;color:${cat.c}">${cat.n}</span>
-      <button onclick="this.closest('.ev-popup').remove()" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1.1rem;line-height:1">&#x2715;</button>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <span class="pb" style="background:${col}22;color:${col}">${cat.n}</span>
+      <button onclick="this.closest('.popup').remove()" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1.1rem;line-height:1">&#x2715;</button>
     </div>
-    <div class="pop-title">${e.title}</div>
-    <div class="pop-row">&#128197; ${fmtDt(e.start_date)} &#8594; ${fmtDt(e.end_date)}</div>
-    ${e.department?`<div class="pop-row">&#128101; ${e.department}</div>`:''}
-    ${e.description?`<div class="pop-row" style="margin-top:4px;font-size:.73rem">${e.description}</div>`:''}
-    ${e.created_by_name?`<div class="pop-row">&#128100; ${e.created_by_name}</div>`:''}
-    ${CAN_EDIT?`<div class="pop-actions">
-      <button class="btn btn-ghost btn-sm" onclick="editEv('${e.id}');this.closest('.ev-popup').remove()">&#9998; Modifier</button>
-      <button class="btn btn-ghost btn-sm" onclick="dupEv('${e.id}');this.closest('.ev-popup').remove()">&#10064; Dupliquer</button>
-      <button class="btn btn-sm" style="background:#450a0a;color:#f87171;border:none" onclick="delEv('${e.id}');this.closest('.ev-popup').remove()">&#128465;</button>
+    <div class="pt">${e.title}</div>
+    <div class="pr">&#128197; ${dateStr}</div>
+    ${e.department?`<div class="pr">&#128101; ${e.department}</div>`:''}
+    ${e.description?`<div class="pr" style="margin-top:4px;font-size:.72rem">${e.description}</div>`:''}
+    ${CAN?`<div class="pa">
+      <button class="btn btn-o" style="padding:5px 10px;font-size:.73rem" onclick="editEv('${e.id}');this.closest('.popup').remove()">&#9998; Modifier</button>
+      <button class="btn btn-o" style="padding:5px 10px;font-size:.73rem" onclick="dupEv('${e.id}');this.closest('.popup').remove()">&#10064; Dupliquer</button>
+      <button class="btn" style="padding:5px 10px;font-size:.73rem;background:#450a0a;color:#f87171;border:none" onclick="delEv('${e.id}');this.closest('.popup').remove()">&#128465;</button>
     </div>`:''}`;
 
   document.body.appendChild(pop);
   setTimeout(()=>document.addEventListener('click',()=>pop.remove(),{once:true}),50);
 }
 
-// ── DAY / SLOT CLICK
-function onDayClick(ds){
-  if(!CAN_EDIT) return;
-  openModal(ds+'T08:00',ds+'T09:00');
-}
-function onSlotClick(ds,h){
-  if(!CAN_EDIT) return;
-  const hh=String(h).padStart(2,'0'),h2=String(h+1).padStart(2,'0');
-  openModal(`${ds}T${hh}:00`,`${ds}T${h2}:00`);
-}
+// ── CLICS
+function onDay(ds){ if(!CAN)return; openModal(ds+'T08:00',ds+'T09:00'); }
+function onSlot(ds,h){ if(!CAN)return; const hh=String(h).padStart(2,'0'),h2=String(h+1).padStart(2,'0'); openModal(`${ds}T${hh}:00`,`${ds}T${h2}:00`); }
 
 // ── MODAL
 function openModal(start,end,ev=null){
-  editId=ev?ev.id:null;
-  selCat=ev?ev.category:null;
-  document.getElementById('mtitle').textContent=ev?'Modifier l\'événement':'Nouvel événement';
+  editId=ev?ev.id:null; selCat=ev?ev.category:null;
+  document.getElementById('m-title').textContent=ev?'Modifier':'Nouvel événement';
   document.getElementById('f-title').value=ev?.title||'';
   document.getElementById('f-desc').value=ev?.description||'';
   document.getElementById('f-dept').value=ev?.department||'';
-  document.getElementById('f-allday').checked=ev?.all_day||false;
-  document.getElementById('f-start').value=ev?toISO(new Date(ev.start_date)):(start||'');
-  document.getElementById('f-end').value=ev?toISO(new Date(ev.end_date)):(end||'');
-  // Reset cat selection
-  document.querySelectorAll('.csel-btn').forEach(b=>{b.classList.remove('on');b.style.background='';b.style.borderColor='';});
-  if(selCat){ const btn=document.getElementById('cs-'+selCat); if(btn){ btn.classList.add('on'); btn.style.background=CMAP[selCat].c; btn.style.borderColor=CMAP[selCat].c; } }
+  document.getElementById('f-all').checked=ev?.all_day||false;
+  document.getElementById('f-start').value=ev?toISO(eStart(ev)):(start||'');
+  document.getElementById('f-end').value=ev?toISO(eEnd(ev)):(end||'');
+  document.querySelectorAll('.csb').forEach(b=>{b.classList.remove('on');b.style.background='';b.style.borderColor='';});
+  if(selCat){ const btn=document.getElementById('cs-'+selCat); if(btn){btn.classList.add('on');btn.style.background=CM[selCat].c;btn.style.borderColor=CM[selCat].c;} }
   document.getElementById('modal').classList.add('on');
   setTimeout(()=>document.getElementById('f-title').focus(),100);
 }
 function closeModal(){ document.getElementById('modal').classList.remove('on'); editId=null; selCat=null; }
 
-// ── SAVE
 async function saveEvent(){
   const title=document.getElementById('f-title').value.trim();
   const start=document.getElementById('f-start').value;
   const end=document.getElementById('f-end').value;
-  if(!title){ toast('Titre requis.','err'); return; }
-  if(!selCat){ toast('Choisissez une catégorie.','err'); return; }
-  if(!start||!end){ toast('Dates requises.','err'); return; }
-  if(new Date(end)<new Date(start)){ toast('Fin avant début.','err'); return; }
+  if(!title){toast('Titre requis.','err');return;}
+  if(!selCat){toast('Catégorie requise.','err');return;}
+  if(!start||!end){toast('Dates requises.','err');return;}
   const btn=document.getElementById('save-btn'); btn.disabled=true; btn.textContent='...';
   try{
     const r=await fetch(editId?`${API}/calendar/events/${editId}`:`${API}/calendar/events`,{
       method:editId?'PUT':'POST',
       headers:{'Content-Type':'application/json',Authorization:'Bearer '+TOKEN},
-      body:JSON.stringify({title,category:selCat,start_date:start,end_date:end,all_day:document.getElementById('f-allday').checked,department:document.getElementById('f-dept').value.trim(),description:document.getElementById('f-desc').value.trim(),school:USER.school})
+      body:JSON.stringify({title,category:selCat,start_date:start,end_date:end,all_day:document.getElementById('f-all').checked,department:document.getElementById('f-dept').value.trim(),description:document.getElementById('f-desc').value.trim(),school:USER.school||'IUT de Douala'})
     });
     const d=await r.json();
-    if(d.success){ toast(editId?'Modifié !':'Créé !','ok'); closeModal(); await reload(); }
+    if(d.success){toast(editId?'Modifié !':'Créé !','ok');closeModal();await reload();}
     else toast(d.message||'Erreur.','err');
-  }catch(e){ toast('Erreur réseau.','err'); }
-  btn.disabled=false; btn.textContent='Enregistrer';
+  }catch(e){toast('Erreur réseau.','err');}
+  btn.disabled=false;btn.textContent='Enregistrer';
 }
 
-// ── EDIT / DEL / DUP
 function editEv(id){ const e=events.find(ev=>ev.id===id); if(e) openModal(null,null,e); }
-
 async function delEv(id){
-  if(!confirm('Supprimer ?')) return;
-  const r=await fetch(`${API}/calendar/events/${id}`,{method:'DELETE',headers:{Authorization:'Bearer '+TOKEN}});
-  const d=await r.json();
-  if(d.success){ toast('Supprimé.','ok'); await reload(); } else toast(d.message||'Erreur.','err');
+  if(!confirm('Supprimer ?'))return;
+  try{
+    const r=await fetch(`${API}/calendar/events/${id}`,{method:'DELETE',headers:{Authorization:'Bearer '+TOKEN}});
+    const d=await r.json();
+    if(d.success){toast('Supprimé.','ok');await reload();}else toast(d.message||'Erreur.','err');
+  }catch(e){toast('Erreur réseau.','err');}
 }
-
 async function dupEv(id){
-  const off=prompt('Décaler de combien de jours ?','7'); if(!off) return;
-  const r=await fetch(`${API}/calendar/events/${id}/duplicate`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+TOKEN},body:JSON.stringify({offset_days:parseInt(off)})});
-  const d=await r.json();
-  if(d.success){ toast('Dupliqué !','ok'); await reload(); } else toast(d.message||'Erreur.','err');
+  const off=prompt('Décaler de combien de jours ?','7'); if(!off)return;
+  try{
+    const r=await fetch(`${API}/calendar/events/${id}/duplicate`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+TOKEN},body:JSON.stringify({offset_days:parseInt(off)})});
+    const d=await r.json();
+    if(d.success){toast('Dupliqué !','ok');await reload();}else toast(d.message||'Erreur.','err');
+  }catch(e){toast('Erreur réseau.','err');}
 }
 
-// ── TOAST
 function toast(msg,type='ok'){
   const el=document.createElement('div');
-  el.className='toast '+type;
-  el.textContent=msg;
+  el.className='toast '+type; el.textContent=msg;
   document.body.appendChild(el);
   setTimeout(()=>el.remove(),3000);
 }
