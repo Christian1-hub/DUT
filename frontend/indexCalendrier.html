@@ -294,12 +294,15 @@ const REAL_EVENTS = [
 let cur=new Date(), view='month', events=[], active=new Set(CATS.map(c=>c.k)), editId=null, selCat=null;
 
 async function init(){
-  // Lire école depuis URL ?school= si USER.school manque
-  const urlParams = new URLSearchParams(location.search);
+  // Le paramètre URL ?school= est TOUJOURS prioritaire sur USER.school
+  const urlParams  = new URLSearchParams(location.search);
   const schoolParam = urlParams.get('school');
-  if (schoolParam && !USER.school) USER.school = decodeURIComponent(schoolParam);
+  const activeSchool = schoolParam ? decodeURIComponent(schoolParam) : (USER.school || '');
 
-  document.getElementById('school-name').textContent = USER.school || 'Tous les établissements';
+  // Stocker l'école active pour load()
+  window.ACTIVE_SCHOOL = activeSchool;
+
+  document.getElementById('school-name').textContent = activeSchool || 'Tous les établissements';
   buildCats(); buildCsel();
   await load();
   render(); renderMini();
@@ -308,8 +311,7 @@ async function init(){
 async function load(){
   try{
     const m=cur.getMonth()+1,y=cur.getFullYear();
-    const school = USER.school || new URLSearchParams(location.search).get('school') || '';
-    const sc=encodeURIComponent(school);
+    const sc=encodeURIComponent(window.ACTIVE_SCHOOL||USER.school||'');
     const r=await fetch(`${API}/calendar/events?school=${sc}&month=${m}&year=${y}`,{headers:{Authorization:'Bearer '+TOKEN}});
     const d=await r.json();
     events = d.success ? d.events : [];
