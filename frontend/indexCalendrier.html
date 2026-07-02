@@ -139,7 +139,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 <body>
 
 <nav>
-  <a href="#" class="logo"><b>Camuno</b>Learn &nbsp;|&nbsp; <span style="font-size:.82rem;color:#94a3b8;font-weight:500">Calendrier Académique</span></a>
+  <a href="#" class="logo"><b>Camuno</b>Learn &nbsp;|&nbsp; <span style="font-size:.82rem;color:#94a3b8;font-weight:500">Calendrier — <span id="school-name"></span></span></a>
   <div style="display:flex;gap:8px">
     <button class="btn btn-o" onclick="history.back()">&#8592; Retour</button>
     <button class="btn btn-g" onclick="openModal(null,null)" id="btn-add" style="display:none">+ Ajouter</button>
@@ -294,6 +294,7 @@ const REAL_EVENTS = [
 let cur=new Date(), view='month', events=[], active=new Set(CATS.map(c=>c.k)), editId=null, selCat=null;
 
 async function init(){
+  document.getElementById('school-name').textContent = USER.school || 'Établissement';
   buildCats(); buildCsel();
   await load();
   render(); renderMini();
@@ -302,11 +303,11 @@ async function init(){
 async function load(){
   try{
     const m=cur.getMonth()+1,y=cur.getFullYear();
-    const sc=encodeURIComponent(USER.school||'IUT de Douala');
+    const sc=encodeURIComponent(USER.school||'');
     const r=await fetch(`${API}/calendar/events?school=${sc}&month=${m}&year=${y}`,{headers:{Authorization:'Bearer '+TOKEN}});
     const d=await r.json();
-    events = (d.success && d.events.length) ? d.events : REAL_EVENTS;
-  }catch(e){ events=REAL_EVENTS; }
+    events = d.success ? d.events : [];
+  }catch(e){ events=[]; }
 }
 async function reload(){ await load(); render(); renderMini(); }
 
