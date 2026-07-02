@@ -175,7 +175,7 @@ async function api(path, opts) {
 const TITLES = {
   overview:'Vue globale', univs:'Universités', users:'Utilisateurs',
   communities:'Communautés', logs:'Activité', subs:'Abonnements',
-  validation:'Validation des rôles', codes:'Codes d\'accès', schoolcodes:'Codes par école', registrations:'Inscriptions & Validations', createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
+  validation:'Validation des rôles', codes:'Codes d\'accès', schoolcodes:'Codes par école', calendriers:'Calendriers par école', calendriers:'Calendriers par école', registrations:'Inscriptions & Validations', createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
 };
 
 function goTo(s) {
@@ -192,6 +192,8 @@ function goTo(s) {
   if (s==='validation')                         loadValidation();
   if (s==='codes')                              loadCodes();
   if (s==='schoolcodes')                        loadSchoolCodes();
+  if (s==='calendriers')                         loadCalendriers();
+  if (s==='calendriers')                         loadCalendriers();
   if (s==='registrations')                      loadRegistrations();
   if (s==='overview') loadUpcomingEventsSA();
 }
@@ -1087,60 +1089,73 @@ function renderValidations() {
 }
 
 // ════════════════════════════════════════════════
-//  CODES PAR ÉCOLE
+//  CALENDRIERS PAR ÉCOLE
 // ════════════════════════════════════════════════
-async function loadSchoolCodes() {
-  document.getElementById('school-codes-list').innerHTML =
-    '<div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:80px;border-radius:14px"></div>';
-  const d = await api('/superadmin/school-codes');
-  if (!d || !d.success) {
-    document.getElementById('school-codes-list').innerHTML =
-      '<div class="card card-pad" style="color:#f87171">Erreur chargement.</div>';
-    return;
+async function loadCalendriers() {
+  var el = document.getElementById('cal-schools-list');
+  if (!el) return;
+  el.innerHTML = '<div class="sk" style="height:100px;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:100px;border-radius:14px"></div>';
+
+  try {
+    var d = await api('/superadmin/stats');
+    if (!d || !d.success) { el.innerHTML = '<p style="color:#f87171">Erreur chargement.</p>'; return; }
+
+    var schools = d.bySchool || [];
+    if (!schools.length) {
+      el.innerHTML = '<div class="card card-pad" style="text-align:center;color:#475569">Aucun établissement enregistré.</div>';
+      return;
+    }
+
+    el.innerHTML = '';
+    schools.forEach(function(s) {
+      var total = parseInt(s.students||0) + parseInt(s.teachers||0) + parseInt(s.admins||0);
+      var enc   = encodeURIComponent(s.school);
+      var div   = document.createElement('div');
+      div.className = 'card card-pad';
+      div.style.cssText = 'cursor:pointer;transition:.2s;border:1px solid #334155;border-radius:14px';
+      div.onmouseover = function(){ this.style.borderColor='#00602a'; };
+      div.onmouseout  = function(){ this.style.borderColor='#334155'; };
+
+      var inner = document.createElement('div');
+      inner.style.cssText = 'display:flex;align-items:center;gap:12px;margin-bottom:12px';
+
+      var icon = document.createElement('div');
+      icon.style.cssText = 'width:44px;height:44px;border-radius:10px;background:#052e16;display:flex;align-items:center;justify-content:center;flex-shrink:0';
+      icon.innerHTML = '<span class="ms" style="color:#4ade80;font-size:22px">calendar_month</span>';
+
+      var info = document.createElement('div');
+      var name = document.createElement('p');
+      name.style.cssText = 'font-family:Manrope;font-weight:800;color:#f8fafc;margin:0;font-size:.92rem';
+      name.textContent = s.school;
+      var meta = document.createElement('p');
+      meta.style.cssText = 'font-size:.75rem;color:#64748b;margin:3px 0 0';
+      meta.textContent = total + ' utilisateurs · ' + (s.students||0) + ' étudiants · ' + (s.teachers||0) + ' profs';
+      info.appendChild(name);
+      info.appendChild(meta);
+
+      inner.appendChild(icon);
+      inner.appendChild(info);
+
+      var btn = document.createElement('button');
+      btn.className = 'btn primary sm';
+      btn.style.width = '100%';
+      btn.textContent = 'Ouvrir le calendrier';
+      btn.onclick = function(e) { e.stopPropagation(); openSchoolCal(enc); };
+
+      div.onclick = function() { openSchoolCal(enc); };
+      div.appendChild(inner);
+      div.appendChild(btn);
+      el.appendChild(div);
+    });
+
+  } catch(e) {
+    el.innerHTML = '<p style="color:#f87171">Erreur réseau.</p>';
   }
-  if (!d.codes.length) {
-    document.getElementById('school-codes-list').innerHTML =
-      '<div class="card card-pad" style="text-align:center;color:#475569">Aucun code configuré.</div>';
-    return;
-  }
-  document.getElementById('school-codes-list').innerHTML = d.codes.map(function(sc) {
-    var active = sc.is_active;
-    return '<div class="card card-pad" style="margin-bottom:10px;opacity:'+(active?'1':'.6')+'">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">'
-      +'<div>'
-      +'<h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#f8fafc;margin:0">🏫 '+sc.school+'</h3>'
-      +'<span class="bdg '+(active?'status-active':'status-inactive')+'" style="margin-top:6px;display:inline-block">'+(active?'Actif':'Désactivé')+'</span>'
-      +'</div>'
-      +'<div style="display:flex;gap:6px">'
-      +'<button onclick="toggleSchoolCode('+sc.id+')" class="btn ghost sm">'+(active?'Désactiver':'Activer')+'</button>'
-      +'</div>'
-      +'</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
-      +'<div style="background:#0f172a;border-radius:12px;padding:14px">'
-      +'<p style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin-bottom:8px">👨‍🏫 Code Professeurs</p>'
-      +'<p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#60a5fa;letter-spacing:.15em;margin:0 0 10px">'+sc.prof_code+'</p>'
-      +'<button onclick="regenCode('+sc.id+',&quot;prof&quot;)" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span> Régénérer</button>'
-      +'</div>'
-      +'<div style="background:#0f172a;border-radius:12px;padding:14px">'
-      +'<p style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin-bottom:8px">⚙️ Code Admins</p>'
-      +'<p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#a78bfa;letter-spacing:.15em;margin:0 0 10px">'+sc.admin_code+'</p>'
-      +'<button onclick="regenCode('+sc.id+',&quot;admin&quot;)" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span> Régénérer</button>'
-      +'</div>'
-      +'</div>'
-      +'</div>';
-  }).join('');
-}
-async function toggleSchoolCode(id) {
-  const d = await api('/superadmin/school-codes/'+id+'/toggle', {method:'PUT'});
-  if (d?.success) { toast(d.code.is_active ? 'Codes activés.' : 'Codes désactivés.'); loadSchoolCodes(); }
-  else toast(d?.message||'Erreur.','err');
 }
 
-async function regenCode(id, type) {
-  if (!confirm('Régénérer le code '+(type==='prof'?'professeurs':'admins')+' ? Les anciens codes ne fonctionneront plus.')) return;
-  const d = await api('/superadmin/school-codes/'+id+'/regenerate', {method:'PUT', body:JSON.stringify({type})});
-  if (d?.success) { toast('Nouveau code : '+d.new_code); loadSchoolCodes(); }
-  else toast(d?.message||'Erreur.','err');
+
+function openSchoolCal(schoolEnc) {
+  window.open('indexCalendrier.html?school=' + schoolEnc, '_blank');
 }
 
 // ════════════════════════════════════════════════
@@ -1502,6 +1517,14 @@ function renderValidations() {
 }
 
 // ════════════════════════════════════════════════
+//  CALENDRIERS PAR ÉCOLE
+// ════════════════════════════════════════════════
+
+function openCalSchool(schoolEncoded) {
+  window.open('indexCalendrier.html?school=' + schoolEncoded, '_blank');
+}
+
+// ════════════════════════════════════════════════
 //  CODES PAR ÉCOLE
 // ════════════════════════════════════════════════
 async function loadSchoolCodes() {
@@ -1556,6 +1579,14 @@ async function regenCode(id, type) {
   const d = await api('/superadmin/school-codes/'+id+'/regenerate', {method:'PUT', body:JSON.stringify({type})});
   if (d?.success) { toast('Nouveau code : '+d.new_code); loadSchoolCodes(); }
   else toast(d?.message||'Erreur.','err');
+}
+
+// ════════════════════════════════════════════════
+//  CALENDRIERS PAR ÉCOLE
+// ════════════════════════════════════════════════
+
+function openSchoolCal(schoolEnc) {
+  window.open('indexCalendrier.html?school=' + schoolEnc, '_blank');
 }
 
 // ════════════════════════════════════════════════
@@ -1626,7 +1657,7 @@ function toast(msg, type) {
       <button class="nb"    data-s="createadmin" onclick="goTo('createadmin')"><span class="ms">person_add</span>Créer Admin</button>
       <button class="nb"    data-s="createteacher" onclick="goTo('createteacher')"><span class="ms">school</span>Créer Prof</button>
       <button class="nb"    data-s="createuniv"  onclick="goTo('createuniv')"><span class="ms">domain_add</span>Créer Université</button>
-      <button class="nb"    data-s="calendrier" onclick="location.href='indexCalendrier.html'"><span class="ms">calendar_month</span>Calendrier</button>
+      <button class="nb"    data-s="calendriers" onclick="goTo('calendriers')"><span class="ms">calendar_month</span>Calendriers</button>
     </nav>
     <button class="nb red" onclick="saLogout()"><span class="ms">logout</span>Déconnexion</button>
   </aside>
@@ -1908,6 +1939,38 @@ function toast(msg, type) {
       </div>
     </div>
 
+    <!-- ══ CALENDRIERS PAR ÉCOLE ══ -->
+    <div id="sec-calendriers" class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Calendriers par école</h1>
+          <p style="font-size:.85rem;color:#64748b;margin-top:4px">Cliquez sur une école pour voir et gérer son calendrier académique.</p>
+        </div>
+        <button onclick="loadCalendriers()" class="btn ghost sm"><span class="ms">refresh</span>Actualiser</button>
+      </div>
+      <div id="cal-schools-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
+        <div class="sk" style="height:100px;border-radius:14px"></div>
+        <div class="sk" style="height:100px;border-radius:14px"></div>
+        <div class="sk" style="height:100px;border-radius:14px"></div>
+      </div>
+    </div>
+
+    <!-- ══ CALENDRIERS PAR ÉCOLE ══ -->
+    <div id="sec-calendriers" class="sec">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem">Calendriers par école</h1>
+          <p style="font-size:.85rem;color:#64748b;margin-top:4px">Accédez au calendrier académique de chaque établissement.</p>
+        </div>
+        <button onclick="loadCalendriers()" class="btn ghost sm"><span class="ms">refresh</span>Actualiser</button>
+      </div>
+      <div id="cal-schools-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
+        <div class="sk" style="height:100px;border-radius:14px"></div>
+        <div class="sk" style="height:100px;border-radius:14px"></div>
+        <div class="sk" style="height:100px;border-radius:14px"></div>
+      </div>
+    </div>
+
     <!-- ══ INSCRIPTIONS & VALIDATIONS ══ -->
     <div id="sec-registrations" class="sec">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
@@ -2037,7 +2100,7 @@ async function api(path, opts) {
 const TITLES = {
   overview:'Vue globale', univs:'Universités', users:'Utilisateurs',
   communities:'Communautés', logs:'Activité', subs:'Abonnements',
-  validation:'Validation des rôles', codes:'Codes d\'accès', schoolcodes:'Codes par école', registrations:'Inscriptions & Validations', createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
+  validation:'Validation des rôles', codes:'Codes d\'accès', schoolcodes:'Codes par école', calendriers:'Calendriers par école', calendriers:'Calendriers par école', registrations:'Inscriptions & Validations', createadmin:'Créer Admin', createteacher:'Créer Prof', createuniv:'Créer Université'
 };
 
 function goTo(s) {
@@ -2054,6 +2117,8 @@ function goTo(s) {
   if (s==='validation')                         loadValidation();
   if (s==='codes')                              loadCodes();
   if (s==='schoolcodes')                        loadSchoolCodes();
+  if (s==='calendriers')                         loadCalendriers();
+  if (s==='calendriers')                         loadCalendriers();
   if (s==='registrations')                      loadRegistrations();
 }
 
@@ -2923,6 +2988,14 @@ function renderValidations() {
 }
 
 // ════════════════════════════════════════════════
+//  CALENDRIERS PAR ÉCOLE
+// ════════════════════════════════════════════════
+
+function openCalSchool(schoolEncoded) {
+  window.open('indexCalendrier.html?school=' + schoolEncoded, '_blank');
+}
+
+// ════════════════════════════════════════════════
 //  CODES PAR ÉCOLE
 // ════════════════════════════════════════════════
 async function loadSchoolCodes() {
@@ -2977,6 +3050,14 @@ async function regenCode(id, type) {
   const d = await api('/superadmin/school-codes/'+id+'/regenerate', {method:'PUT', body:JSON.stringify({type})});
   if (d?.success) { toast('Nouveau code : '+d.new_code); loadSchoolCodes(); }
   else toast(d?.message||'Erreur.','err');
+}
+
+// ════════════════════════════════════════════════
+//  CALENDRIERS PAR ÉCOLE
+// ════════════════════════════════════════════════
+
+function openSchoolCal(schoolEnc) {
+  window.open('indexCalendrier.html?school=' + schoolEnc, '_blank');
 }
 
 // ════════════════════════════════════════════════
@@ -3338,6 +3419,14 @@ function renderValidations() {
 }
 
 // ════════════════════════════════════════════════
+//  CALENDRIERS PAR ÉCOLE
+// ════════════════════════════════════════════════
+
+function openCalSchool(schoolEncoded) {
+  window.open('indexCalendrier.html?school=' + schoolEncoded, '_blank');
+}
+
+// ════════════════════════════════════════════════
 //  CODES PAR ÉCOLE
 // ════════════════════════════════════════════════
 async function loadSchoolCodes() {
@@ -3392,6 +3481,14 @@ async function regenCode(id, type) {
   const d = await api('/superadmin/school-codes/'+id+'/regenerate', {method:'PUT', body:JSON.stringify({type})});
   if (d?.success) { toast('Nouveau code : '+d.new_code); loadSchoolCodes(); }
   else toast(d?.message||'Erreur.','err');
+}
+
+// ════════════════════════════════════════════════
+//  CALENDRIERS PAR ÉCOLE
+// ════════════════════════════════════════════════
+
+function openSchoolCal(schoolEnc) {
+  window.open('indexCalendrier.html?school=' + schoolEnc, '_blank');
 }
 
 // ════════════════════════════════════════════════

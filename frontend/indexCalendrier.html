@@ -294,7 +294,12 @@ const REAL_EVENTS = [
 let cur=new Date(), view='month', events=[], active=new Set(CATS.map(c=>c.k)), editId=null, selCat=null;
 
 async function init(){
-  document.getElementById('school-name').textContent = USER.school || 'Établissement';
+  // Lire école depuis URL ?school= si USER.school manque
+  const urlParams = new URLSearchParams(location.search);
+  const schoolParam = urlParams.get('school');
+  if (schoolParam && !USER.school) USER.school = decodeURIComponent(schoolParam);
+
+  document.getElementById('school-name').textContent = USER.school || 'Tous les établissements';
   buildCats(); buildCsel();
   await load();
   render(); renderMini();
@@ -303,7 +308,8 @@ async function init(){
 async function load(){
   try{
     const m=cur.getMonth()+1,y=cur.getFullYear();
-    const sc=encodeURIComponent(USER.school||'');
+    const school = USER.school || new URLSearchParams(location.search).get('school') || '';
+    const sc=encodeURIComponent(school);
     const r=await fetch(`${API}/calendar/events?school=${sc}&month=${m}&year=${y}`,{headers:{Authorization:'Bearer '+TOKEN}});
     const d=await r.json();
     events = d.success ? d.events : [];
@@ -647,7 +653,7 @@ async function saveEvent(){
     const r=await fetch(editId?`${API}/calendar/events/${editId}`:`${API}/calendar/events`,{
       method:editId?'PUT':'POST',
       headers:{'Content-Type':'application/json',Authorization:'Bearer '+TOKEN},
-      body:JSON.stringify({title,category:selCat,start_date:start,end_date:end,all_day:document.getElementById('f-all').checked,department:document.getElementById('f-dept').value.trim(),description:document.getElementById('f-desc').value.trim(),school:USER.school||'IUT de Douala'})
+      body:JSON.stringify({title,category:selCat,start_date:start,end_date:end,all_day:document.getElementById('f-all').checked,department:document.getElementById('f-dept').value.trim(),description:document.getElementById('f-desc').value.trim(),school:USER.school||new URLSearchParams(location.search).get('school')||''})
     });
     const d=await r.json();
     if(d.success){toast(editId?'Modifié !':'Créé !','ok');closeModal();await reload();}
