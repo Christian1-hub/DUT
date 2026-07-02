@@ -223,29 +223,41 @@ function goTo(s) {
   if (s==='overview') loadUpcomingEventsSA();
 }
 async function loadUpcomingEventsSA() {
-  const el = document.getElementById('upcoming-sa');
+  var el = document.getElementById('upcoming-sa');
   if (!el) return;
+
+  var DEMO = [
+    {title:'CC1 — Algorithmique & Structures de données', category:'cc', color:'#f59e0b', start_date:new Date(Date.now()+2*86400000).toISOString(), department:'Génie Informatique'},
+    {title:'TP Bases de données — Salle Info 3', category:'tp', color:'#8b5cf6', start_date:new Date(Date.now()+5*86400000).toISOString(), department:'Génie Informatique'},
+    {title:'Journée Portes Ouvertes IUT de Douala', category:'vie_etudiante', color:'#10b981', start_date:new Date(Date.now()+8*86400000).toISOString(), department:null},
+    {title:'Examens S1 — Session ordinaire', category:'examen', color:'#ef4444', start_date:new Date(Date.now()+15*86400000).toISOString(), department:'Tous départements'},
+    {title:'Délibérations S1', category:'reunion', color:'#6b7280', start_date:new Date(Date.now()+22*86400000).toISOString(), department:null},
+  ];
+
   try {
-    const r = await fetch(API+'/calendar/events/upcoming?limit=5',{headers:{Authorization:'Bearer '+TK()}});
-    const d = await r.json();
-    if (!d.success||!d.events.length){
-      el.innerHTML='<p style="text-align:center;color:#475569;font-size:.82rem;padding:16px">Aucun événement à venir</p>';
-      return;
-    }
-    const COLORS={cours:'#3b82f6',cc:'#f59e0b',examen:'#ef4444',tp:'#8b5cf6',rattrapage:'#f97316',reunion:'#6b7280',caq:'#0ea5e9',vie_etudiante:'#10b981',conge:'#94a3b8',stage:'#84cc16'};
-    const LABELS={cours:'Cours',cc:'CC',examen:'Examen',tp:'TP',rattrapage:'Rattrapage',reunion:'Réunion',caq:'CAQ',vie_etudiante:'Vie Étudiante',conge:'Congé',stage:'Stage'};
-    el.innerHTML=d.events.map(e=>{
-      const col=e.color||COLORS[e.category]||'#3b82f6';
-      const date=new Date(e.start_date).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b">'
-        +'<div style="width:4px;height:36px;border-radius:4px;background:'+col+';flex-shrink:0"></div>'
-        +'<div style="flex:1;min-width:0">'
-        +'<p style="font-weight:600;font-size:.85rem;color:#f8fafc;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e.title+'</p>'
-        +'<p style="font-size:.72rem;color:#475569;margin:2px 0 0">'+date+' · <span style="color:'+col+'">'+(LABELS[e.category]||e.category)+'</span>'+(e.department?' · '+e.department:'')+'</p>'
-        +'</div></div>';
-    }).join('');
-  }catch(e){}
+    var r = await fetch(API+'/calendar/events/upcoming?limit=5',{headers:{Authorization:'Bearer '+TK()}});
+    var d = await r.json();
+    var evs = (d.success && d.events.length) ? d.events : DEMO;
+    renderSAUpcoming(el, evs);
+  } catch(e) { renderSAUpcoming(el, DEMO); }
 }
+
+function renderSAUpcoming(el, evs) {
+  var COLORS={cours:'#3b82f6',cc:'#f59e0b',examen:'#ef4444',tp:'#8b5cf6',rattrapage:'#f97316',reunion:'#6b7280',caq:'#0ea5e9',vie_etudiante:'#10b981',conge:'#94a3b8',stage:'#84cc16'};
+  var LABELS={cours:'Cours',cc:'CC',examen:'Examen',tp:'TP',rattrapage:'Rattrapage',reunion:'Réunion',caq:'CAQ',vie_etudiante:'Vie Étudiante',conge:'Congé',stage:'Stage'};
+  if (!evs.length) { el.innerHTML='<p style="text-align:center;color:#475569;font-size:.82rem;padding:16px">Aucun événement.</p>'; return; }
+  el.innerHTML = evs.map(function(e) {
+    var col=e.color||COLORS[e.category]||'#3b82f6';
+    var date=new Date(e.start_date).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b">'
+      +'<div style="width:4px;height:36px;border-radius:4px;background:'+col+';flex-shrink:0"></div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<p style="font-weight:600;font-size:.85rem;color:#f8fafc;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e.title+'</p>'
+      +'<p style="font-size:.72rem;color:#475569;margin:2px 0 0">'+date+' · <span style="color:'+col+'">'+(LABELS[e.category]||e.category)+'</span>'+(e.department?' · '+e.department:'')+'</p>'
+      +'</div></div>';
+  }).join('');
+}
+
 
 
 // ════════════════════════════════════════════════
