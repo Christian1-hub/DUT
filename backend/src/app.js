@@ -56,6 +56,7 @@ app.use('/api/admin',      adminRoutes);
 app.use('/api/superadmin', superadminRoutes);
 app.use('/api/cross',      crossRoutes);
 app.use('/api/qrsession',  qrSessionRoutes);
+app.use('/api/calendar',   calendarRoutes);
 
 // ── Santé ────────────────────────────────────────────────
 app.get('/', (req, res) => {
