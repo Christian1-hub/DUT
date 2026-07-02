@@ -9,11 +9,11 @@ const SECRET = process.env.JWT_SECRET || 'camunolearn_secret_dev';
 router.post('/create', async (req, res) => {
   try {
     const sessionId = require('crypto').randomUUID();
-    const { pendingRole } = req.body;
+    const { pendingRole, user_info } = req.body;
     await pool.query(
-      `INSERT INTO qr_sessions (session_id, status, role, created_at, expires_at)
-       VALUES ($1, 'pending', $2, NOW(), NOW() + INTERVAL '15 minutes')`,
-      [sessionId, pendingRole || null]
+      `INSERT INTO qr_sessions (session_id, status, role, user_info, created_at, expires_at)
+       VALUES ($1, 'pending', $2, $3, NOW(), NOW() + INTERVAL '15 minutes')`,
+      [sessionId, pendingRole || null, user_info ? JSON.stringify(user_info) : null]
     );
     res.json({ success: true, sessionId });
   } catch(e) {
@@ -57,12 +57,14 @@ router.post('/validate/:sessionId', async (req, res) => {
 router.get('/status/:sessionId', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT status, role FROM qr_sessions
+      `SELECT status, role, user_info FROM qr_sessions
        WHERE session_id=$1 AND expires_at > NOW()`,
       [req.params.sessionId]
     );
     if (!r.rows.length) return res.json({ status: 'expired' });
-    res.json({ status: r.rows[0].status, role: r.rows[0].role });
+    var row = r.rows[0];
+    var userInfo = row.user_info ? (typeof row.user_info === 'string' ? JSON.parse(row.user_info) : row.user_info) : null;
+    res.json({ status: row.status, role: row.role, user_info: userInfo });
   } catch(e) {
     console.error('[QR STATUS]', e.message);
     res.json({ status: 'expired' });

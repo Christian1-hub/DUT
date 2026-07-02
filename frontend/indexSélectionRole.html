@@ -81,12 +81,10 @@ var FRONTEND_BASE = window.location.hostname==='localhost'||window.location.host
         <h2 id="qrTitle" style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin:0 0 6px"></h2>
         <p id="qrSub" style="font-size:.8rem;color:#6b7280;margin-bottom:12px">Scannez avec votre téléphone</p>
 
-        <!-- Image QR -->
         <div id="qrImg" style="margin:0 auto 12px;width:180px;height:180px;background:#f3f4f6;border-radius:12px;display:flex;align-items:center;justify-content:center">
             <div class="spinner"></div>
         </div>
 
-        <!-- Attente -->
         <div id="waitMsg" style="display:none">
             <div class="spinner"></div>
             <p style="font-size:.8rem;color:#6b7280">En attente de la confirmation sur le téléphone...</p>
@@ -114,10 +112,6 @@ window.addEventListener('DOMContentLoaded', function() {
     if (!token) { location.href = 'indexconnexion.html'; return; }
 });
 
-function isMobile() {
-    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
-}
-
 async function showQR(role) {
     pendingRole = role;
     var info = ROLES[role];
@@ -126,24 +120,26 @@ async function showQR(role) {
     document.getElementById('qrTitle').textContent = info.title;
     document.getElementById('overlay').style.display = 'flex';
     document.getElementById('waitMsg').style.display = 'none';
-
-    // Sur mobile → bouton direct, pas de QR
-    if (isMobile()) {
-        document.getElementById('qrImg').innerHTML =
-            '<button onclick="confirmDirectly(\'' + role + '\')" style="width:100%;padding:14px;background:' + info.color + ';color:#fff;border:none;border-radius:12px;font-weight:800;font-size:1rem;cursor:pointer;margin-top:8px">' +
-            info.icon + ' Confirmer en tant que ' + role.charAt(0).toUpperCase() + role.slice(1) +
-            '</button>';
-        return;
-    }
-
     document.getElementById('qrImg').innerHTML = '<div class="spinner"></div>';
 
-    // 1. Créer session
+    // Récupérer les infos de la personne depuis le localStorage du PC
+    var storedUser = {};
+    try { storedUser = JSON.parse(localStorage.getItem('camunolearn_user') || '{}'); } catch(e) {}
+
+    // 1. Créer session QR en envoyant les infos de la personne
     try {
         var r = await fetch(API_BASE + '/qrsession/create', {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({pendingRole: role})
+            body: JSON.stringify({
+                pendingRole: role,
+                user_info: {
+                    first_name: storedUser.first_name || '',
+                    last_name:  storedUser.last_name  || '',
+                    email:      storedUser.email       || '',
+                    bio:        storedUser.bio         || ''
+                }
+            })
         });
         var d = await r.json();
         sessionId = d.sessionId;
@@ -152,7 +148,7 @@ async function showQR(role) {
         return;
     }
 
-    // 2. Afficher image QR pointant vers qrConfirm.html avec le role
+    // 2. Afficher image QR
     var url = FRONTEND_BASE + '/qrConfirm.html?session=' + sessionId + '&role=' + role;
     var imgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(url);
     document.getElementById('qrImg').innerHTML = '<img src="' + imgUrl + '" style="width:180px;height:180px;border-radius:12px;border:3px solid #e5e7eb;padding:6px" alt="QR"/>';
@@ -171,11 +167,6 @@ async function showQR(role) {
             }
         } catch(e) {}
     }, 2000);
-}
-
-async function confirmDirectly(role) {
-    document.getElementById('overlay').style.display = 'none';
-    await saveRole(role);
 }
 
 async function saveRole(role) {
@@ -203,11 +194,6 @@ function closeQR() {
     document.getElementById('overlay').style.display = 'none';
     sessionId = null;
     pendingRole = '';
-}
-
-function getDashboard(role) {
-    var d = {etudiant:'indexETUDIANT.html',enseignant:'indexEnseignant.html',admin:'indexADMIN.html',superadmin:'indexSUPERADMIN.html'};
-    return d[role] || 'indexETUDIANT.html';
 }
 </script>
 </body>

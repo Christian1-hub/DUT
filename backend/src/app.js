@@ -226,10 +226,12 @@ app.listen(PORT, async () => {
         session_id VARCHAR(36) PRIMARY KEY,
         status VARCHAR(20) DEFAULT 'pending',
         role VARCHAR(20),
+        user_info JSONB,
         created_at TIMESTAMP DEFAULT NOW(),
         expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '15 minutes'
       )
     `);
+    await pool.query(`ALTER TABLE qr_sessions ADD COLUMN IF NOT EXISTS user_info JSONB`);
     console.log('✅ qr_sessions : OK');
     console.log('\n✅ Serveur prêt !\n');
   } catch(e) {
