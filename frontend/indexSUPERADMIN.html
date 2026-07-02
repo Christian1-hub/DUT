@@ -6,7 +6,7 @@
 <title>Super Admin | CamunoLearn</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DM Sans',sans-serif;background:#0f172a;color:#f8fafc;min-height:100vh}
@@ -127,7 +127,10 @@ tr:hover td{background:#1e293b55}
 </head>
 <body>
 
+
+
 <script>
+
 // ── API URL ──────────────────────────────────────────────────
 const API = (function() {
   var h = window.location.hostname;
@@ -1124,28 +1127,7 @@ function toast(msg, type) {
   clearTimeout(el._t);
   el._t = setTimeout(()=>el.classList.remove('show'), 3800);
 }
-</script>
-</body>
-</html>
-</script>
-
-<!-- LOGIN SCREEN -->
-<div id="login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;padding:20px">
-  <div style="width:100%;max-width:380px">
-    <div style="text-align:center;margin-bottom:28px">
-      <span class="ms" style="font-size:48px;color:#f59e0b">shield_person</span>
-      <h1 style="font-family:Manrope;font-weight:900;font-size:1.6rem;color:#f8fafc;margin-top:8px"><span style="color:#f59e0b">Camuno</span>Learn</h1>
-      <p style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:#f59e0b;margin-top:4px">SUPER ADMIN</p>
-    </div>
-    <div style="background:#0d1117;border:1px solid #1e293b;border-radius:18px;padding:28px">
-      <div id="login-err" style="display:none;background:#450a0a;border:1px solid #7f1d1d;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.83rem;color:#fca5a5"></div>
-      <div style="margin-bottom:14px"><label class="lbl">EMAIL</label><input id="sa-email" type="email" class="fld" value="superadmin@camunolearn.cm" placeholder="email@exemple.cm"/></div>
-      <div style="margin-bottom:20px"><label class="lbl">MOT DE PASSE</label><input id="sa-pass" type="password" class="fld" placeholder="••••••••"/></div>
-      <button onclick="doSALogin()" id="sa-btn" class="btn primary" style="width:100%;justify-content:center;padding:12px">
-        <span class="ms">login</span>Accéder
-      </button>
-      <script>
-      async function doSALogin(){
+async function doSALogin(){
         var API=location.hostname==='localhost'?'http://localhost:3000/api':'https://camunolearn-api.onrender.com/api';
         var email=document.getElementById('sa-email').value.trim();
         var pass=document.getElementById('sa-pass').value;
@@ -1170,7 +1152,418 @@ function toast(msg, type) {
           btn.disabled=false;btn.innerHTML='<span class="ms">login</span>Accéder';
         }
       }
-      </script>
+// ════════════════════════════════════════════════
+//  LOGIN
+// ════════════════════════════════════════════════
+async function saLogin() {
+  const email = document.getElementById('sa-email').value.trim();
+  const pass  = document.getElementById('sa-pass').value;
+  const errEl = document.getElementById('login-err');
+  const btn   = document.getElementById('sa-btn');
+  if (!email || !pass) { errEl.textContent='Remplissez tous les champs.'; errEl.style.display='block'; return; }
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite;display:block">autorenew</span>';
+  try {
+    const r = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password: pass})
+    });
+    const d = await r.json();
+    if (d.success && d.user.role === 'superadmin') {
+      localStorage.setItem('sa_token', d.token);
+      localStorage.setItem('camunolearn_token', d.token);
+      localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
+      ME = d.user;
+      startApp();
+    } else if (d.success) {
+      errEl.innerHTML = '<b>Ce compte n\'a pas le r\u00f4le superadmin.</b><br/><span style="font-size:.75rem">Dans pgAdmin, ex\u00e9cutez :<br/><code style="background:#1e293b;padding:2px 8px;border-radius:4px;color:#4ade80">UPDATE users SET role=\'superadmin\' WHERE email=\'' + email + '\';</code></span>';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
+    } else {
+      errEl.textContent = d.message || 'Identifiants incorrects.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
+    }
+  } catch(e) {
+    errEl.textContent = 'Serveur inaccessible. Lancez: cd backend && node src/app.js';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
+  }
+}
+
+function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  const init = ME.first_name[0] + (ME.last_name[0] || '');
+  document.getElementById('sa-av').textContent   = init;
+  document.getElementById('sa-name').textContent = ME.first_name + ' ' + ME.last_name;
+  loadOverview();
+}
+
+function saLogout() {
+  localStorage.removeItem('sa_token');
+  location.reload();
+}
+
+// Auto-login si token présent
+window.addEventListener('DOMContentLoaded', async () => {
+  const t = TK() || localStorage.getItem('camunolearn_token');
+  if (!t) return;
+  try {
+    const r = await fetch(API + '/auth/me', {headers:{'Authorization':'Bearer '+t}});
+    const d = await r.json();
+    if (d.success && d.user.role === 'superadmin') {
+      localStorage.setItem('sa_token', t);
+      ME = d.user;
+      startApp();
+    } else {
+      localStorage.removeItem('sa_token');
+    }
+  } catch(e) {}
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') saLogin();
+});
+
+// ════════════════════════════════════════════════
+//  API HELPER
+// ════════════════════════════════════════════════
+async function api(path, opts) {
+  opts = opts || {};
+  try {
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+TK(), ...(opts.headers||{})}
+    });
+    if (r.status === 401) { saLogout(); return null; }
+    return await r.json();
+  } catch(e) {
+    return null;
+  }
+}
+
+// ════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════
+
+async function loadValidation() {
+  const d = await api('/auth/role-requests');
+  if (!d || !d.success) {
+    document.getElementById('v-list').innerHTML =
+      '<div style="text-align:center;color:#f87171;padding:24px">Erreur chargement.</div>';
+    return;
+  }
+  const requests = d.requests || [];
+  const profs  = requests.filter(function(r){ return r.requested_role==='enseignant'; });
+  const admins = requests.filter(function(r){ return r.requested_role==='admin'; });
+  document.getElementById('v-count-all').textContent   = requests.length;
+  document.getElementById('v-count-prof').textContent  = profs.length;
+  document.getElementById('v-count-admin').textContent = admins.length;
+  // Séparer en attente et traitées
+  var pending  = requests.filter(function(r){ return r.status==='pending'; });
+  var treated  = requests.filter(function(r){ return r.status!=='pending'; });
+
+  document.getElementById('v-count-all').textContent   = pending.length;
+  document.getElementById('v-count-prof').textContent  = pending.filter(function(r){ return r.requested_role==='enseignant'; }).length;
+  document.getElementById('v-count-admin').textContent = pending.filter(function(r){ return r.requested_role==='admin'; }).length;
+
+  if (!requests.length) {
+    document.getElementById('v-list').innerHTML =
+      '<div style="text-align:center;color:#475569;padding:40px;font-size:.9rem">✅ Aucune demande</div>';
+    return;
+  }
+  var allRequests = pending.concat(treated);
+  document.getElementById('v-list').innerHTML =
+    (pending.length ? '<p style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#f59e0b;letter-spacing:.05em;margin-bottom:10px">⏳ En attente ('+pending.length+')</p>' : '')
+    + pending.map(function(req) { return renderReq(req); }).join('')
+    + (treated.length ? '<p style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin:16px 0 10px">✅ Traitées ('+treated.length+')</p>' : '')
+    + treated.map(function(req) { return renderReq(req); }).join('');
+}
+
+function renderReq(req) {
+    var isProf = req.requested_role==='enseignant';
+    var color  = isProf ? '#60a5fa' : '#a78bfa';
+    var bg     = isProf ? '#1e3a5f' : '#2e1065';
+    var label  = isProf ? 'Professeur' : 'Admin';
+    var icon   = isProf ? '👨‍🏫' : '⚙️';
+    var date   = new Date(req.created_at).toLocaleString('fr-FR');
+    return '<div id="vreq-'+req.id+'" style="border:1px solid #334155;border-radius:14px;padding:18px;margin-bottom:10px;background:#0f172a">'
+      // Ligne principale
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">'
+      +'<div style="display:flex;align-items:center;gap:14px">'
+      +'<div style="width:52px;height:52px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">'+icon+'</div>'
+      +'<div>'
+      +'<p style="font-weight:800;color:#f8fafc;margin:0;font-size:1rem">'+req.first_name+' '+req.last_name+'</p>'
+      +'<p style="font-size:.82rem;color:#64748b;margin:3px 0">'+req.email+'</p>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'
+      +'<span class="vreq-status" style="display:inline-block;background:'+bg+';color:'+color+';padding:3px 12px;border-radius:999px;font-size:.72rem;font-weight:700">'+label+'</span>'
+      +(req.school ? '<span style="display:inline-block;background:#1e293b;color:#94a3b8;padding:3px 12px;border-radius:999px;font-size:.72rem;font-weight:600">🏫 '+req.school+'</span>' : '')
+      +'<span style="display:inline-block;background:#1e293b;color:#475569;padding:3px 12px;border-radius:999px;font-size:.72rem">📅 '+date+'</span>'
+      +'</div>'
+      +'</div></div>'
+      +'<div class="vreq-btns" style="display:flex;gap:8px;align-items:center">'
+      +'<button onclick="approveRole('+req.id+')" class="btn primary sm">✅ Approuver</button>'
+      +'<button onclick="rejectRole('+req.id+')" class="btn danger sm">❌ Refuser</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+}
+
+
+async function approveRole(id) {
+  var el = document.querySelector('#vreq-'+id);
+  if (!el) return;
+  var btns = el.querySelector('.vreq-btns');
+  if (btns) btns.innerHTML = '<span style="font-size:.8rem;color:#64748b">Validation...</span>';
+
+  const d = await api('/auth/role-requests/'+id+'/approve', {method:'POST'});
+  if (d?.success) {
+    // Ne pas supprimer la carte — juste mettre à jour le statut
+    el.style.border = '1px solid #16a34a';
+    el.style.background = '#052e16';
+    if (btns) btns.innerHTML = '<span style="background:#052e16;color:#4ade80;padding:6px 14px;border-radius:8px;font-weight:700;font-size:.85rem">✅ Approuvé</span>';
+    // Mettre à jour le badge de statut
+    var statusEl = el.querySelector('.vreq-status');
+    if (statusEl) { statusEl.textContent='Approuvé'; statusEl.style.background='#052e16'; statusEl.style.color='#4ade80'; }
+    document.getElementById('v-count-all').textContent = Math.max(0, parseInt(document.getElementById('v-count-all').textContent||'0') - 1);
+    toast('Demande approuvée !');
+  } else {
+    if (btns) btns.innerHTML = '<button onclick="approveRole('+id+')" class="btn primary sm">✅ Approuver</button><button onclick="rejectRole('+id+')" class="btn danger sm">❌ Refuser</button>';
+    toast(d?.message||'Erreur.','err');
+  }
+}
+
+async function rejectRole(id) {
+  if (!confirm('Refuser cette demande ?')) return;
+  var el = document.querySelector('#vreq-'+id);
+  var btns = el ? el.querySelector('.vreq-btns') : null;
+
+  const d = await api('/auth/role-requests/'+id+'/reject', {method:'POST'});
+  if (d?.success) {
+    if (el) { el.style.border='1px solid #7f1d1d'; el.style.background='#1c0a0a'; el.style.opacity='.7'; }
+    if (btns) btns.innerHTML = '<span style="background:#450a0a;color:#f87171;padding:6px 14px;border-radius:8px;font-weight:700;font-size:.85rem">❌ Refusé</span>';
+    var statusEl = el ? el.querySelector('.vreq-status') : null;
+    if (statusEl) { statusEl.textContent='Refusé'; statusEl.style.background='#450a0a'; statusEl.style.color='#f87171'; }
+    document.getElementById('v-count-all').textContent = Math.max(0, parseInt(document.getElementById('v-count-all').textContent||'0') - 1);
+    toast('Demande refusée.');
+  } else toast(d?.message||'Erreur.','err');
+}
+
+// ════════════════════════════════════════════════
+//  RECHERCHE RAPIDE
+// ════════════════════════════════════════════════
+async function quickSearch() {
+  const q = document.getElementById('quick-search').value.trim();
+  if (!q) return;
+  const d = await api('/superadmin/search?q='+encodeURIComponent(q));
+  if (d?.success && d.users?.length) {
+    const names = d.users.slice(0,5).map(u=>u.first_name+' '+u.last_name+' ('+u.role+')').join('\n');
+    alert('Résultats pour "'+q+'" :\n\n'+names+(d.users.length>5?'\n...et '+(d.users.length-5)+' autres':''));
+  } else {
+    toast('Aucun résultat pour "'+q+'".','err');
+  }
+}
+
+// ════════════════════════════════════════════════
+//  CODES D'ACCÈS
+// ════════════════════════════════════════════════
+async function loadCodes() {
+  document.getElementById('prof-codes-list').innerHTML = '<div class="sk" style="height:40px;border-radius:8px;margin-bottom:8px"></div>';
+  document.getElementById('admin-codes-list').innerHTML = '<div class="sk" style="height:40px;border-radius:8px;margin-bottom:8px"></div>';
+  const d = await api('/superadmin/codes');
+  if (!d || !d.success) {
+    document.getElementById('prof-codes-list').innerHTML = '<p style="color:#f87171;padding:12px">Erreur chargement.</p>';
+    document.getElementById('admin-codes-list').innerHTML = '<p style="color:#f87171;padding:12px">Erreur chargement.</p>';
+    return;
+  }
+
+  const profUsed  = d.prof_codes.filter(function(c){ return c.is_used; }).length;
+  const adminUsed = d.admin_codes.filter(function(c){ return c.is_used; }).length;
+  document.getElementById('prof-codes-count').textContent  = profUsed+'/'+d.prof_codes.length+' utilisés';
+  document.getElementById('admin-codes-count').textContent = adminUsed+'/'+d.admin_codes.length+' utilisés';
+
+  function renderCode(code, color) {
+    var used = code.is_used;
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;margin-bottom:6px;background:'+(used?'#0f172a':'#1e293b')+';border:1px solid '+(used?'#334155':'#475569')+';opacity:'+(used?'.6':'1')+'">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<span style="font-family:Manrope;font-weight:900;font-size:1.1rem;color:'+(used?'#475569':color)+';letter-spacing:.1em">'+code.code+'</span>'
+      +(used && code.used_by_name
+        ? '<div><p style="font-size:.75rem;color:#64748b;margin:0">'+code.used_by_name+'</p><p style="font-size:.7rem;color:#334155;margin:0">'+code.used_by_email+'</p>'+(code.school?'<p style="font-size:.7rem;color:#334155;margin:0">'+code.school+'</p>':'')+'</div>'
+        : '')
+      +'</div>'
+      +'<span class="bdg" style="background:'+(used?'#450a0a':'#052e16')+';color:'+(used?'#f87171':'#4ade80')+'">'+(used?'Utilisé':'Disponible')+'</span>'
+      +'</div>';
+  }
+
+  document.getElementById('prof-codes-list').innerHTML  = d.prof_codes.map(function(c){ return renderCode(c,'#60a5fa'); }).join('');
+  document.getElementById('admin-codes-list').innerHTML = d.admin_codes.map(function(c){ return renderCode(c,'#a78bfa'); }).join('');
+}
+
+// ════════════════════════════════════════════════
+//  INSCRIPTIONS & VALIDATIONS
+// ════════════════════════════════════════════════
+var regData = { inscriptions:[], validations:[] };
+
+async function loadRegistrations() {
+  const d = await api('/superadmin/registrations');
+  if (!d || !d.success) return;
+  regData = d;
+  renderInscriptions();
+  renderValidations();
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-inscriptions-content').style.display = tab==='inscriptions'?'block':'none';
+  document.getElementById('tab-validations-content').style.display  = tab==='validations'?'block':'none';
+  document.getElementById('tab-inscriptions').className = tab==='inscriptions'?'btn primary sm':'btn ghost sm';
+  document.getElementById('tab-validations').className  = tab==='validations'?'btn primary sm':'btn ghost sm';
+}
+
+function renderInscriptions() {
+  var roleColor = {etudiant:'#60a5fa',enseignant:'#4ade80',admin:'#f59e0b',superadmin:'#a78bfa'};
+  var roleLabel = {etudiant:'Étudiant',enseignant:'Prof',admin:'Admin',superadmin:'Super Admin'};
+  var tbody = document.getElementById('inscriptions-tbody');
+  if (!regData.inscriptions.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#475569;padding:24px">Aucune inscription.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = regData.inscriptions.map(function(u) {
+    var col = roleColor[u.role]||'#94a3b8';
+    var lbl = roleLabel[u.role]||u.role;
+    var date = new Date(u.created_at).toLocaleString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    return '<tr>'
+      +'<td style="font-weight:600;color:#f8fafc">'+u.first_name+' '+u.last_name+'</td>'
+      +'<td style="color:#475569;font-size:.8rem">'+u.email+'</td>'
+      +'<td><span class="bdg" style="background:'+col+'20;color:'+col+'">'+lbl+'</span></td>'
+      +'<td style="color:#64748b;font-size:.8rem">'+(u.school||'—')+'</td>'
+      +'<td style="color:#475569;font-size:.78rem">'+date+'</td>'
+      +'<td><span class="bdg '+(u.is_active!==false?'status-active':'status-inactive')+'">'+(u.is_active!==false?'Actif':'Inactif')+'</span></td>'
+      +'</tr>';
+  }).join('');
+}
+
+function renderValidations() {
+  var statusColor = {approved:'#4ade80',rejected:'#f87171',pending:'#f59e0b'};
+  var statusLabel = {approved:'Approuvé',rejected:'Refusé',pending:'En attente'};
+  var roleColor   = {enseignant:'#60a5fa',admin:'#a78bfa'};
+  var roleLabel   = {enseignant:'Professeur',admin:'Admin'};
+  var tbody = document.getElementById('validations-tbody');
+  if (!regData.validations.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#475569;padding:24px">Aucune demande de validation.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = regData.validations.map(function(v) {
+    var sc = statusColor[v.status]||'#94a3b8';
+    var sl = statusLabel[v.status]||v.status;
+    var rc = roleColor[v.requested_role]||'#94a3b8';
+    var rl = roleLabel[v.requested_role]||v.requested_role;
+    var date = new Date(v.created_at).toLocaleString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    return '<tr>'
+      +'<td style="font-weight:600;color:#f8fafc">'+v.first_name+' '+v.last_name+'</td>'
+      +'<td style="color:#475569;font-size:.8rem">'+v.email+'</td>'
+      +'<td><span class="bdg" style="background:'+rc+'20;color:'+rc+'">'+rl+'</span></td>'
+      +'<td style="color:#64748b;font-size:.8rem">'+(v.school||'—')+'</td>'
+      +'<td style="color:#475569;font-size:.78rem">'+date+'</td>'
+      +'<td><span class="bdg" style="background:'+sc+'20;color:'+sc+'">'+sl+'</span></td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+//  CODES PAR ÉCOLE
+// ════════════════════════════════════════════════
+async function loadSchoolCodes() {
+  document.getElementById('school-codes-list').innerHTML =
+    '<div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:80px;border-radius:14px"></div>';
+  const d = await api('/superadmin/school-codes');
+  if (!d || !d.success) {
+    document.getElementById('school-codes-list').innerHTML =
+      '<div class="card card-pad" style="color:#f87171">Erreur chargement.</div>';
+    return;
+  }
+  if (!d.codes.length) {
+    document.getElementById('school-codes-list').innerHTML =
+      '<div class="card card-pad" style="text-align:center;color:#475569">Aucun code configuré.</div>';
+    return;
+  }
+  document.getElementById('school-codes-list').innerHTML = d.codes.map(function(sc) {
+    var active = sc.is_active;
+    return '<div class="card card-pad" style="margin-bottom:10px;opacity:'+(active?'1':'.6')+'">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">'
+      +'<div>'
+      +'<h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#f8fafc;margin:0">🏫 '+sc.school+'</h3>'
+      +'<span class="bdg '+(active?'status-active':'status-inactive')+'" style="margin-top:6px;display:inline-block">'+(active?'Actif':'Désactivé')+'</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px">'
+      +'<button onclick="toggleSchoolCode('+sc.id+')" class="btn ghost sm">'+(active?'Désactiver':'Activer')+'</button>'
+      +'</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+      +'<div style="background:#0f172a;border-radius:12px;padding:14px">'
+      +'<p style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin-bottom:8px">👨‍🏫 Code Professeurs</p>'
+      +'<p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#60a5fa;letter-spacing:.15em;margin:0 0 10px">'+sc.prof_code+'</p>'
+      +'<button onclick="regenCode('+sc.id+',&quot;prof&quot;)" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span> Régénérer</button>'
+      +'</div>'
+      +'<div style="background:#0f172a;border-radius:12px;padding:14px">'
+      +'<p style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin-bottom:8px">⚙️ Code Admins</p>'
+      +'<p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#a78bfa;letter-spacing:.15em;margin:0 0 10px">'+sc.admin_code+'</p>'
+      +'<button onclick="regenCode('+sc.id+',&quot;admin&quot;)" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span> Régénérer</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+async function toggleSchoolCode(id) {
+  const d = await api('/superadmin/school-codes/'+id+'/toggle', {method:'PUT'});
+  if (d?.success) { toast(d.code.is_active ? 'Codes activés.' : 'Codes désactivés.'); loadSchoolCodes(); }
+  else toast(d?.message||'Erreur.','err');
+}
+
+async function regenCode(id, type) {
+  if (!confirm('Régénérer le code '+(type==='prof'?'professeurs':'admins')+' ? Les anciens codes ne fonctionneront plus.')) return;
+  const d = await api('/superadmin/school-codes/'+id+'/regenerate', {method:'PUT', body:JSON.stringify({type})});
+  if (d?.success) { toast('Nouveau code : '+d.new_code); loadSchoolCodes(); }
+  else toast(d?.message||'Erreur.','err');
+}
+
+// ════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = (type==='err'?'err':'ok')+' show';
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('show'), 3800);
+}
+
+</script>
+</body>
+</html>
+</script>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;padding:20px">
+  <div style="width:100%;max-width:380px">
+    <div style="text-align:center;margin-bottom:28px">
+      <span class="ms" style="font-size:48px;color:#f59e0b">shield_person</span>
+      <h1 style="font-family:Manrope;font-weight:900;font-size:1.6rem;color:#f8fafc;margin-top:8px"><span style="color:#f59e0b">Camuno</span>Learn</h1>
+      <p style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:#f59e0b;margin-top:4px">SUPER ADMIN</p>
+    </div>
+    <div style="background:#0d1117;border:1px solid #1e293b;border-radius:18px;padding:28px">
+      <div id="login-err" style="display:none;background:#450a0a;border:1px solid #7f1d1d;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.83rem;color:#fca5a5"></div>
+      <div style="margin-bottom:14px"><label class="lbl">EMAIL</label><input id="sa-email" type="email" class="fld" value="superadmin@camunolearn.cm" placeholder="email@exemple.cm"/></div>
+      <div style="margin-bottom:20px"><label class="lbl">MOT DE PASSE</label><input id="sa-pass" type="password" class="fld" placeholder="••••••••"/></div>
+      <button onclick="doSALogin()" id="sa-btn" class="btn primary" style="width:100%;justify-content:center;padding:12px">
+        <span class="ms">login</span>Accéder
+      </button>
+      
       <a href="indexconnexion.html" style="display:block;text-align:center;margin-top:14px;font-size:.78rem;color:#475569;text-decoration:none">← Connexion normale</a>
     </div>
   </div>
@@ -1554,89 +1947,34 @@ function toast(msg, type) {
 
 <div id="toast"></div>
 
+
+
 <script>
-// ════════════════════════════════════════════════
-//  LOGIN
-// ════════════════════════════════════════════════
-async function saLogin() {
-  const email = document.getElementById('sa-email').value.trim();
-  const pass  = document.getElementById('sa-pass').value;
-  const errEl = document.getElementById('login-err');
-  const btn   = document.getElementById('sa-btn');
-  if (!email || !pass) { errEl.textContent='Remplissez tous les champs.'; errEl.style.display='block'; return; }
-  errEl.style.display = 'none';
-  btn.disabled = true;
-  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite;display:block">autorenew</span>';
-  try {
-    const r = await fetch(API + '/auth/login', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({email, password: pass})
-    });
-    const d = await r.json();
-    if (d.success && d.user.role === 'superadmin') {
-      localStorage.setItem('sa_token', d.token);
-      localStorage.setItem('camunolearn_token', d.token);
-      localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
-      ME = d.user;
-      startApp();
-    } else if (d.success) {
-      errEl.innerHTML = '<b>Ce compte n\'a pas le r\u00f4le superadmin.</b><br/><span style="font-size:.75rem">Dans pgAdmin, ex\u00e9cutez :<br/><code style="background:#1e293b;padding:2px 8px;border-radius:4px;color:#4ade80">UPDATE users SET role=\'superadmin\' WHERE email=\'' + email + '\';</code></span>';
-      errEl.style.display = 'block';
-      btn.disabled = false;
-      btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
-    } else {
-      errEl.textContent = d.message || 'Identifiants incorrects.';
-      errEl.style.display = 'block';
-      btn.disabled = false;
-      btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
-    }
-  } catch(e) {
-    errEl.textContent = 'Serveur inaccessible. Lancez: cd backend && node src/app.js';
-    errEl.style.display = 'block';
-    btn.disabled = false;
-    btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
-  }
-}
 
-function startApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'block';
-  const init = ME.first_name[0] + (ME.last_name[0] || '');
-  document.getElementById('sa-av').textContent   = init;
-  document.getElementById('sa-name').textContent = ME.first_name + ' ' + ME.last_name;
-  loadOverview();
-}
+// ── API URL ──────────────────────────────────────────────────
+const API = (function() {
+  var h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
+  return 'https://camunolearn-api.onrender.com/api';
+})();
+const TK = () => localStorage.getItem('sa_token');
+let ME = null;
+let ALL_USERS = [], ALL_SCHOOLS = [], ALL_SUBS = [];
+let loaded = {};
+let curUserFilter = 'all', curSubFilter = 'all';
+let charts = {};
 
-function saLogout() {
-  localStorage.removeItem('sa_token');
-  location.reload();
-}
+const PLAN_PRICES  = {decouverte:0,starter:19900,pro:49000,universite:120000,reseau:350000};
+const PLAN_LABELS  = {decouverte:'Découverte',starter:'Starter',pro:'Pro',universite:'Université',reseau:'Réseau National'};
+const PLAN_EMOJIS  = {decouverte:'🌱',starter:'🎓',pro:'🏛️',universite:'🏫',reseau:'🌐'};
+const STATUS_CFG   = {
+  active:   {col:'#4ade80',bg:'#052e16',label:'Actif'},
+  trial:    {col:'#f59e0b',bg:'#1c1400',label:'Essai'},
+  expired:  {col:'#f87171',bg:'#450a0a',label:'Expiré'},
+  suspended:{col:'#94a3b8',bg:'#1e293b',label:'Suspendu'},
+};
 
-// Auto-login si token présent
-window.addEventListener('DOMContentLoaded', async () => {
-  const t = TK() || localStorage.getItem('camunolearn_token');
-  if (!t) return;
-  try {
-    const r = await fetch(API + '/auth/me', {headers:{'Authorization':'Bearer '+t}});
-    const d = await r.json();
-    if (d.success && d.user.role === 'superadmin') {
-      localStorage.setItem('sa_token', t);
-      ME = d.user;
-      startApp();
-    } else {
-      localStorage.removeItem('sa_token');
-    }
-  } catch(e) {}
-});
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') saLogin();
-});
-
-// ════════════════════════════════════════════════
-//  API HELPER
-// ════════════════════════════════════════════════
 async function api(path, opts) {
   opts = opts || {};
   try {
@@ -2609,6 +2947,422 @@ function toast(msg, type) {
   clearTimeout(el._t);
   el._t = setTimeout(()=>el.classList.remove('show'), 3800);
 }
+async function doSALogin(){
+        var API=location.hostname==='localhost'?'http://localhost:3000/api':'https://camunolearn-api.onrender.com/api';
+        var email=document.getElementById('sa-email').value.trim();
+        var pass=document.getElementById('sa-pass').value;
+        var errEl=document.getElementById('login-err');
+        var btn=document.getElementById('sa-btn');
+        if(!email||!pass){errEl.textContent='Remplissez tous les champs.';errEl.style.display='block';return;}
+        btn.disabled=true;btn.textContent='Connexion...';
+        try{
+          var r=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})});
+          var d=await r.json();
+          if(d.success&&d.user.role==='superadmin'){
+            localStorage.setItem('sa_token',d.token);
+            localStorage.setItem('camunolearn_token',d.token);
+            localStorage.setItem('camunolearn_user',JSON.stringify(d.user));
+            location.reload();
+          }else{
+            errEl.textContent=d.message||'Accès refusé.';errEl.style.display='block';
+            btn.disabled=false;btn.innerHTML='<span class="ms">login</span>Accéder';
+          }
+        }catch(e){
+          errEl.textContent='Erreur réseau.';errEl.style.display='block';
+          btn.disabled=false;btn.innerHTML='<span class="ms">login</span>Accéder';
+        }
+      }
+// ════════════════════════════════════════════════
+//  LOGIN
+// ════════════════════════════════════════════════
+async function saLogin() {
+  const email = document.getElementById('sa-email').value.trim();
+  const pass  = document.getElementById('sa-pass').value;
+  const errEl = document.getElementById('login-err');
+  const btn   = document.getElementById('sa-btn');
+  if (!email || !pass) { errEl.textContent='Remplissez tous les champs.'; errEl.style.display='block'; return; }
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite;display:block">autorenew</span>';
+  try {
+    const r = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password: pass})
+    });
+    const d = await r.json();
+    if (d.success && d.user.role === 'superadmin') {
+      localStorage.setItem('sa_token', d.token);
+      localStorage.setItem('camunolearn_token', d.token);
+      localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
+      ME = d.user;
+      startApp();
+    } else if (d.success) {
+      errEl.innerHTML = '<b>Ce compte n\'a pas le r\u00f4le superadmin.</b><br/><span style="font-size:.75rem">Dans pgAdmin, ex\u00e9cutez :<br/><code style="background:#1e293b;padding:2px 8px;border-radius:4px;color:#4ade80">UPDATE users SET role=\'superadmin\' WHERE email=\'' + email + '\';</code></span>';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
+    } else {
+      errEl.textContent = d.message || 'Identifiants incorrects.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
+    }
+  } catch(e) {
+    errEl.textContent = 'Serveur inaccessible. Lancez: cd backend && node src/app.js';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<span class="ms">login</span>Acc\u00e9der';
+  }
+}
+
+function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  const init = ME.first_name[0] + (ME.last_name[0] || '');
+  document.getElementById('sa-av').textContent   = init;
+  document.getElementById('sa-name').textContent = ME.first_name + ' ' + ME.last_name;
+  loadOverview();
+}
+
+function saLogout() {
+  localStorage.removeItem('sa_token');
+  location.reload();
+}
+
+// Auto-login si token présent
+window.addEventListener('DOMContentLoaded', async () => {
+  const t = TK() || localStorage.getItem('camunolearn_token');
+  if (!t) return;
+  try {
+    const r = await fetch(API + '/auth/me', {headers:{'Authorization':'Bearer '+t}});
+    const d = await r.json();
+    if (d.success && d.user.role === 'superadmin') {
+      localStorage.setItem('sa_token', t);
+      ME = d.user;
+      startApp();
+    } else {
+      localStorage.removeItem('sa_token');
+    }
+  } catch(e) {}
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') saLogin();
+});
+
+// ════════════════════════════════════════════════
+//  API HELPER
+// ════════════════════════════════════════════════
+async function api(path, opts) {
+  opts = opts || {};
+  try {
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+TK(), ...(opts.headers||{})}
+    });
+    if (r.status === 401) { saLogout(); return null; }
+    return await r.json();
+  } catch(e) {
+    return null;
+  }
+}
+
+// ════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════
+
+async function loadValidation() {
+  const d = await api('/auth/role-requests');
+  if (!d || !d.success) {
+    document.getElementById('v-list').innerHTML =
+      '<div style="text-align:center;color:#f87171;padding:24px">Erreur chargement.</div>';
+    return;
+  }
+  const requests = d.requests || [];
+  const profs  = requests.filter(function(r){ return r.requested_role==='enseignant'; });
+  const admins = requests.filter(function(r){ return r.requested_role==='admin'; });
+  document.getElementById('v-count-all').textContent   = requests.length;
+  document.getElementById('v-count-prof').textContent  = profs.length;
+  document.getElementById('v-count-admin').textContent = admins.length;
+  // Séparer en attente et traitées
+  var pending  = requests.filter(function(r){ return r.status==='pending'; });
+  var treated  = requests.filter(function(r){ return r.status!=='pending'; });
+
+  document.getElementById('v-count-all').textContent   = pending.length;
+  document.getElementById('v-count-prof').textContent  = pending.filter(function(r){ return r.requested_role==='enseignant'; }).length;
+  document.getElementById('v-count-admin').textContent = pending.filter(function(r){ return r.requested_role==='admin'; }).length;
+
+  if (!requests.length) {
+    document.getElementById('v-list').innerHTML =
+      '<div style="text-align:center;color:#475569;padding:40px;font-size:.9rem">✅ Aucune demande</div>';
+    return;
+  }
+  var allRequests = pending.concat(treated);
+  document.getElementById('v-list').innerHTML =
+    (pending.length ? '<p style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#f59e0b;letter-spacing:.05em;margin-bottom:10px">⏳ En attente ('+pending.length+')</p>' : '')
+    + pending.map(function(req) { return renderReq(req); }).join('')
+    + (treated.length ? '<p style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin:16px 0 10px">✅ Traitées ('+treated.length+')</p>' : '')
+    + treated.map(function(req) { return renderReq(req); }).join('');
+}
+
+function renderReq(req) {
+    var isProf = req.requested_role==='enseignant';
+    var color  = isProf ? '#60a5fa' : '#a78bfa';
+    var bg     = isProf ? '#1e3a5f' : '#2e1065';
+    var label  = isProf ? 'Professeur' : 'Admin';
+    var icon   = isProf ? '👨‍🏫' : '⚙️';
+    var date   = new Date(req.created_at).toLocaleString('fr-FR');
+    return '<div id="vreq-'+req.id+'" style="border:1px solid #334155;border-radius:14px;padding:18px;margin-bottom:10px;background:#0f172a">'
+      // Ligne principale
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">'
+      +'<div style="display:flex;align-items:center;gap:14px">'
+      +'<div style="width:52px;height:52px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">'+icon+'</div>'
+      +'<div>'
+      +'<p style="font-weight:800;color:#f8fafc;margin:0;font-size:1rem">'+req.first_name+' '+req.last_name+'</p>'
+      +'<p style="font-size:.82rem;color:#64748b;margin:3px 0">'+req.email+'</p>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'
+      +'<span class="vreq-status" style="display:inline-block;background:'+bg+';color:'+color+';padding:3px 12px;border-radius:999px;font-size:.72rem;font-weight:700">'+label+'</span>'
+      +(req.school ? '<span style="display:inline-block;background:#1e293b;color:#94a3b8;padding:3px 12px;border-radius:999px;font-size:.72rem;font-weight:600">🏫 '+req.school+'</span>' : '')
+      +'<span style="display:inline-block;background:#1e293b;color:#475569;padding:3px 12px;border-radius:999px;font-size:.72rem">📅 '+date+'</span>'
+      +'</div>'
+      +'</div></div>'
+      +'<div class="vreq-btns" style="display:flex;gap:8px;align-items:center">'
+      +'<button onclick="approveRole('+req.id+')" class="btn primary sm">✅ Approuver</button>'
+      +'<button onclick="rejectRole('+req.id+')" class="btn danger sm">❌ Refuser</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+}
+
+
+async function approveRole(id) {
+  var el = document.querySelector('#vreq-'+id);
+  if (!el) return;
+  var btns = el.querySelector('.vreq-btns');
+  if (btns) btns.innerHTML = '<span style="font-size:.8rem;color:#64748b">Validation...</span>';
+
+  const d = await api('/auth/role-requests/'+id+'/approve', {method:'POST'});
+  if (d?.success) {
+    // Ne pas supprimer la carte — juste mettre à jour le statut
+    el.style.border = '1px solid #16a34a';
+    el.style.background = '#052e16';
+    if (btns) btns.innerHTML = '<span style="background:#052e16;color:#4ade80;padding:6px 14px;border-radius:8px;font-weight:700;font-size:.85rem">✅ Approuvé</span>';
+    // Mettre à jour le badge de statut
+    var statusEl = el.querySelector('.vreq-status');
+    if (statusEl) { statusEl.textContent='Approuvé'; statusEl.style.background='#052e16'; statusEl.style.color='#4ade80'; }
+    document.getElementById('v-count-all').textContent = Math.max(0, parseInt(document.getElementById('v-count-all').textContent||'0') - 1);
+    toast('Demande approuvée !');
+  } else {
+    if (btns) btns.innerHTML = '<button onclick="approveRole('+id+')" class="btn primary sm">✅ Approuver</button><button onclick="rejectRole('+id+')" class="btn danger sm">❌ Refuser</button>';
+    toast(d?.message||'Erreur.','err');
+  }
+}
+
+async function rejectRole(id) {
+  if (!confirm('Refuser cette demande ?')) return;
+  var el = document.querySelector('#vreq-'+id);
+  var btns = el ? el.querySelector('.vreq-btns') : null;
+
+  const d = await api('/auth/role-requests/'+id+'/reject', {method:'POST'});
+  if (d?.success) {
+    if (el) { el.style.border='1px solid #7f1d1d'; el.style.background='#1c0a0a'; el.style.opacity='.7'; }
+    if (btns) btns.innerHTML = '<span style="background:#450a0a;color:#f87171;padding:6px 14px;border-radius:8px;font-weight:700;font-size:.85rem">❌ Refusé</span>';
+    var statusEl = el ? el.querySelector('.vreq-status') : null;
+    if (statusEl) { statusEl.textContent='Refusé'; statusEl.style.background='#450a0a'; statusEl.style.color='#f87171'; }
+    document.getElementById('v-count-all').textContent = Math.max(0, parseInt(document.getElementById('v-count-all').textContent||'0') - 1);
+    toast('Demande refusée.');
+  } else toast(d?.message||'Erreur.','err');
+}
+
+// ════════════════════════════════════════════════
+//  RECHERCHE RAPIDE
+// ════════════════════════════════════════════════
+async function quickSearch() {
+  const q = document.getElementById('quick-search').value.trim();
+  if (!q) return;
+  const d = await api('/superadmin/search?q='+encodeURIComponent(q));
+  if (d?.success && d.users?.length) {
+    const names = d.users.slice(0,5).map(u=>u.first_name+' '+u.last_name+' ('+u.role+')').join('\n');
+    alert('Résultats pour "'+q+'" :\n\n'+names+(d.users.length>5?'\n...et '+(d.users.length-5)+' autres':''));
+  } else {
+    toast('Aucun résultat pour "'+q+'".','err');
+  }
+}
+
+// ════════════════════════════════════════════════
+//  CODES D'ACCÈS
+// ════════════════════════════════════════════════
+async function loadCodes() {
+  document.getElementById('prof-codes-list').innerHTML = '<div class="sk" style="height:40px;border-radius:8px;margin-bottom:8px"></div>';
+  document.getElementById('admin-codes-list').innerHTML = '<div class="sk" style="height:40px;border-radius:8px;margin-bottom:8px"></div>';
+  const d = await api('/superadmin/codes');
+  if (!d || !d.success) {
+    document.getElementById('prof-codes-list').innerHTML = '<p style="color:#f87171;padding:12px">Erreur chargement.</p>';
+    document.getElementById('admin-codes-list').innerHTML = '<p style="color:#f87171;padding:12px">Erreur chargement.</p>';
+    return;
+  }
+
+  const profUsed  = d.prof_codes.filter(function(c){ return c.is_used; }).length;
+  const adminUsed = d.admin_codes.filter(function(c){ return c.is_used; }).length;
+  document.getElementById('prof-codes-count').textContent  = profUsed+'/'+d.prof_codes.length+' utilisés';
+  document.getElementById('admin-codes-count').textContent = adminUsed+'/'+d.admin_codes.length+' utilisés';
+
+  function renderCode(code, color) {
+    var used = code.is_used;
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;margin-bottom:6px;background:'+(used?'#0f172a':'#1e293b')+';border:1px solid '+(used?'#334155':'#475569')+';opacity:'+(used?'.6':'1')+'">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<span style="font-family:Manrope;font-weight:900;font-size:1.1rem;color:'+(used?'#475569':color)+';letter-spacing:.1em">'+code.code+'</span>'
+      +(used && code.used_by_name
+        ? '<div><p style="font-size:.75rem;color:#64748b;margin:0">'+code.used_by_name+'</p><p style="font-size:.7rem;color:#334155;margin:0">'+code.used_by_email+'</p>'+(code.school?'<p style="font-size:.7rem;color:#334155;margin:0">'+code.school+'</p>':'')+'</div>'
+        : '')
+      +'</div>'
+      +'<span class="bdg" style="background:'+(used?'#450a0a':'#052e16')+';color:'+(used?'#f87171':'#4ade80')+'">'+(used?'Utilisé':'Disponible')+'</span>'
+      +'</div>';
+  }
+
+  document.getElementById('prof-codes-list').innerHTML  = d.prof_codes.map(function(c){ return renderCode(c,'#60a5fa'); }).join('');
+  document.getElementById('admin-codes-list').innerHTML = d.admin_codes.map(function(c){ return renderCode(c,'#a78bfa'); }).join('');
+}
+
+// ════════════════════════════════════════════════
+//  INSCRIPTIONS & VALIDATIONS
+// ════════════════════════════════════════════════
+var regData = { inscriptions:[], validations:[] };
+
+async function loadRegistrations() {
+  const d = await api('/superadmin/registrations');
+  if (!d || !d.success) return;
+  regData = d;
+  renderInscriptions();
+  renderValidations();
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-inscriptions-content').style.display = tab==='inscriptions'?'block':'none';
+  document.getElementById('tab-validations-content').style.display  = tab==='validations'?'block':'none';
+  document.getElementById('tab-inscriptions').className = tab==='inscriptions'?'btn primary sm':'btn ghost sm';
+  document.getElementById('tab-validations').className  = tab==='validations'?'btn primary sm':'btn ghost sm';
+}
+
+function renderInscriptions() {
+  var roleColor = {etudiant:'#60a5fa',enseignant:'#4ade80',admin:'#f59e0b',superadmin:'#a78bfa'};
+  var roleLabel = {etudiant:'Étudiant',enseignant:'Prof',admin:'Admin',superadmin:'Super Admin'};
+  var tbody = document.getElementById('inscriptions-tbody');
+  if (!regData.inscriptions.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#475569;padding:24px">Aucune inscription.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = regData.inscriptions.map(function(u) {
+    var col = roleColor[u.role]||'#94a3b8';
+    var lbl = roleLabel[u.role]||u.role;
+    var date = new Date(u.created_at).toLocaleString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    return '<tr>'
+      +'<td style="font-weight:600;color:#f8fafc">'+u.first_name+' '+u.last_name+'</td>'
+      +'<td style="color:#475569;font-size:.8rem">'+u.email+'</td>'
+      +'<td><span class="bdg" style="background:'+col+'20;color:'+col+'">'+lbl+'</span></td>'
+      +'<td style="color:#64748b;font-size:.8rem">'+(u.school||'—')+'</td>'
+      +'<td style="color:#475569;font-size:.78rem">'+date+'</td>'
+      +'<td><span class="bdg '+(u.is_active!==false?'status-active':'status-inactive')+'">'+(u.is_active!==false?'Actif':'Inactif')+'</span></td>'
+      +'</tr>';
+  }).join('');
+}
+
+function renderValidations() {
+  var statusColor = {approved:'#4ade80',rejected:'#f87171',pending:'#f59e0b'};
+  var statusLabel = {approved:'Approuvé',rejected:'Refusé',pending:'En attente'};
+  var roleColor   = {enseignant:'#60a5fa',admin:'#a78bfa'};
+  var roleLabel   = {enseignant:'Professeur',admin:'Admin'};
+  var tbody = document.getElementById('validations-tbody');
+  if (!regData.validations.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#475569;padding:24px">Aucune demande de validation.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = regData.validations.map(function(v) {
+    var sc = statusColor[v.status]||'#94a3b8';
+    var sl = statusLabel[v.status]||v.status;
+    var rc = roleColor[v.requested_role]||'#94a3b8';
+    var rl = roleLabel[v.requested_role]||v.requested_role;
+    var date = new Date(v.created_at).toLocaleString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    return '<tr>'
+      +'<td style="font-weight:600;color:#f8fafc">'+v.first_name+' '+v.last_name+'</td>'
+      +'<td style="color:#475569;font-size:.8rem">'+v.email+'</td>'
+      +'<td><span class="bdg" style="background:'+rc+'20;color:'+rc+'">'+rl+'</span></td>'
+      +'<td style="color:#64748b;font-size:.8rem">'+(v.school||'—')+'</td>'
+      +'<td style="color:#475569;font-size:.78rem">'+date+'</td>'
+      +'<td><span class="bdg" style="background:'+sc+'20;color:'+sc+'">'+sl+'</span></td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+//  CODES PAR ÉCOLE
+// ════════════════════════════════════════════════
+async function loadSchoolCodes() {
+  document.getElementById('school-codes-list').innerHTML =
+    '<div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:80px;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:80px;border-radius:14px"></div>';
+  const d = await api('/superadmin/school-codes');
+  if (!d || !d.success) {
+    document.getElementById('school-codes-list').innerHTML =
+      '<div class="card card-pad" style="color:#f87171">Erreur chargement.</div>';
+    return;
+  }
+  if (!d.codes.length) {
+    document.getElementById('school-codes-list').innerHTML =
+      '<div class="card card-pad" style="text-align:center;color:#475569">Aucun code configuré.</div>';
+    return;
+  }
+  document.getElementById('school-codes-list').innerHTML = d.codes.map(function(sc) {
+    var active = sc.is_active;
+    return '<div class="card card-pad" style="margin-bottom:10px;opacity:'+(active?'1':'.6')+'">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">'
+      +'<div>'
+      +'<h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#f8fafc;margin:0">🏫 '+sc.school+'</h3>'
+      +'<span class="bdg '+(active?'status-active':'status-inactive')+'" style="margin-top:6px;display:inline-block">'+(active?'Actif':'Désactivé')+'</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px">'
+      +'<button onclick="toggleSchoolCode('+sc.id+')" class="btn ghost sm">'+(active?'Désactiver':'Activer')+'</button>'
+      +'</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+      +'<div style="background:#0f172a;border-radius:12px;padding:14px">'
+      +'<p style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin-bottom:8px">👨‍🏫 Code Professeurs</p>'
+      +'<p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#60a5fa;letter-spacing:.15em;margin:0 0 10px">'+sc.prof_code+'</p>'
+      +'<button onclick="regenCode('+sc.id+',&quot;prof&quot;)" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span> Régénérer</button>'
+      +'</div>'
+      +'<div style="background:#0f172a;border-radius:12px;padding:14px">'
+      +'<p style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:#475569;letter-spacing:.05em;margin-bottom:8px">⚙️ Code Admins</p>'
+      +'<p style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#a78bfa;letter-spacing:.15em;margin:0 0 10px">'+sc.admin_code+'</p>'
+      +'<button onclick="regenCode('+sc.id+',&quot;admin&quot;)" class="btn ghost sm" style="width:100%"><span class="ms" style="font-size:14px">autorenew</span> Régénérer</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+async function toggleSchoolCode(id) {
+  const d = await api('/superadmin/school-codes/'+id+'/toggle', {method:'PUT'});
+  if (d?.success) { toast(d.code.is_active ? 'Codes activés.' : 'Codes désactivés.'); loadSchoolCodes(); }
+  else toast(d?.message||'Erreur.','err');
+}
+
+async function regenCode(id, type) {
+  if (!confirm('Régénérer le code '+(type==='prof'?'professeurs':'admins')+' ? Les anciens codes ne fonctionneront plus.')) return;
+  const d = await api('/superadmin/school-codes/'+id+'/regenerate', {method:'PUT', body:JSON.stringify({type})});
+  if (d?.success) { toast('Nouveau code : '+d.new_code); loadSchoolCodes(); }
+  else toast(d?.message||'Erreur.','err');
+}
+
+// ════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = (type==='err'?'err':'ok')+' show';
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('show'), 3800);
+}
+
 </script>
 </body>
 </html>
