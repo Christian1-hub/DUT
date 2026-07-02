@@ -329,8 +329,7 @@ router.post('/verify-code', async (req, res) => {
 
     await pool.query(
       `INSERT INTO role_requests (requested_role, session_id, status, user_email, user_name, created_at)
-       VALUES ($1, $2, 'pending', $3, $4, NOW())
-       ON CONFLICT (session_id) DO UPDATE SET requested_role=$1, status='pending', created_at=NOW()`,
+       VALUES ($1, $2, 'pending', $3, $4, NOW())`,
       [role, sessionId || null, email, (firstName + ' ' + lastName).trim()]
     );
 
