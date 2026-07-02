@@ -17,6 +17,7 @@ const adminRoutes      = require('./routes/admin');
 const superadminRoutes = require('./routes/Superadmin');
 const crossRoutes      = require('./routes/crossaccess');
 const qrSessionRoutes  = require('./routes/qrsession');
+const calendarRoutes   = require('./routes/calendar');
 
 const app = express();
 
@@ -205,6 +206,29 @@ app.listen(PORT, async () => {
       console.log('✅ school_codes : codes insérés');
     }
     console.log('✅ school_codes : OK');
+
+    // Table calendrier académique
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS academic_events (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        title VARCHAR(200) NOT NULL,
+        description TEXT,
+        category VARCHAR(50) NOT NULL,
+        color VARCHAR(7) DEFAULT '#3b82f6',
+        start_date TIMESTAMP NOT NULL,
+        end_date TIMESTAMP NOT NULL,
+        all_day BOOLEAN DEFAULT FALSE,
+        department VARCHAR(100),
+        school VARCHAR(100),
+        created_by UUID REFERENCES users(id),
+        is_recurring BOOLEAN DEFAULT FALSE,
+        recurrence_rule VARCHAR(100),
+        parent_event_id UUID REFERENCES academic_events(id),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ academic_events : OK');
 
     // Créer la table role_requests si elle n'existe pas
     await pool.query(`
