@@ -398,9 +398,10 @@ async function handleStep1Continue() {
   const role = currentUser.role;
 
   if (role === 'superadmin') {
+    // Superadmin → accès direct sans code
     await submitSchool({ school: selectedSchool });
   } else if (role === 'enseignant' || role === 'admin') {
-    // Afficher étape code
+    // Prof/Admin → étape code école
     document.getElementById('code-icon').textContent = role === 'enseignant' ? '👨‍🏫' : '⚙️';
     document.getElementById('code-sub').textContent = role === 'enseignant'
       ? 'Entrez le code prof secret de votre établissement.'
@@ -409,12 +410,11 @@ async function handleStep1Continue() {
     document.getElementById('school-code-input').value = '';
     document.getElementById('btn-code').disabled = true;
     document.getElementById('code-error').style.display = 'none';
-    // Aller à l'étape code
     document.querySelectorAll('.step').forEach(s => s.classList.remove('on'));
     document.getElementById('step-code').classList.add('on');
     setTimeout(() => document.getElementById('school-code-input').focus(), 100);
   } else {
-    // Étudiant → aller à l'étape 2
+    // Étudiant → filière
     renderFilieres();
     goStep(2);
   }
@@ -444,6 +444,14 @@ async function submitCodeAndSchool() {
     const d = await r.json();
 
     if (d.success) {
+      // Mettre à jour le rôle en base avant de soumettre l'école
+      try {
+        await fetch(API_BASE + '/auth/role', {
+          method: 'PUT',
+          headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + token},
+          body: JSON.stringify({ role: currentUser.role })
+        });
+      } catch(e) {}
       // Code valide → soumettre l'école
       await submitSchool({ school: selectedSchool });
     } else {
@@ -593,7 +601,9 @@ async function submitSchool(body) {
         enseignant: 'indexEnseignant.html',
         etudiant:   'indexETUDIANT.html',
       };
-      location.href = routes[role] || 'indexETUDIANT.html';
+      // Superadmin ne passe jamais par ici depuis selectionEcole
+      const dest = role === 'superadmin' ? 'indexSUPERADMIN.html' : (routes[role] || 'indexETUDIANT.html');
+      location.href = dest;
 
     } else {
       showAlert(d.message || 'Erreur lors de l\'enregistrement.');
