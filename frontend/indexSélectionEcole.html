@@ -593,17 +593,12 @@ async function submitSchool(body) {
       localStorage.setItem('userSchool', selectedSchool);
       if (selectedFiliere) localStorage.setItem('userFiliere', selectedFiliere);
 
-      // Redirection selon le rôle
-      const role = d.user?.role || currentUser.role;
-      const routes = {
-        superadmin: 'indexSUPERADMIN.html',
-        admin:      'indexADMIN.html',
-        enseignant: 'indexEnseignant.html',
-        etudiant:   'indexETUDIANT.html',
-      };
-      // Superadmin ne passe jamais par ici depuis selectionEcole
-      const dest = role === 'superadmin' ? 'indexSUPERADMIN.html' : (routes[role] || 'indexETUDIANT.html');
-      location.href = dest;
+      // Redirection selon le rôle ACTUEL (pas celui retourné par /auth/school)
+      const role = currentUser.role;
+      if (role === 'enseignant') { location.href = 'indexEnseignant.html'; return; }
+      if (role === 'admin')      { location.href = 'indexADMIN.html';      return; }
+      if (role === 'etudiant')   { location.href = 'indexETUDIANT.html';   return; }
+      location.href = 'indexETUDIANT.html';
 
     } else {
       showAlert(d.message || 'Erreur lors de l\'enregistrement.');
