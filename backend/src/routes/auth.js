@@ -303,25 +303,26 @@ router.post('/pricing-interest', async (req, res) => {
 });
 
 
-// POST /api/auth/verify-code — vérifier code + créer demande en attente SuperAdmin
+// POST /api/auth/verify-code — codes réutilisables hardcodés
 router.post('/verify-code', async (req, res) => {
   try {
     const { code, role, sessionId, user_info } = req.body;
     if (!code || !role) return res.status(400).json({ success: false, message: 'Code et rôle requis.' });
 
-    const table = role === 'enseignant' ? 'prof_codes' : role === 'admin' ? 'admin_codes' : null;
-    if (!table) return res.status(400).json({ success: false, message: 'Rôle invalide.' });
+    const PROF_CODES  = ['2H8L','3VQH','4F9C','4JQ5','7WSK','AJDD','AKTD','BKWJ','BZR7','C8G9',
+      'DYXQ','EFXB','FYWL','G4UF','G92Z','HNPK','L2L4','ML82','MNHF','NWGA',
+      'P4UW','PLC2','QEFV','RDEU','S2RJ','SMXY','W3VX','WN3T','XCZE','XNYY'];
+    const ADMIN_CODES = ['23P4ZE','2V7MWQ','47WCAC','4N79LD','5BLMHW','5P6L26','5V8J2Q','74YUUY','7R2DVA','9BG62G',
+      '9JEGR5','DDG3V3','DZRZ6X','EXQHC7','FBGA76','KLMGY6','KVMREC','MHG89Y','MMC45Y','MNMQL3',
+      'PDDSVN','PLXUDC','RW9CMV','U8MY32','USLLXM','V9WBB2','VWND5X','X8HU6N','YES68T','YXDJNU'];
 
-    // Vérifier le code
-    const r = await pool.query(
-      `SELECT code, is_used FROM ${table} WHERE code=$1`,
-      [code.toUpperCase().trim()]
-    );
-    if (!r.rows.length) return res.status(401).json({ success: false, message: 'Code invalide.' });
-    if (r.rows[0].is_used) return res.status(401).json({ success: false, message: 'Ce code a déjà été utilisé.' });
+    const codeUp     = code.toUpperCase().trim();
+    const validCodes = role === 'enseignant' ? PROF_CODES : ADMIN_CODES;
 
-    // Créer une demande en attente de validation SuperAdmin
-    // Stocker les infos de l'utilisateur depuis user_info (pas besoin de token)
+    if (!validCodes.includes(codeUp)) {
+      return res.status(401).json({ success: false, message: 'Code invalide.' });
+    }
+
     const firstName = user_info?.first_name || '';
     const lastName  = user_info?.last_name  || '';
     const email     = user_info?.email      || '';
@@ -333,13 +334,14 @@ router.post('/verify-code', async (req, res) => {
       [role, sessionId || null, email, (firstName + ' ' + lastName).trim()]
     );
 
-    console.log('[VERIFY-CODE] Demande créée pour', email, '→', role);
-    res.json({ success: true, message: 'Code valide ! Demande envoyée au super-administrateur.' });
+    console.log('[VERIFY-CODE]', email, '→', role, codeUp);
+    res.json({ success: true, message: 'Code valide !' });
   } catch(e) {
     console.error('[VERIFY-CODE]', e.message);
     res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 });
+
 
 // GET /api/auth/role-requests — liste des demandes en attente (SuperAdmin)
 router.get('/role-requests', auth, async (req, res) => {
