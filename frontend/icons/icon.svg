@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fond plein (nécessaire pour maskable icons) -->
+  <rect width="512" height="512" fill="#00602a"/>
+
+  <!-- Chapeau universitaire centré dans la zone de sécurité (80%) -->
+  <g transform="translate(256,266)">
+    <!-- Ombre douce du calot -->
+    <ellipse cx="0" cy="6" rx="150" ry="34" fill="#004a20" opacity="0.35"/>
+
+    <!-- Base / tête du chapeau (dôme) -->
+    <path d="M -95 -6 C -95 -55 -50 -90 0 -90 C 50 -90 95 -55 95 -6 L 95 8 C 95 30 55 46 0 46 C -55 46 -95 30 -95 8 Z" fill="#ffffff"/>
+
+    <!-- Planche carrée (mortarboard) -->
+    <polygon points="0,-140 175,-64 0,12 -175,-64" fill="#ffffff"/>
+    <polygon points="0,-140 175,-64 0,-16 -175,-64" fill="#f0f0f0"/>
+
+    <!-- Bouton central -->
+    <circle cx="0" cy="-64" r="10" fill="#00602a"/>
+
+    <!-- Cordon et gland -->
+    <path d="M 0 -64 C 40 -40 55 -10 50 30" stroke="#ffcc33" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <circle cx="50" cy="30" r="4" fill="#ffcc33"/>
+    <path d="M 50 30 L 44 66 L 56 66 Z" fill="#ffcc33"/>
+    <ellipse cx="50" cy="68" rx="10" ry="5" fill="#e0ac00"/>
+  </g>
+</svg>
