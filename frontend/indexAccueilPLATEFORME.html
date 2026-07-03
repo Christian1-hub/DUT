@@ -1,15 +1,67 @@
 <!DOCTYPE html>
 <html lang="fr" class="scroll-smooth">
 <head>
+  <link rel="manifest" href="./manifest.json"/>
+  <meta name="theme-color" content="#00602a"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="CamunoLearn"/>
+  <link rel="apple-touch-icon" href="https://ui-avatars.com/api/?name=CL&background=00602a&color=fff&size=192&bold=true"/>
+  <script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){
+      navigator.serviceWorker.register('./sw.js')
+        .then(function(r){console.log('[PWA] SW:',r.scope);})
+        .catch(function(e){console.warn('[PWA]',e);});
+    });
+  }
+  var _deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();_deferredPrompt=e;
+    var b=document.getElementById('pwa-install-btn');
+    if(b)b.style.display='flex';
+  });
+  function installPWA(){
+    if(!_deferredPrompt)return;
+    _deferredPrompt.prompt();
+    _deferredPrompt.userChoice.then(function(){
+      _deferredPrompt=null;
+      var b=document.getElementById('pwa-install-btn');
+      if(b)b.style.display='none';
+    });
+  }
+  </script>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>CamunoLearn — Plateforme E-learning d'Excellence</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0..1" rel="stylesheet"/>
 
     <!-- ══ ROUTING AUTOMATIQUE ══════════════════════════════ -->
-    
+    <script>
+    (function() {
+      var API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api'
+        : 'https://camunolearn-api.onrender.com/api';
+      var token = localStorage.getItem('camunolearn_token');
+      if (!token) return;
+      fetch(API_BASE + '/auth/me', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (!d.success) return;
+          var routes = {
+            'etudiant':   'indexETUDIANT.html',
+            'enseignant': 'indexEnseignant.html',
+            'admin':      'indexADMIN.html',
+            'superadmin': 'indexSUPERADMIN.html'
+          };
+          if (routes[d.user.role]) location.replace(routes[d.user.role]);
+        }).catch(function() {});
+    })();
+    </script>
 
     <script>
         tailwind.config = {
@@ -90,6 +142,10 @@
             <span id="menu-icon" class="material-symbols-outlined text-3xl">menu</span>
         </button>
     </div>
+  <!-- Bouton installer PWA (visible seulement si possible) -->
+  <button id="pwa-install-btn" onclick="installPWA()" style="display:none;align-items:center;gap:6px;padding:8px 16px;background:#00602a;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.82rem;cursor:pointer;font-family:inherit">
+    &#128229; Installer l'app
+  </button>
 </nav>
 
 <!-- MENU MOBILE -->

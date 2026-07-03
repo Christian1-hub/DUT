@@ -1,0 +1,40 @@
+{
+  "name": "CamunoLearn",
+  "short_name": "CamunoLearn",
+  "description": "Plateforme e-learning pour les universités camerounaises",
+  "start_url": "/indexAccueilPLATEFORME.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f9fb",
+  "theme_color": "#00602a",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "https://ui-avatars.com/api/?name=CL&background=00602a&color=fff&size=192&bold=true&font-size=0.4",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://ui-avatars.com/api/?name=CL&background=00602a&color=fff&size=512&bold=true&font-size=0.4",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mon espace",
+      "url": "/indexconnexion.html",
+      "description": "Accéder à mon tableau de bord"
+    },
+    {
+      "name": "Calendrier",
+      "url": "/indexCalendrier.html",
+      "description": "Voir le calendrier académique"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["education"],
+  "prefer_related_applications": false
+}
