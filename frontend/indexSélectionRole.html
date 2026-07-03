@@ -2,378 +2,376 @@
 <html lang="fr">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Votre Profil - CamunoLearn</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <style>
-        body{font-family:'Inter',sans-serif;background:#f8f9fb}
-        .role-card{transition:all .3s;cursor:pointer;border:2px solid transparent;border-radius:1rem}
-        .role-card:hover{transform:translateY(-5px);border-color:#00602a;background:#f0fdf4}
-        .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
-        .box{background:#fff;border-radius:24px;padding:32px;max-width:360px;width:100%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.2)}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:#f8f9fb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+        .ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 1,'wght' 400;user-select:none;line-height:1;vertical-align:middle}
+        .card{background:#fff;border-radius:24px;padding:40px 32px;max-width:680px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.08);border:1px solid #f3f4f6}
+        @media(max-width:480px){.card{padding:24px 16px;border-radius:16px}}
+        .logo{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+        .logo-txt{font-family:Manrope;font-weight:900;font-size:1.3rem;color:#00602a}
+        .logo-txt b{color:#191c1e}
+        .step-badge{display:inline-block;padding:4px 14px;background:#f0fdf4;color:#00602a;border-radius:999px;font-size:.72rem;font-weight:700;margin-bottom:16px}
+        h1{font-family:Manrope;font-weight:900;font-size:clamp(1.4rem,4vw,1.9rem);color:#191c1e;margin-bottom:8px;text-align:center}
+        .sub{font-size:.875rem;color:#6b7280;text-align:center;margin-bottom:32px}
+        .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+        @media(max-width:480px){.roles{grid-template-columns:1fr;gap:10px}}
+        .role-card{border:2px solid #e5e7eb;border-radius:16px;padding:24px 16px;cursor:pointer;text-align:center;transition:all .2s;background:#fafafa}
+        .role-card:hover,.role-card:active{border-color:#00602a;background:#f0fdf4;transform:translateY(-3px)}
+        @media(max-width:480px){.role-card{padding:16px;display:flex;align-items:center;gap:14px;text-align:left}}
+        .role-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:1.5rem}
+        @media(max-width:480px){.role-icon{margin:0;flex-shrink:0;width:44px;height:44px;border-radius:10px;font-size:1.2rem}}
+        .role-name{font-family:Manrope;font-weight:800;font-size:.95rem;color:#191c1e;margin-bottom:4px}
+        .role-desc{font-size:.75rem;color:#9ca3af}
+        .warn{text-align:center;font-size:.75rem;color:#9ca3af}
+
+        /* OVERLAY QR (PC) */
+        .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
+        .overlay.on{display:flex}
+        .qr-box{background:#fff;border-radius:24px;padding:32px;max-width:360px;width:100%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.2)}
         .spinner{border:4px solid #f3f3f3;border-top:4px solid #00602a;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:12px auto}
         @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+        /* OVERLAY MOBILE (slide du bas) */
+        .mob-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:flex-end;justify-content:center}
+        .mob-overlay.on{display:flex}
+        .mob-box{background:#fff;border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;text-align:center}
+        .mob-icon{font-size:2.8rem;margin-bottom:10px}
+        .mob-title{font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin-bottom:6px}
+        .mob-sub{font-size:.83rem;color:#6b7280;margin-bottom:20px}
+        .code-input{width:100%;padding:15px;border-radius:12px;border:2px solid #e5e7eb;font-size:1.5rem;font-weight:800;font-family:Manrope;letter-spacing:.3em;text-align:center;text-transform:uppercase;outline:none;margin-bottom:10px;font-family:inherit}
+        .code-input:focus{border-color:#00602a}
+        .err-box{display:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.8rem;margin-bottom:10px}
+        .warn-box{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px;font-size:.78rem;color:#92400e;margin-bottom:16px}
+        .btn{width:100%;padding:13px;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:.95rem;cursor:pointer;margin-top:6px}
+        .btn-green{background:#00602a;color:#fff}.btn-green:hover{background:#004d22}
+        .btn-blue{background:#1d4ed8;color:#fff}.btn-blue:hover{background:#1e40af}
+        .btn-purple{background:#7c3aed;color:#fff}.btn-purple:hover{background:#6d28d9}
+        .btn-gray{background:#f3f4f6;color:#374151}
+        .waiting{display:none;margin-top:12px}
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
 <script>
 var API_BASE = window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'
-    ? 'http://localhost:3000/api'
-    : 'https://camunolearn-api.onrender.com/api';
+    ? 'http://localhost:3000/api' : 'https://camunolearn-api.onrender.com/api';
 var FRONTEND_BASE = window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'
-    ? 'http://'+window.location.hostname+':5500'
-    : 'https://camunolearn-web.onrender.com';
+    ? 'http://'+window.location.hostname+':5500' : 'https://camunolearn-web.onrender.com';
+var token = localStorage.getItem('camunolearn_token');
 </script>
 
-<main class="flex-grow flex items-center justify-center px-4 py-12">
-    <div class="w-full max-w-3xl bg-white rounded-3xl p-8 md:p-12 shadow-lg border border-gray-100">
-        <div class="text-center mb-10">
-            <div class="flex items-center justify-center gap-2 mb-4">
-                <span class="material-symbols-outlined text-4xl" style="color:#00602a;font-variation-settings:'FILL' 1">school</span>
-                <span style="font-family:Manrope;font-weight:900;font-size:1.5rem;color:#00602a"><span style="color:#191c1e">Camuno</span>Learn</span>
-            </div>
-            <div style="display:inline-block;padding:4px 16px;background:#f0fdf4;color:#00602a;border-radius:999px;font-size:.75rem;font-weight:700;margin-bottom:12px">Étape 1 sur 2</div>
-            <h1 style="font-family:Manrope;font-weight:900;font-size:1.8rem;color:#191c1e;margin-bottom:8px">Choisissez votre rôle</h1>
-            <p style="color:#6b7280;font-size:.9rem">Scannez le QR code avec votre téléphone pour confirmer.</p>
+<div class="card">
+    <div style="text-align:center;margin-bottom:24px">
+        <div class="logo">
+            <span class="ms" style="color:#00602a;font-size:28px">school</span>
+            <span class="logo-txt"><b>Camuno</b>Learn</span>
         </div>
-
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
-            <div class="role-card p-6 bg-gray-50 flex flex-col items-center text-center gap-3" onclick="showQR('etudiant')">
-                <div style="width:56px;height:56px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08)">
-                    <span class="material-symbols-outlined text-3xl" style="color:#00602a">school</span>
-                </div>
-                <div>
-                    <p style="font-weight:700;color:#191c1e">Étudiant</p>
-                    <p style="font-size:.75rem;color:#9ca3af;margin-top:4px">Accéder aux cours</p>
-                </div>
-            </div>
-            <div class="role-card p-6 bg-gray-50 flex flex-col items-center text-center gap-3" onclick="showQR('enseignant')">
-                <div style="width:56px;height:56px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08)">
-                    <span class="material-symbols-outlined text-3xl" style="color:#00602a">co_present</span>
-                </div>
-                <div>
-                    <p style="font-weight:700;color:#191c1e">Professeur</p>
-                    <p style="font-size:.75rem;color:#9ca3af;margin-top:4px">Partager mes cours</p>
-                </div>
-            </div>
-            <div class="role-card p-6 bg-gray-50 flex flex-col items-center text-center gap-3" onclick="showQR('admin')">
-                <div style="width:56px;height:56px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08)">
-                    <span class="material-symbols-outlined text-3xl" style="color:#00602a">admin_panel_settings</span>
-                </div>
-                <div>
-                    <p style="font-weight:700;color:#191c1e">Admin</p>
-                    <p style="font-size:.75rem;color:#9ca3af;margin-top:4px">Gérer l'établissement</p>
-                </div>
-            </div>
-        </div>
-        <p style="text-align:center;font-size:.75rem;color:#9ca3af">Ce choix est <strong>définitif</strong> après confirmation.</p>
+        <span class="step-badge">Étape 1 sur 2</span>
+        <h1>Choisissez votre rôle</h1>
+        <p class="sub" id="sub-text">Sélectionnez votre profil pour accéder à la plateforme.</p>
     </div>
-</main>
 
-<!-- POPUP QR -->
-<div id="overlay" class="overlay" style="display:none">
-    <div class="box">
-        <button onclick="closeQR()" style="float:right;border:none;background:none;cursor:pointer;font-size:1.4rem;color:#9ca3af;line-height:1">✕</button>
-        <div id="qrIcon" style="font-size:2.5rem;margin-bottom:8px"></div>
-        <h2 id="qrTitle" style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin:0 0 6px"></h2>
-        <p id="qrSub" style="font-size:.8rem;color:#6b7280;margin-bottom:12px">Scannez avec votre téléphone</p>
+    <div class="roles">
+        <div class="role-card" onclick="chooseRole('etudiant')">
+            <div class="role-icon" style="background:#f0fdf4">🎓</div>
+            <div>
+                <div class="role-name">Étudiant</div>
+                <div class="role-desc">Accéder aux cours</div>
+            </div>
+        </div>
+        <div class="role-card" onclick="chooseRole('enseignant')">
+            <div class="role-icon" style="background:#eff6ff">👨‍🏫</div>
+            <div>
+                <div class="role-name">Professeur</div>
+                <div class="role-desc">Code requis</div>
+            </div>
+        </div>
+        <div class="role-card" onclick="chooseRole('admin')">
+            <div class="role-icon" style="background:#f5f3ff">⚙️</div>
+            <div>
+                <div class="role-name">Admin</div>
+                <div class="role-desc">Code requis</div>
+            </div>
+        </div>
+    </div>
 
-        <div id="qrImg" style="margin:0 auto 12px;width:180px;height:180px;background:#f3f4f6;border-radius:12px;display:flex;align-items:center;justify-content:center">
+    <p class="warn">Ce choix est <strong>définitif</strong> après confirmation.</p>
+</div>
+
+<!-- OVERLAY QR CODE (PC uniquement) -->
+<div class="overlay" id="qr-overlay" onclick="if(event.target===this)closeQR()">
+    <div class="qr-box">
+        <button onclick="closeQR()" style="float:right;border:none;background:none;cursor:pointer;color:#9ca3af;font-size:1.4rem">✕</button>
+        <div id="qr-icon" style="font-size:2.5rem;margin-bottom:8px"></div>
+        <h2 id="qr-title" style="font-family:Manrope;font-weight:900;font-size:1.2rem;color:#111;margin:0 0 6px"></h2>
+        <p id="qr-sub" style="font-size:.8rem;color:#6b7280;margin-bottom:12px">Scannez avec votre téléphone</p>
+        <div id="qr-img" style="margin:0 auto 12px;width:180px;height:180px;background:#f3f4f6;border-radius:12px;display:flex;align-items:center;justify-content:center">
             <div class="spinner"></div>
         </div>
-
-        <div id="waitMsg" style="display:none">
+        <div id="qr-wait" style="display:none">
             <div class="spinner"></div>
             <p style="font-size:.8rem;color:#6b7280">En attente de la confirmation sur le téléphone...</p>
         </div>
-
         <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px;margin-top:12px;font-size:.75rem;color:#92400e">
             ⚠️ Ce rôle est <strong>définitif</strong>.
         </div>
     </div>
 </div>
 
+<!-- OVERLAY MOBILE (slide du bas) -->
+<div class="mob-overlay" id="mob-overlay" onclick="if(event.target===this)closeMob()">
+    <div class="mob-box">
+        <div class="mob-icon" id="mob-icon"></div>
+        <div class="mob-title" id="mob-title"></div>
+        <div class="mob-sub" id="mob-sub"></div>
+
+        <!-- Étudiant -->
+        <div id="mob-etu">
+            <div class="warn-box">⚠️ Ce rôle est <strong>définitif</strong>.</div>
+            <button class="btn btn-green" onclick="confirmEtudiant()">✅ Confirmer en tant qu'Étudiant</button>
+        </div>
+
+        <!-- Professeur -->
+        <div id="mob-prof" style="display:none">
+            <input class="code-input" id="prof-input" type="text" maxlength="4" placeholder="- - - -"
+                oninput="this.value=this.value.toUpperCase();document.getElementById('prof-btn').disabled=this.value.length<4"/>
+            <div class="err-box" id="prof-err"></div>
+            <button class="btn btn-blue" id="prof-btn" onclick="confirmCode('enseignant')" disabled>📨 Envoyer la demande</button>
+        </div>
+
+        <!-- Admin -->
+        <div id="mob-admin" style="display:none">
+            <input class="code-input" id="admin-input" type="text" maxlength="6" placeholder="- - - - - -"
+                oninput="this.value=this.value.toUpperCase();document.getElementById('admin-btn').disabled=this.value.length<6"/>
+            <div class="err-box" id="admin-err"></div>
+            <button class="btn btn-purple" id="admin-btn" onclick="confirmCode('admin')" disabled>📨 Envoyer la demande</button>
+        </div>
+
+        <!-- Attente validation -->
+        <div class="waiting" id="mob-wait">
+            <div style="font-size:2.5rem;margin-bottom:10px">⏳</div>
+            <p style="font-family:Manrope;font-weight:800;color:#111;margin-bottom:6px">Demande envoyée !</p>
+            <p style="font-size:.82rem;color:#6b7280">Le super-administrateur va valider votre demande. Cette page se mettra à jour automatiquement.</p>
+            <div class="spinner" style="margin:16px auto 0"></div>
+        </div>
+
+        <button class="btn btn-gray" id="mob-cancel" onclick="closeMob()" style="margin-top:10px">Annuler</button>
+    </div>
+</div>
+
 <script>
-var token = localStorage.getItem('camunolearn_token');
-var pendingRole = '';
-var sessionId = null;
+var pendingRole  = '';
+var sessionId    = null;
 var pollInterval = null;
 
 var ROLES = {
-    etudiant:   {icon:'🎓', title:'QR — Étudiant',   color:'#00602a'},
-    enseignant: {icon:'👨‍🏫', title:'QR — Professeur', color:'#1d4ed8'},
-    admin:      {icon:'⚙️',  title:'QR — Admin',      color:'#7c3aed'}
+    etudiant:   {icon:'🎓', title:'Confirmer votre rôle',  sub:'Vous rejoignez la plateforme en tant qu\'Étudiant.'},
+    enseignant: {icon:'👨‍🏫', title:'Code Professeur',       sub:'Entrez le code à 4 caractères fourni par votre administrateur.'},
+    admin:      {icon:'⚙️',  title:'Code Administrateur',   sub:'Entrez le code à 6 caractères fourni par le super-administrateur.'},
 };
 
-window.addEventListener('DOMContentLoaded', function() {
-    if (!token) { location.href = 'indexconnexion.html'; return; }
-});
-
-function isMobile() {
+// Détection mobile
+function isMobile(){
     return window.innerWidth <= 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-async function showQR(role) {
-    pendingRole = role;
-    var info = ROLES[role];
-
-    // Sur mobile → interface directe sans QR
-    if (isMobile()) {
-        showMobileConfirm(role);
-        return;
+window.addEventListener('DOMContentLoaded', function(){
+    if(!token){ location.href='indexconnexion.html'; return; }
+    // Adapter le sous-titre selon l'appareil
+    if(isMobile()){
+        document.getElementById('sub-text').textContent = 'Sélectionnez votre profil. Profs et admins devront entrer un code d\'accès.';
+    } else {
+        document.getElementById('sub-text').textContent = 'Scannez le QR code avec votre téléphone pour confirmer votre rôle.';
     }
+});
 
-    document.getElementById('qrIcon').textContent = info.icon;
-    document.getElementById('qrTitle').textContent = info.title;
-    document.getElementById('overlay').style.display = 'flex';
-    document.getElementById('waitMsg').style.display = 'none';
-    document.getElementById('qrImg').innerHTML = '<div class="spinner"></div>';
+function chooseRole(role){
+    pendingRole = role;
+    if(isMobile()){
+        showMobile(role);
+    } else {
+        showQR(role);
+    }
+}
 
-    // Récupérer les infos de la personne depuis le localStorage du PC
-    var storedUser = {};
-    try { storedUser = JSON.parse(localStorage.getItem('camunolearn_user') || '{}'); } catch(e) {}
+// ── MOBILE ───────────────────────────────────────────────────
+function showMobile(role){
+    var info = ROLES[role];
+    document.getElementById('mob-icon').textContent  = info.icon;
+    document.getElementById('mob-title').textContent = info.title;
+    document.getElementById('mob-sub').textContent   = info.sub;
 
-    // 1. Créer session QR en envoyant les infos de la personne
-    try {
-        var r = await fetch(API_BASE + '/qrsession/create', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({
+    // Reset
+    ['mob-etu','mob-prof','mob-admin','mob-wait'].forEach(function(id){
+        document.getElementById(id).style.display='none';
+    });
+    document.getElementById('mob-cancel').style.display='block';
+    document.getElementById('prof-err').style.display='none';
+    document.getElementById('admin-err').style.display='none';
+    document.getElementById('prof-input').value='';
+    document.getElementById('admin-input').value='';
+    document.getElementById('prof-btn').disabled=true;
+    document.getElementById('admin-btn').disabled=true;
+
+    if(role==='etudiant')    document.getElementById('mob-etu').style.display='block';
+    else if(role==='enseignant') { document.getElementById('mob-prof').style.display='block'; setTimeout(function(){ document.getElementById('prof-input').focus(); },300); }
+    else if(role==='admin')  { document.getElementById('mob-admin').style.display='block'; setTimeout(function(){ document.getElementById('admin-input').focus(); },300); }
+
+    document.getElementById('mob-overlay').classList.add('on');
+}
+
+function closeMob(){
+    document.getElementById('mob-overlay').classList.remove('on');
+    clearInterval(pollInterval);
+    pendingRole='';
+}
+
+async function confirmEtudiant(){
+    await saveRole('etudiant');
+}
+
+async function confirmCode(role){
+    var inputId = role==='enseignant' ? 'prof-input' : 'admin-input';
+    var errId   = role==='enseignant' ? 'prof-err'   : 'admin-err';
+    var btnId   = role==='enseignant' ? 'prof-btn'   : 'admin-btn';
+    var code    = document.getElementById(inputId).value.trim().toUpperCase();
+    var errDiv  = document.getElementById(errId);
+    var btn     = document.getElementById(btnId);
+    errDiv.style.display='none';
+    btn.textContent='Envoi...'; btn.disabled=true;
+
+    var user = JSON.parse(localStorage.getItem('camunolearn_user')||'{}');
+    try{
+        var r = await fetch(API_BASE+'/auth/verify-code',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({code:code, role:role, sessionId:null, user_info:{
+                first_name: user.first_name||'',
+                last_name:  user.last_name||'',
+                email:      user.email||''
+            }})
+        });
+        var d = await r.json();
+        if(d.success){
+            // Afficher attente SuperAdmin
+            document.getElementById('mob-'+( role==='enseignant'?'prof':'admin')).style.display='none';
+            document.getElementById('mob-wait').style.display='block';
+            document.getElementById('mob-cancel').style.display='none';
+            document.getElementById('mob-title').textContent='Demande envoyée !';
+            document.getElementById('mob-sub').textContent='En attente de validation par le super-administrateur.';
+            // Polling — vérifie si le rôle a été approuvé
+            pollInterval = setInterval(async function(){
+                try{
+                    var me = await fetch(API_BASE+'/auth/me',{headers:{Authorization:'Bearer '+token}});
+                    var md = await me.json();
+                    if(md.success && md.user.role===role){
+                        clearInterval(pollInterval);
+                        await saveRole(role);
+                    }
+                }catch(e){}
+            },3000);
+        } else {
+            errDiv.textContent = d.message||'Code invalide.';
+            errDiv.style.display='block';
+            btn.textContent='📨 Envoyer la demande'; btn.disabled=false;
+        }
+    }catch(e){
+        errDiv.textContent='Erreur réseau — réessayez.';
+        errDiv.style.display='block';
+        btn.textContent='📨 Envoyer la demande'; btn.disabled=false;
+    }
+}
+
+// ── PC / QR ───────────────────────────────────────────────────
+async function showQR(role){
+    var icons  = {etudiant:'🎓', enseignant:'👨‍🏫', admin:'⚙️'};
+    var titles = {etudiant:'QR — Étudiant', enseignant:'QR — Professeur', admin:'QR — Admin'};
+    document.getElementById('qr-icon').textContent  = icons[role];
+    document.getElementById('qr-title').textContent = titles[role];
+    document.getElementById('qr-overlay').classList.add('on');
+    document.getElementById('qr-wait').style.display='none';
+    document.getElementById('qr-img').innerHTML='<div class="spinner"></div>';
+
+    // Récupérer les infos utilisateur pour les passer dans l'URL du QR
+    var user = JSON.parse(localStorage.getItem('camunolearn_user')||'{}');
+
+    try{
+        var r = await fetch(API_BASE+'/qrsession/create',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
                 pendingRole: role,
-                user_info: {
-                    first_name: storedUser.first_name || '',
-                    last_name:  storedUser.last_name  || '',
-                    email:      storedUser.email       || '',
-                    bio:        storedUser.bio         || ''
+                user_info:{
+                    first_name: user.first_name||'',
+                    last_name:  user.last_name||'',
+                    email:      user.email||'',
+                    bio:        user.bio||''
                 }
             })
         });
         var d = await r.json();
         sessionId = d.sessionId;
-    } catch(e) {
-        document.getElementById('qrSub').textContent = 'Erreur réseau — réessayez.';
+    }catch(e){
+        document.getElementById('qr-sub').textContent='Erreur réseau — réessayez.';
         return;
     }
 
-    // 2. Afficher image QR avec infos utilisateur dans l'URL
-    var storedUser = {};
-    try { storedUser = JSON.parse(localStorage.getItem('camunolearn_user') || '{}'); } catch(e) {}
-    var url = FRONTEND_BASE + '/qrConfirm.html?session=' + sessionId + '&role=' + role
-        + '&fn=' + encodeURIComponent(storedUser.first_name || '')
-        + '&ln=' + encodeURIComponent(storedUser.last_name  || '')
-        + '&em=' + encodeURIComponent(storedUser.email      || '')
-        + '&bio='+ encodeURIComponent(storedUser.bio        || '');
-    var imgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(url);
-    document.getElementById('qrImg').innerHTML = '<img src="' + imgUrl + '" style="width:180px;height:180px;border-radius:12px;border:3px solid #e5e7eb;padding:6px" alt="QR"/>';
-    document.getElementById('waitMsg').style.display = 'block';
-    document.getElementById('qrSub').textContent = 'Scannez avec votre téléphone';
+    // Générer URL du QR
+    var url = FRONTEND_BASE+'/qrConfirm.html?session='+sessionId+'&role='+role
+        +'&fn='+encodeURIComponent(user.first_name||'')
+        +'&ln='+encodeURIComponent(user.last_name||'')
+        +'&em='+encodeURIComponent(user.email||'')
+        +'&bio='+encodeURIComponent(user.bio||'');
 
-    // 3. Polling — dès que téléphone confirme, PC redirige
+    var imgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(url);
+    document.getElementById('qr-img').innerHTML =
+        '<img src="'+imgUrl+'" style="width:180px;height:180px;border-radius:12px;border:3px solid #e5e7eb;padding:6px" alt="QR"/>';
+    document.getElementById('qr-sub').textContent = 'Scannez avec votre téléphone';
+    document.getElementById('qr-wait').style.display='block';
+
+    // Polling PC
     clearInterval(pollInterval);
-    pollInterval = setInterval(async function() {
-        try {
-            var sr = await fetch(API_BASE + '/qrsession/status/' + sessionId);
+    pollInterval = setInterval(async function(){
+        try{
+            var sr = await fetch(API_BASE+'/qrsession/status/'+sessionId);
             var sd = await sr.json();
-            if (sd.status === 'validated') {
+            if(sd.status==='validated'){
                 clearInterval(pollInterval);
-                await saveRole(sd.role || pendingRole);
+                await saveRole(sd.role||pendingRole);
             }
-        } catch(e) {}
-    }, 2000);
+        }catch(e){}
+    },2000);
 }
 
-async function saveRole(role) {
-    try {
-        var r = await fetch(API_BASE + '/auth/role', {
-            method: 'PUT',
-            headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
-            body: JSON.stringify({role: role})
-        });
-        var d = await r.json();
-        if (d.success || r.ok) {
-            var user = JSON.parse(localStorage.getItem('camunolearn_user') || '{}');
-            user.role = role;
-            localStorage.setItem('camunolearn_user', JSON.stringify(user));
-            localStorage.setItem('userRole', role);
-        }
-    } catch(e) {
-        localStorage.setItem('userRole', role);
-    }
-    location.href = 'indexSélectionEcole.html';
-}
-
-function closeQR() {
+function closeQR(){
     clearInterval(pollInterval);
-    document.getElementById('overlay').style.display = 'none';
-    sessionId = null;
-    pendingRole = '';
-}
-</script>
-
-<!-- POPUP MOBILE -->
-<div id="mobile-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:2000;align-items:flex-end;justify-content:center;padding:0">
-  <div style="background:#fff;border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;text-align:center">
-    <div id="mob-icon" style="font-size:3rem;margin-bottom:12px"></div>
-    <h2 id="mob-title" style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#111;margin-bottom:6px"></h2>
-    <p id="mob-sub" style="font-size:.85rem;color:#6b7280;margin-bottom:20px"></p>
-
-    <!-- Étudiant : bouton direct -->
-    <div id="mob-etudiant" style="display:none">
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px;font-size:.78rem;color:#92400e;margin-bottom:16px">
-        ⚠️ Ce rôle est <strong>définitif</strong>.
-      </div>
-      <button onclick="mobileConfirmEtudiant()" style="width:100%;padding:14px;background:#00602a;color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:1rem;cursor:pointer">
-        ✅ Confirmer en tant qu'Étudiant
-      </button>
-    </div>
-
-    <!-- Prof : code 4 caractères -->
-    <div id="mob-enseignant" style="display:none">
-      <p style="font-size:.82rem;color:#6b7280;margin-bottom:10px">Entrez votre code à <strong>4 caractères</strong> fourni par votre administrateur.</p>
-      <input id="mob-prof-code" type="text" maxlength="4" placeholder="- - - -"
-        style="width:100%;padding:16px;border-radius:12px;border:2px solid #e5e7eb;font-size:1.6rem;font-weight:800;font-family:Manrope;letter-spacing:.3em;text-align:center;text-transform:uppercase;outline:none;margin-bottom:10px"
-        oninput="this.value=this.value.toUpperCase();document.getElementById('mob-prof-btn').disabled=this.value.length<4"
-        onfocus="this.style.borderColor='#1d4ed8'" onblur="this.style.borderColor='#e5e7eb'"/>
-      <div id="mob-prof-err" style="display:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.8rem;margin-bottom:10px"></div>
-      <button id="mob-prof-btn" onclick="mobileConfirmCode('enseignant')" disabled
-        style="width:100%;padding:14px;background:#1d4ed8;color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:1rem;cursor:pointer">
-        📨 Envoyer la demande
-      </button>
-    </div>
-
-    <!-- Admin : code 6 caractères -->
-    <div id="mob-admin" style="display:none">
-      <p style="font-size:.82rem;color:#6b7280;margin-bottom:10px">Entrez votre code à <strong>6 caractères</strong> fourni par le super-administrateur.</p>
-      <input id="mob-admin-code" type="text" maxlength="6" placeholder="- - - - - -"
-        style="width:100%;padding:16px;border-radius:12px;border:2px solid #e5e7eb;font-size:1.4rem;font-weight:800;font-family:Manrope;letter-spacing:.25em;text-align:center;text-transform:uppercase;outline:none;margin-bottom:10px"
-        oninput="this.value=this.value.toUpperCase();document.getElementById('mob-admin-btn').disabled=this.value.length<6"
-        onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e5e7eb'"/>
-      <div id="mob-admin-err" style="display:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.8rem;margin-bottom:10px"></div>
-      <button id="mob-admin-btn" onclick="mobileConfirmCode('admin')" disabled
-        style="width:100%;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:1rem;cursor:pointer">
-        📨 Envoyer la demande
-      </button>
-    </div>
-
-    <!-- Attente validation -->
-    <div id="mob-waiting" style="display:none">
-      <div style="font-size:3rem;margin-bottom:12px">⏳</div>
-      <h3 style="font-family:Manrope;font-weight:900;font-size:1.1rem;color:#111;margin-bottom:8px">Demande envoyée !</h3>
-      <p style="font-size:.85rem;color:#6b7280">Le super-administrateur va valider votre demande. Cette page se mettra à jour automatiquement.</p>
-      <div style="margin-top:16px;border:4px solid #f3f4f6;border-top:4px solid #00602a;border-radius:50%;width:36px;height:36px;animation:spin 1s linear infinite;margin:16px auto 0"></div>
-    </div>
-
-    <button onclick="closeMobileOverlay()" style="width:100%;padding:11px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-weight:700;font-size:.88rem;cursor:pointer;margin-top:12px" id="mob-cancel-btn">
-      Annuler
-    </button>
-  </div>
-</div>
-
-<script>
-function showMobileConfirm(role) {
-    pendingRole = role;
-    var icons  = {etudiant:'🎓', enseignant:'👨‍🏫', admin:'⚙️'};
-    var titles = {etudiant:'Confirmer votre rôle', enseignant:'Code Professeur', admin:'Code Administrateur'};
-    var subs   = {
-        etudiant:'Vous allez rejoindre la plateforme en tant qu'Étudiant.',
-        enseignant:'Entrez le code reçu pour accéder en tant que Professeur.',
-        admin:'Entrez le code reçu pour accéder en tant qu'Administrateur.'
-    };
-
-    document.getElementById('mob-icon').textContent  = icons[role];
-    document.getElementById('mob-title').textContent = titles[role];
-    document.getElementById('mob-sub').textContent   = subs[role];
-
-    // Cacher tous les sous-panels
-    ['mob-etudiant','mob-enseignant','mob-admin','mob-waiting'].forEach(function(id){
-        document.getElementById(id).style.display = 'none';
-    });
-    document.getElementById('mob-cancel-btn').style.display = 'block';
-
-    // Afficher le bon panel
-    document.getElementById('mob-' + role).style.display = 'block';
-    document.getElementById('mobile-overlay').style.display = 'flex';
-
-    // Focus sur le champ code
-    if (role === 'enseignant') {
-        document.getElementById('mob-prof-code').value = '';
-        document.getElementById('mob-prof-btn').disabled = true;
-        document.getElementById('mob-prof-err').style.display = 'none';
-        setTimeout(function(){ document.getElementById('mob-prof-code').focus(); }, 300);
-    } else if (role === 'admin') {
-        document.getElementById('mob-admin-code').value = '';
-        document.getElementById('mob-admin-btn').disabled = true;
-        document.getElementById('mob-admin-err').style.display = 'none';
-        setTimeout(function(){ document.getElementById('mob-admin-code').focus(); }, 300);
-    }
+    document.getElementById('qr-overlay').classList.remove('on');
+    sessionId=null; pendingRole='';
 }
 
-function closeMobileOverlay() {
-    document.getElementById('mobile-overlay').style.display = 'none';
-    pendingRole = '';
-}
-
-async function mobileConfirmEtudiant() {
-    await saveRole('etudiant');
-}
-
-async function mobileConfirmCode(role) {
-    var codeId = role === 'enseignant' ? 'mob-prof-code' : 'mob-admin-code';
-    var errId  = role === 'enseignant' ? 'mob-prof-err'  : 'mob-admin-err';
-    var btnId  = role === 'enseignant' ? 'mob-prof-btn'  : 'mob-admin-btn';
-    var code   = document.getElementById(codeId).value.trim().toUpperCase();
-    var errDiv = document.getElementById(errId);
-    var btn    = document.getElementById(btnId);
-    errDiv.style.display = 'none';
-
-    btn.textContent = 'Envoi...'; btn.disabled = true;
-
-    try {
-        var r = await fetch(API_BASE + '/auth/verify-code', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({code: code, role: role, sessionId: null, user_info: {
-                first_name: JSON.parse(localStorage.getItem('camunolearn_user')||'{}').first_name || '',
-                last_name:  JSON.parse(localStorage.getItem('camunolearn_user')||'{}').last_name  || '',
-                email:      JSON.parse(localStorage.getItem('camunolearn_user')||'{}').email      || ''
-            }})
+// ── SAVE ROLE ─────────────────────────────────────────────────
+async function saveRole(role){
+    try{
+        var r = await fetch(API_BASE+'/auth/role',{
+            method:'PUT',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+            body:JSON.stringify({role:role})
         });
         var d = await r.json();
-        if (d.success) {
-            // Afficher attente validation SuperAdmin
-            ['mob-etudiant','mob-enseignant','mob-admin'].forEach(function(id){
-                document.getElementById(id).style.display = 'none';
-            });
-            document.getElementById('mob-waiting').style.display = 'block';
-            document.getElementById('mob-cancel-btn').style.display = 'none';
-            document.getElementById('mob-title').textContent = 'En attente...';
-            document.getElementById('mob-sub').textContent = 'Le SuperAdmin valide votre demande.';
-            // Polling toutes les 3s pour voir si validé
-            var pollMob = setInterval(async function() {
-                try {
-                    var me = await fetch(API_BASE + '/auth/me', {headers:{Authorization:'Bearer '+token}});
-                    var md = await me.json();
-                    if (md.success && md.user.role === role) {
-                        clearInterval(pollMob);
-                        await saveRole(role);
-                    }
-                } catch(e) {}
-            }, 3000);
-        } else {
-            errDiv.textContent = d.message || 'Code invalide.';
-            errDiv.style.display = 'block';
-            btn.textContent = '📨 Envoyer la demande';
-            btn.disabled = false;
+        if(d.success||r.ok){
+            var user = JSON.parse(localStorage.getItem('camunolearn_user')||'{}');
+            user.role=role;
+            localStorage.setItem('camunolearn_user',JSON.stringify(user));
+            localStorage.setItem('userRole',role);
+            if(d.token) localStorage.setItem('camunolearn_token',d.token);
         }
-    } catch(e) {
-        errDiv.textContent = 'Erreur réseau — réessayez.';
-        errDiv.style.display = 'block';
-        btn.textContent = '📨 Envoyer la demande';
-        btn.disabled = false;
-    }
+    }catch(e){ localStorage.setItem('userRole',role); }
+    location.href='indexSélectionEcole.html';
 }
 </script>
 </body>
