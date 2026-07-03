@@ -112,9 +112,19 @@ window.addEventListener('DOMContentLoaded', function() {
     if (!token) { location.href = 'indexconnexion.html'; return; }
 });
 
+function isMobile() {
+    return window.innerWidth <= 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 async function showQR(role) {
     pendingRole = role;
     var info = ROLES[role];
+
+    // Sur mobile → interface directe sans QR
+    if (isMobile()) {
+        showMobileConfirm(role);
+        return;
+    }
 
     document.getElementById('qrIcon').textContent = info.icon;
     document.getElementById('qrTitle').textContent = info.title;
@@ -200,6 +210,170 @@ function closeQR() {
     document.getElementById('overlay').style.display = 'none';
     sessionId = null;
     pendingRole = '';
+}
+</script>
+
+<!-- POPUP MOBILE -->
+<div id="mobile-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:2000;align-items:flex-end;justify-content:center;padding:0">
+  <div style="background:#fff;border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;text-align:center">
+    <div id="mob-icon" style="font-size:3rem;margin-bottom:12px"></div>
+    <h2 id="mob-title" style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#111;margin-bottom:6px"></h2>
+    <p id="mob-sub" style="font-size:.85rem;color:#6b7280;margin-bottom:20px"></p>
+
+    <!-- Étudiant : bouton direct -->
+    <div id="mob-etudiant" style="display:none">
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px;font-size:.78rem;color:#92400e;margin-bottom:16px">
+        ⚠️ Ce rôle est <strong>définitif</strong>.
+      </div>
+      <button onclick="mobileConfirmEtudiant()" style="width:100%;padding:14px;background:#00602a;color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:1rem;cursor:pointer">
+        ✅ Confirmer en tant qu'Étudiant
+      </button>
+    </div>
+
+    <!-- Prof : code 4 caractères -->
+    <div id="mob-enseignant" style="display:none">
+      <p style="font-size:.82rem;color:#6b7280;margin-bottom:10px">Entrez votre code à <strong>4 caractères</strong> fourni par votre administrateur.</p>
+      <input id="mob-prof-code" type="text" maxlength="4" placeholder="- - - -"
+        style="width:100%;padding:16px;border-radius:12px;border:2px solid #e5e7eb;font-size:1.6rem;font-weight:800;font-family:Manrope;letter-spacing:.3em;text-align:center;text-transform:uppercase;outline:none;margin-bottom:10px"
+        oninput="this.value=this.value.toUpperCase();document.getElementById('mob-prof-btn').disabled=this.value.length<4"
+        onfocus="this.style.borderColor='#1d4ed8'" onblur="this.style.borderColor='#e5e7eb'"/>
+      <div id="mob-prof-err" style="display:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.8rem;margin-bottom:10px"></div>
+      <button id="mob-prof-btn" onclick="mobileConfirmCode('enseignant')" disabled
+        style="width:100%;padding:14px;background:#1d4ed8;color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:1rem;cursor:pointer">
+        📨 Envoyer la demande
+      </button>
+    </div>
+
+    <!-- Admin : code 6 caractères -->
+    <div id="mob-admin" style="display:none">
+      <p style="font-size:.82rem;color:#6b7280;margin-bottom:10px">Entrez votre code à <strong>6 caractères</strong> fourni par le super-administrateur.</p>
+      <input id="mob-admin-code" type="text" maxlength="6" placeholder="- - - - - -"
+        style="width:100%;padding:16px;border-radius:12px;border:2px solid #e5e7eb;font-size:1.4rem;font-weight:800;font-family:Manrope;letter-spacing:.25em;text-align:center;text-transform:uppercase;outline:none;margin-bottom:10px"
+        oninput="this.value=this.value.toUpperCase();document.getElementById('mob-admin-btn').disabled=this.value.length<6"
+        onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e5e7eb'"/>
+      <div id="mob-admin-err" style="display:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:8px 12px;font-size:.8rem;margin-bottom:10px"></div>
+      <button id="mob-admin-btn" onclick="mobileConfirmCode('admin')" disabled
+        style="width:100%;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-family:Manrope;font-weight:800;font-size:1rem;cursor:pointer">
+        📨 Envoyer la demande
+      </button>
+    </div>
+
+    <!-- Attente validation -->
+    <div id="mob-waiting" style="display:none">
+      <div style="font-size:3rem;margin-bottom:12px">⏳</div>
+      <h3 style="font-family:Manrope;font-weight:900;font-size:1.1rem;color:#111;margin-bottom:8px">Demande envoyée !</h3>
+      <p style="font-size:.85rem;color:#6b7280">Le super-administrateur va valider votre demande. Cette page se mettra à jour automatiquement.</p>
+      <div style="margin-top:16px;border:4px solid #f3f4f6;border-top:4px solid #00602a;border-radius:50%;width:36px;height:36px;animation:spin 1s linear infinite;margin:16px auto 0"></div>
+    </div>
+
+    <button onclick="closeMobileOverlay()" style="width:100%;padding:11px;background:#f3f4f6;color:#374151;border:none;border-radius:12px;font-weight:700;font-size:.88rem;cursor:pointer;margin-top:12px" id="mob-cancel-btn">
+      Annuler
+    </button>
+  </div>
+</div>
+
+<script>
+function showMobileConfirm(role) {
+    pendingRole = role;
+    var icons  = {etudiant:'🎓', enseignant:'👨‍🏫', admin:'⚙️'};
+    var titles = {etudiant:'Confirmer votre rôle', enseignant:'Code Professeur', admin:'Code Administrateur'};
+    var subs   = {
+        etudiant:'Vous allez rejoindre la plateforme en tant qu'Étudiant.',
+        enseignant:'Entrez le code reçu pour accéder en tant que Professeur.',
+        admin:'Entrez le code reçu pour accéder en tant qu'Administrateur.'
+    };
+
+    document.getElementById('mob-icon').textContent  = icons[role];
+    document.getElementById('mob-title').textContent = titles[role];
+    document.getElementById('mob-sub').textContent   = subs[role];
+
+    // Cacher tous les sous-panels
+    ['mob-etudiant','mob-enseignant','mob-admin','mob-waiting'].forEach(function(id){
+        document.getElementById(id).style.display = 'none';
+    });
+    document.getElementById('mob-cancel-btn').style.display = 'block';
+
+    // Afficher le bon panel
+    document.getElementById('mob-' + role).style.display = 'block';
+    document.getElementById('mobile-overlay').style.display = 'flex';
+
+    // Focus sur le champ code
+    if (role === 'enseignant') {
+        document.getElementById('mob-prof-code').value = '';
+        document.getElementById('mob-prof-btn').disabled = true;
+        document.getElementById('mob-prof-err').style.display = 'none';
+        setTimeout(function(){ document.getElementById('mob-prof-code').focus(); }, 300);
+    } else if (role === 'admin') {
+        document.getElementById('mob-admin-code').value = '';
+        document.getElementById('mob-admin-btn').disabled = true;
+        document.getElementById('mob-admin-err').style.display = 'none';
+        setTimeout(function(){ document.getElementById('mob-admin-code').focus(); }, 300);
+    }
+}
+
+function closeMobileOverlay() {
+    document.getElementById('mobile-overlay').style.display = 'none';
+    pendingRole = '';
+}
+
+async function mobileConfirmEtudiant() {
+    await saveRole('etudiant');
+}
+
+async function mobileConfirmCode(role) {
+    var codeId = role === 'enseignant' ? 'mob-prof-code' : 'mob-admin-code';
+    var errId  = role === 'enseignant' ? 'mob-prof-err'  : 'mob-admin-err';
+    var btnId  = role === 'enseignant' ? 'mob-prof-btn'  : 'mob-admin-btn';
+    var code   = document.getElementById(codeId).value.trim().toUpperCase();
+    var errDiv = document.getElementById(errId);
+    var btn    = document.getElementById(btnId);
+    errDiv.style.display = 'none';
+
+    btn.textContent = 'Envoi...'; btn.disabled = true;
+
+    try {
+        var r = await fetch(API_BASE + '/auth/verify-code', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({code: code, role: role, sessionId: null, user_info: {
+                first_name: JSON.parse(localStorage.getItem('camunolearn_user')||'{}').first_name || '',
+                last_name:  JSON.parse(localStorage.getItem('camunolearn_user')||'{}').last_name  || '',
+                email:      JSON.parse(localStorage.getItem('camunolearn_user')||'{}').email      || ''
+            }})
+        });
+        var d = await r.json();
+        if (d.success) {
+            // Afficher attente validation SuperAdmin
+            ['mob-etudiant','mob-enseignant','mob-admin'].forEach(function(id){
+                document.getElementById(id).style.display = 'none';
+            });
+            document.getElementById('mob-waiting').style.display = 'block';
+            document.getElementById('mob-cancel-btn').style.display = 'none';
+            document.getElementById('mob-title').textContent = 'En attente...';
+            document.getElementById('mob-sub').textContent = 'Le SuperAdmin valide votre demande.';
+            // Polling toutes les 3s pour voir si validé
+            var pollMob = setInterval(async function() {
+                try {
+                    var me = await fetch(API_BASE + '/auth/me', {headers:{Authorization:'Bearer '+token}});
+                    var md = await me.json();
+                    if (md.success && md.user.role === role) {
+                        clearInterval(pollMob);
+                        await saveRole(role);
+                    }
+                } catch(e) {}
+            }, 3000);
+        } else {
+            errDiv.textContent = d.message || 'Code invalide.';
+            errDiv.style.display = 'block';
+            btn.textContent = '📨 Envoyer la demande';
+            btn.disabled = false;
+        }
+    } catch(e) {
+        errDiv.textContent = 'Erreur réseau — réessayez.';
+        errDiv.style.display = 'block';
+        btn.textContent = '📨 Envoyer la demande';
+        btn.disabled = false;
+    }
 }
 </script>
 </body>
