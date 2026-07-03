@@ -1,6 +1,37 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+  <link rel="manifest" href="./manifest.json"/>
+  <meta name="theme-color" content="#00602a"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="CamunoLearn"/>
+  <link rel="apple-touch-icon" href="https://ui-avatars.com/api/?name=CL&background=00602a&color=fff&size=192&bold=true"/>
+  <script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){
+      navigator.serviceWorker.register('./sw.js')
+        .then(function(r){console.log('[PWA] SW:',r.scope);})
+        .catch(function(e){console.warn('[PWA]',e);});
+    });
+  }
+  var _deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();_deferredPrompt=e;
+    var b=document.getElementById('pwa-install-btn');
+    if(b)b.style.display='flex';
+  });
+  function installPWA(){
+    if(!_deferredPrompt)return;
+    _deferredPrompt.prompt();
+    _deferredPrompt.userChoice.then(function(){
+      _deferredPrompt=null;
+      var b=document.getElementById('pwa-install-btn');
+      if(b)b.style.display='none';
+    });
+  }
+  </script>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Espace Étudiant | CamunoLearn</title>
@@ -244,6 +275,16 @@ document.head.appendChild(spinStyle);
 #toast.ok{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
 #toast.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
 #sidebar{transition:transform .28s cubic-bezier(.4,0,.2,1)}
+@media(max-width:768px){
+  .sec{padding:12px 8px!important}
+  table{display:block;overflow-x:auto;white-space:nowrap}
+  .card,.bg-white{border-radius:12px!important}
+  h1,h2{font-size:1.1rem!important}
+  .grid{grid-template-columns:1fr!important}
+  [class*="gap-"]{gap:8px!important}
+  .text-sm{font-size:.78rem!important}
+  .px-5{padding-left:12px!important;padding-right:12px!important}
+}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:99px}
 
 /* ── RESPONSIVE GLOBAL ─────────────────────────────── */
@@ -291,7 +332,7 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
 </script>
 
 <!-- SIDEBAR -->
-<aside id="sidebar" class="fixed left-0 top-0 h-screen w-56 bg-white border-r border-gray-100 z-50 flex flex-col p-4 -translate-x-full md:translate-x-0">
+<aside id="sidebar" class="fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-100 z-50 flex flex-col p-4 transition-transform duration-300 -translate-x-full md:translate-x-0" style="max-width:80vw">
   <div class="flex items-center gap-2 px-1 mb-5">
     <span class="ms f" style="color:#00602a;font-size:26px">school</span>
     <span style="font-family:Manrope;font-weight:900;font-size:1.05rem;color:#00602a"><span style="color:#111">Camuno</span>Learn</span>
@@ -315,7 +356,7 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
     <div class="my-2 border-t border-gray-100"></div>
     <button class="nb"    data-s="profile"     onclick="goTo('profile')">    <span class="ms">manage_accounts</span>Mon Profil</button>
   </nav>
-  <button class="nb red mt-2" onclick="showM('m-logout')"><span class="ms">logout</span>Déconnexion</button>
+  <button class="nb red mt-2" onclick="if(confirm('Se déconnecter ?'))doLogout()"><span class="ms">logout</span>Déconnexion</button>
 </aside>
 
 <!-- TOPBAR -->
@@ -586,7 +627,26 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
   <button onclick="goTo('assignments')" data-s="assignments" class="mob flex flex-col items-center gap-0.5 border-none bg-transparent cursor-pointer" style="color:#9ca3af;padding:3px 6px"><span class="ms" style="font-size:20px">assignment</span><span style="font-size:9px;font-weight:700">Devoirs</span></button>
   <button onclick="goTo('classroom')"   data-s="classroom"   class="mob flex flex-col items-center gap-0.5 border-none bg-transparent cursor-pointer" style="color:#9ca3af;padding:3px 6px"><span class="ms" style="font-size:20px">school</span><span style="font-size:9px;font-weight:700">Classe</span></button>
   <button onclick="goTo('communities')" data-s="communities" class="mob flex flex-col items-center gap-0.5 border-none bg-transparent cursor-pointer" style="color:#9ca3af;padding:3px 6px"><span class="ms" style="font-size:20px">forum</span><span style="font-size:9px;font-weight:700">Forums</span></button>
+  <button onclick="toggleMobMenu()" class="mob flex flex-col items-center gap-0.5 border-none bg-transparent cursor-pointer" style="color:#9ca3af;padding:3px 6px"><span class="ms" style="font-size:20px">more_horiz</span><span style="font-size:9px;font-weight:700">Plus</span></button>
 </nav>
+
+<!-- MENU MOBILE "PLUS" -->
+<div id="mob-menu" style="display:none;position:fixed;bottom:60px;left:0;right:0;background:#fff;border-top:1px solid #f3f4f6;z-index:80;padding:8px 0;box-shadow:0 -8px 24px rgba(0,0,0,.12);border-radius:16px 16px 0 0">
+  <button onclick="goTo('profile');toggleMobMenu()" style="width:100%;padding:14px 20px;display:flex;align-items:center;gap:12px;border:none;background:none;cursor:pointer;font-size:.9rem;font-weight:600;color:#191c1e">
+    <span class="ms" style="font-size:20px;color:#9ca3af">manage_accounts</span>Mon profil
+  </button>
+  <button onclick="goTo('interuniv');toggleMobMenu()" style="width:100%;padding:14px 20px;display:flex;align-items:center;gap:12px;border:none;background:none;cursor:pointer;font-size:.9rem;font-weight:600;color:#191c1e">
+    <span class="ms" style="font-size:20px;color:#9ca3af">language</span>Inter-Universités
+  </button>
+  <button onclick="location.href='indexCalendrier.html'" style="width:100%;padding:14px 20px;display:flex;align-items:center;gap:12px;border:none;background:none;cursor:pointer;font-size:.9rem;font-weight:600;color:#191c1e">
+    <span class="ms" style="font-size:20px;color:#9ca3af">calendar_month</span>Calendrier
+  </button>
+  <div style="height:1px;background:#f3f4f6;margin:4px 0"></div>
+  <button onclick="doLogout()" style="width:100%;padding:14px 20px;display:flex;align-items:center;gap:12px;border:none;background:none;cursor:pointer;font-size:.9rem;font-weight:600;color:#dc2626">
+    <span class="ms" style="font-size:20px;color:#dc2626">logout</span>Se déconnecter
+  </button>
+</div>
+<div id="mob-menu-overlay" onclick="toggleMobMenu()" style="display:none;position:fixed;inset:0;z-index:75;background:rgba(0,0,0,.3)"></div>
 
 <!-- MODAL RENDRE UN DEVOIR -->
 <div id="m-submit" class="ov" onclick="if(event.target===this)hideM('m-submit')">
@@ -1693,6 +1753,27 @@ async function sendAccessRequest(courseId, message) {
     await loadInterUniv();
     toast('✅ Demande envoyée ! Le professeur sera notifié et décidera de vous donner accès.');
   } else toast(d?.message||'Erreur.','err');
+}
+
+function toggleMobMenu() {
+  var menu = document.getElementById('mob-menu');
+  var overlay = document.getElementById('mob-menu-overlay');
+  var isOpen = menu.style.display === 'block';
+  menu.style.display = isOpen ? 'none' : 'block';
+  overlay.style.display = isOpen ? 'none' : 'block';
+}
+
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var ov = document.getElementById('sb-overlay');
+  var isOpen = !sb.classList.contains('-translate-x-full');
+  if (isOpen) {
+    sb.classList.add('-translate-x-full');
+    if (ov) ov.style.display = 'none';
+  } else {
+    sb.classList.remove('-translate-x-full');
+    if (ov) ov.style.display = 'block';
+  }
 }
 
 function doLogout() { localStorage.clear(); location.href = 'indexconnexion.html'; }
