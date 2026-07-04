@@ -512,4 +512,41 @@ router.get('/courses/:id/students', async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════
+//  NOTIFICATIONS (diffusion vers une classe ou un cours)
+// ═══════════════════════════════════════════
+router.post('/notifications/broadcast', async (req, res) => {
+  try {
+    const { title, message, type, link, target, target_id } = req.body;
+    if (!title?.trim() || !target || !target_id) {
+      return res.status(400).json({ success: false, message: 'Titre et cible requis.' });
+    }
+    let studentIds = [];
+    if (target === 'course') {
+      const check = await pool.query('SELECT id FROM courses WHERE id=$1 AND teacher_id=$2', [target_id, req.user.id]);
+      if (!check.rows.length) return res.status(403).json({ success: false, message: 'Cours introuvable.' });
+      const r = await pool.query('SELECT student_id FROM enrollments WHERE course_id=$1', [target_id]);
+      studentIds = r.rows.map(x => x.student_id);
+    } else if (target === 'class') {
+      const check = await pool.query('SELECT id FROM classes WHERE id=$1 AND teacher_id=$2', [target_id, req.user.id]);
+      if (!check.rows.length) return res.status(403).json({ success: false, message: 'Classe introuvable.' });
+      const r = await pool.query('SELECT student_id FROM class_members WHERE class_id=$1', [target_id]);
+      studentIds = r.rows.map(x => x.student_id);
+    } else {
+      return res.status(400).json({ success: false, message: 'Cible invalide.' });
+    }
+    if (!studentIds.length) return res.json({ success: true, sent: 0 });
+    await Promise.all(studentIds.map(sid =>
+      pool.query(
+        `INSERT INTO notifications (user_id, title, message, type, link) VALUES ($1,$2,$3,$4,$5)`,
+        [sid, title.trim(), message||null, type||'info', link||null]
+      )
+    ));
+    res.json({ success: true, sent: studentIds.length });
+  } catch(e) {
+    console.error('[TEACHER NOTIF BROADCAST]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 module.exports = router;

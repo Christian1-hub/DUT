@@ -289,8 +289,6 @@ document.head.appendChild(spinStyle);
 
 /* ── RESPONSIVE GLOBAL ─────────────────────────────── */
 @media (max-width: 768px) {
-  /* Sidebar cachée par défaut sur mobile */
-  #sidebar { transform: translateX(-100%) !important; }
   /* Grilles → 1 colonne sur mobile */
   .grid { grid-template-columns: 1fr !important; }
   /* Textes plus petits */
@@ -351,6 +349,9 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
     <button class="nb"    data-s="assignments" onclick="goTo('assignments')"><span class="ms">assignment</span>                      Mes Devoirs</button>
     <button class="nb"    data-s="classroom"   onclick="goTo('classroom')">  <span class="ms">school</span>                           Ma Classe</button>
     <button class="nb"    data-s="communities" onclick="goTo('communities')"><span class="ms">forum</span>                            Communautés</button>
+    <button class="nb"    data-s="attendance"  onclick="goTo('attendance')"> <span class="ms">fact_check</span>                       Mes Présences</button>
+    <button class="nb"    data-s="projects"    onclick="goTo('projects')">   <span class="ms">workspaces</span>                       Projets académiques</button>
+    <button class="nb"    data-s="notifications" onclick="goTo('notifications')"><span class="ms">notifications</span>                 Notifications</button>
     <button class="nb"    data-s="interuniv"   onclick="goTo('interuniv')">  <span class="ms">language</span>                         Inter-Universités</button>
     <button class="nb"    data-s="calendrier" onclick="location.href='indexCalendrier.html'"><span class="ms">calendar_month</span>Calendrier</button>
     <div class="my-2 border-t border-gray-100"></div>
@@ -365,7 +366,17 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
     <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden p-1.5 rounded-lg hover:bg-gray-100 border-none bg-transparent cursor-pointer"><span class="ms">menu</span></button>
     <h2 id="pg-title" style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111">Vue d'ensemble</h2>
   </div>
-  <img id="top-av" src="https://ui-avatars.com/api/?name=E&background=00602a&color=fff" onclick="goTo('profile')" class="w-8 h-8 rounded-full cursor-pointer" style="border:2px solid #00602a"/>
+  <div class="flex items-center gap-2">
+    <button onclick="toggleNotif()" style="position:relative" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 border-none bg-transparent cursor-pointer"><span class="ms">notifications</span><span id="notif-dot" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#dc2626"></span></button>
+    <div id="notif-drop" style="display:none;position:fixed;top:54px;right:12px;width:280px;max-height:70vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.12);border:1px solid #f0f0f0;z-index:200">
+      <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0;font-family:Manrope;font-weight:700;font-size:.875rem;display:flex;justify-content:space-between;align-items:center">
+        <span>Notifications</span>
+        <button onclick="markAllNotifsRead()" style="border:none;background:none;color:#00602a;font-size:.72rem;font-weight:700;cursor:pointer">Tout marquer lu</button>
+      </div>
+      <div id="notif-drop-list"><div style="padding:24px 16px;text-align:center"><span class="ms" style="font-size:36px;color:#d1d5db">notifications_off</span><p style="font-size:.8rem;color:#9ca3af;margin-top:6px">Aucune pour l'instant</p></div></div>
+    </div>
+    <img id="top-av" src="https://ui-avatars.com/api/?name=E&background=00602a&color=fff" onclick="goTo('profile')" class="w-8 h-8 rounded-full cursor-pointer" style="border:2px solid #00602a"/>
+  </div>
 </header>
 
 <main class="md:ml-56 pb-24 md:pb-8" style="padding-top:52px;min-height:100vh">
@@ -558,6 +569,45 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
   </div>
 </div>
 
+<!-- ── MES PRÉSENCES ────────────────────────────────── -->
+<div id="sec-attendance" class="sec">
+  <div class="mb-5">
+    <h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Mes Présences</h1>
+    <p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Votre taux de présence par cours</p>
+  </div>
+  <div id="att-list" style="display:flex;flex-direction:column;gap:12px"><div class="sk" style="height:80px"></div></div>
+  <div id="att-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">fact_check</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune séance enregistrée pour l'instant</p>
+  </div>
+</div>
+
+<!-- ── PROJETS ACADÉMIQUES ──────────────────────────── -->
+<div id="sec-projects" class="sec">
+  <div class="mb-5">
+    <h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Projets académiques</h1>
+    <p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Projets à rendre, individuels ou en groupe</p>
+  </div>
+  <div id="proj-list" style="display:flex;flex-direction:column;gap:12px"><div class="sk" style="height:110px"></div></div>
+  <div id="proj-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">workspaces</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucun projet pour l'instant</p>
+  </div>
+</div>
+
+<!-- ── NOTIFICATIONS ────────────────────────────────── -->
+<div id="sec-notifications" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Notifications</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Vos alertes et messages de vos professeurs</p></div>
+    <button onclick="markAllNotifsRead()" class="btn bg bsm">Tout marquer lu</button>
+  </div>
+  <div id="notif-list" style="display:flex;flex-direction:column;gap:10px"><div class="sk" style="height:70px"></div></div>
+  <div id="notif-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">notifications_off</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune notification</p>
+  </div>
+</div>
+
 <!-- ── PROFIL ───────────────────────────────────────── -->
 <div id="sec-interuniv" class="sec">
   <div class="mb-5">
@@ -715,6 +765,46 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
   </div>
 </div>
 
+<!-- MODAL DÉTAIL PRÉSENCES -->
+<div id="m-att-detail" class="ov" onclick="if(event.target===this)hideM('m-att-detail')">
+  <div class="mbox" style="max-width:440px;max-height:80vh;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid #f0f0f0;flex-shrink:0">
+      <h3 id="att-detail-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Historique</h3>
+      <button onclick="hideM('m-att-detail')" style="border:none;background:none;cursor:pointer;color:#9ca3af"><span class="ms">close</span></button>
+    </div>
+    <div id="att-detail-list" style="flex:1;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+
+<!-- MODAL RENDU DE PROJET -->
+<div id="m-proj-submit" class="ov" onclick="if(event.target===this)hideM('m-proj-submit')">
+  <div class="mbox">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <div>
+        <h3 id="proj-sub-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Rendre le projet</h3>
+        <p id="proj-sub-course" style="font-size:.75rem;color:#9ca3af;margin-top:2px"></p>
+      </div>
+      <button onclick="hideM('m-proj-submit')" style="border:none;background:none;cursor:pointer;color:#9ca3af"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:16px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Nom du groupe (si projet de groupe)</label><input id="proj-sub-team" type="text" placeholder="Ex: Groupe 3" class="fld"/></div>
+      <div><label class="lbl">Réponse texte</label><textarea id="proj-sub-content" rows="4" placeholder="Rédigez votre rendu ici..." class="fld" style="resize:vertical"></textarea></div>
+      <div>
+        <label class="lbl">Déposer un fichier</label>
+        <div class="upz" onclick="document.getElementById('proj-sub-file').click()">
+          <span class="ms" style="font-size:28px;color:#d1d5db;display:block;margin-bottom:6px">upload_file</span>
+          <p style="font-size:.875rem;font-weight:600;color:#6b7280" id="proj-sub-file-label">Cliquer ou glisser un fichier ici</p>
+        </div>
+        <input type="file" id="proj-sub-file" style="display:none" onchange="onFC('proj-sub-file','proj-sub-file-label')"/>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-proj-submit')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitProjectWork()" id="proj-sub-btn" class="btn bp" style="flex:1"><span class="ms">send</span>Rendre le projet</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL LOGOUT -->
 <div id="m-logout" class="ov" onclick="if(event.target===this)hideM('m-logout')">
   <div class="mbox" style="max-width:340px">
@@ -795,6 +885,7 @@ let ME   = null;
 let COURSES = [], ASSIGNS = [], ALL_COMMS = [];
 let loaded  = {};
 let currentAssignId = null, currentQuizData = null;
+let ATTENDANCE = [], PROJECTS = [], NOTIFS = [], currentProjectId = null;
 
 const TITLES = {
   overview:    'Vue d\'ensemble',
@@ -802,6 +893,9 @@ const TITLES = {
   assignments: 'Mes Devoirs',
   classroom:   'Ma Classe',
   communities: 'Communautés',
+  attendance:  'Mes Présences',
+  projects:    'Projets académiques',
+  notifications: 'Notifications',
   interuniv:   'Inter-Universités',
   profile:     'Mon Profil',
 };
@@ -832,6 +926,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await loadDashboard();
+  loadNotifications();
 });
 
 // ══════════════════════════════════════════════════════
@@ -906,6 +1001,9 @@ function goTo(s) {
   if (s === 'communities' && !loaded.communities)  loadCommunities();
   if (s === 'interuniv'   && !loaded.interuniv)    loadInterUniv();
   if (s === 'profile'     && !loaded.profile)      loadProfile();
+  if (s === 'attendance'  && !loaded.attendance)   loadAttendance();
+  if (s === 'projects'    && !loaded.projects)     loadProjects();
+  if (s === 'notifications') loadNotifications();
   if (s === 'overview') loadUpcomingEvents();
 }
 
@@ -1590,6 +1688,201 @@ function toast(msg, type = 'ok') {
   el.className   = type === 'ok' ? 'ok show' : 'err show';
   setTimeout(() => el.classList.remove('show'), 4000);
 }
+
+// ══════════════════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════════════════
+function toggleNotif(){
+  const d=document.getElementById('notif-drop');
+  d.style.display = d.style.display==='none' ? 'block' : 'none';
+}
+document.addEventListener('click', e => {
+  if(!e.target.closest('#notif-drop') && !e.target.closest('button[onclick="toggleNotif()"]')) {
+    const d = document.getElementById('notif-drop');
+    if(d) d.style.display='none';
+  }
+});
+
+function timeAgo(dateStr){
+  const diff=(Date.now()-new Date(dateStr).getTime())/1000;
+  if(diff<60) return 'à l\'instant';
+  if(diff<3600) return Math.floor(diff/60)+' min';
+  if(diff<86400) return Math.floor(diff/3600)+' h';
+  return Math.floor(diff/86400)+' j';
+}
+
+async function loadNotifications(){
+  const d=await api('/notifications');
+  if(!d?.success) return;
+  NOTIFS=d.notifications; loaded.notifications=true;
+  document.getElementById('notif-dot').style.display=d.unreadCount>0?'block':'none';
+  renderNotifDropdown();
+  renderNotifSection();
+}
+
+function renderNotifDropdown(){
+  const el=document.getElementById('notif-drop-list');
+  if(!el) return;
+  if(!NOTIFS.length){ el.innerHTML='<div style="padding:24px 16px;text-align:center"><span class="ms" style="font-size:36px;color:#d1d5db">notifications_off</span><p style="font-size:.8rem;color:#9ca3af;margin-top:6px">Aucune pour l\'instant</p></div>'; return; }
+  el.innerHTML=NOTIFS.slice(0,8).map(n=>`
+    <div onclick="markNotifRead('${n.id}')" style="padding:10px 16px;border-bottom:1px solid #f6f6f6;cursor:pointer;${n.is_read?'':'background:#f0fdf4'}">
+      <p style="font-size:.8rem;font-weight:700;color:#111">${n.title}</p>
+      ${n.message?`<p style="font-size:.75rem;color:#9ca3af;margin-top:2px">${n.message}</p>`:''}
+      <p style="font-size:.68rem;color:#d1d5db;margin-top:3px">${timeAgo(n.created_at)}</p>
+    </div>`).join('')
+    + `<div style="padding:10px 16px;text-align:center"><button onclick="goTo('notifications')" style="border:none;background:none;color:#00602a;font-size:.78rem;font-weight:700;cursor:pointer">Voir tout</button></div>`;
+}
+
+function renderNotifSection(){
+  const el=document.getElementById('notif-list'), empty=document.getElementById('notif-empty');
+  if(!el) return;
+  if(!NOTIFS.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML=NOTIFS.map(n=>`
+    <div class="card" style="padding:16px;display:flex;gap:12px;align-items:flex-start;${n.is_read?'':'border-left:3px solid #00602a'}">
+      <div style="width:36px;height:36px;border-radius:10px;background:#f0fdf4;color:#00602a;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms">${n.type==='alert'?'warning':'notifications'}</span></div>
+      <div style="flex:1;min-width:0">
+        <p style="font-weight:700;font-size:.875rem;color:#111">${n.title}</p>
+        ${n.message?`<p style="font-size:.8rem;color:#6b7280;margin-top:3px">${n.message}</p>`:''}
+        <p style="font-size:.7rem;color:#9ca3af;margin-top:5px">${timeAgo(n.created_at)}</p>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        ${!n.is_read?`<button onclick="markNotifRead('${n.id}')" style="border:none;background:none;cursor:pointer;color:#9ca3af" title="Marquer lu"><span class="ms" style="font-size:18px">done</span></button>`:''}
+        <button onclick="deleteNotif('${n.id}')" style="border:none;background:none;cursor:pointer;color:#d1d5db" title="Supprimer"><span class="ms" style="font-size:18px">delete</span></button>
+      </div>
+    </div>`).join('');
+}
+
+async function markNotifRead(id){
+  const d=await api(`/notifications/${id}/read`,{method:'PUT'});
+  if(d?.success){
+    const n=NOTIFS.find(x=>x.id===id); if(n) n.is_read=true;
+    document.getElementById('notif-dot').style.display=NOTIFS.some(x=>!x.is_read)?'block':'none';
+    renderNotifDropdown(); renderNotifSection();
+  }
+}
+
+async function markAllNotifsRead(){
+  const d=await api('/notifications/read-all',{method:'PUT'});
+  if(d?.success){
+    NOTIFS.forEach(n=>n.is_read=true);
+    document.getElementById('notif-dot').style.display='none';
+    renderNotifDropdown(); renderNotifSection();
+  }
+}
+
+async function deleteNotif(id){
+  const d=await api(`/notifications/${id}`,{method:'DELETE'});
+  if(d?.success){ NOTIFS=NOTIFS.filter(x=>x.id!==id); renderNotifDropdown(); renderNotifSection(); }
+}
+
+// ══════════════════════════════════════════════════════
+//  MES PRÉSENCES
+// ══════════════════════════════════════════════════════
+async function loadAttendance(){
+  const d=await api('/attendance/me');
+  if(!d?.success) return;
+  ATTENDANCE=d.attendance; loaded.attendance=true;
+  const el=document.getElementById('att-list'), empty=document.getElementById('att-empty');
+  const withSessions=ATTENDANCE.filter(a=>parseInt(a.total_sessions)>0);
+  if(!withSessions.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML=ATTENDANCE.map(a=>{
+    const total=parseInt(a.total_sessions);
+    const present=parseInt(a.present), late=parseInt(a.late);
+    const rate=total>0?Math.round((present+late)/total*100):null;
+    const col=rate===null?'#9ca3af':rate>=80?'#16a34a':rate>=50?'#d97706':'#dc2626';
+    return `<div class="card cHov" style="padding:18px;cursor:pointer" onclick="openAttendanceDetail('${a.course_id}','${(a.course_title||'').replace(/'/g,"\\'")}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><p style="font-weight:700;font-size:.9rem;color:#111">${a.course_title}</p><p style="font-size:.75rem;color:#9ca3af;margin-top:2px">${total} séance${total!=1?'s':''} enregistrée${total!=1?'s':''}</p></div>
+        <span style="font-family:Manrope;font-weight:900;font-size:1.4rem;color:${col}">${rate===null?'—':rate+'%'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openAttendanceDetail(courseId, courseTitle){
+  document.getElementById('att-detail-title').textContent = courseTitle || 'Historique';
+  const d=await api(`/attendance/me/course/${courseId}`);
+  const el=document.getElementById('att-detail-list');
+  const LABELS={present:'Présent',absent:'Absent',late:'Retard',excused:'Excusé'};
+  const COLORS={present:'#16a34a',absent:'#dc2626',late:'#d97706',excused:'#6b7280'};
+  if(!d?.success || !d.history.length){ el.innerHTML='<p style="text-align:center;color:#9ca3af;padding:30px 0">Aucune séance enregistrée.</p>'; }
+  else {
+    el.innerHTML=d.history.map(h=>{
+      const date=new Date(h.session_date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6">
+        <div><p style="font-size:.85rem;font-weight:600;color:#111">${h.title||'Séance du '+date}</p><p style="font-size:.72rem;color:#9ca3af">${date}</p></div>
+        <span class="bdg" style="background:${COLORS[h.status]}22;color:${COLORS[h.status]}">${LABELS[h.status]||h.status}</span>
+      </div>`;
+    }).join('');
+  }
+  showM('m-att-detail');
+}
+
+// ══════════════════════════════════════════════════════
+//  PROJETS ACADÉMIQUES
+// ══════════════════════════════════════════════════════
+async function loadProjects(){
+  const d=await api('/projects/student');
+  if(!d?.success) return;
+  PROJECTS=d.projects; loaded.projects=true;
+  const el=document.getElementById('proj-list'), empty=document.getElementById('proj-empty');
+  if(!PROJECTS.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML=PROJECTS.map(p=>{
+    const due=p.deadline?new Date(p.deadline):null;
+    const dueStr=due?due.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'Pas de date limite';
+    const overdue=due && due<new Date() && !p.submission_id;
+    let statusBdg;
+    if(p.grade!=null) statusBdg=`<span class="bdg" style="background:#f0fdf4;color:#16a34a">Noté : ${p.grade}/20</span>`;
+    else if(p.submission_id) statusBdg=`<span class="bdg" style="background:#eff6ff;color:#1d4ed8">Rendu</span>`;
+    else if(overdue) statusBdg=`<span class="bdg" style="background:#fef2f2;color:#dc2626">En retard</span>`;
+    else statusBdg=`<span class="bdg" style="background:#fffbeb;color:#d97706">À rendre</span>`;
+    return `<div class="card" style="padding:18px${overdue?';border-left:4px solid #dc2626':''}">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-bottom:8px">
+        <div>
+          <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111">${p.title}</h3>
+          <p style="font-size:.75rem;color:#9ca3af;margin-top:2px">${p.course_title||'Projet libre'} · ${p.teacher_name||''} · Échéance : ${dueStr}</p>
+        </div>
+        ${statusBdg}
+      </div>
+      ${p.description?`<p style="font-size:.8rem;color:#6b7280;margin-bottom:10px">${p.description}</p>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid #f3f4f6;padding-top:10px">
+        ${p.file_url?`<a href="${p.file_url}" target="_blank" style="font-size:.75rem;font-weight:700;color:#00602a;text-decoration:none"><span class="ms" style="font-size:14px;vertical-align:middle">picture_as_pdf</span> Voir le sujet</a>`:'<span></span>'}
+        <button onclick="openProjectSubmit('${p.id}')" class="btn bp bsm">${p.submission_id?'Modifier mon rendu':'Rendre le projet'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openProjectSubmit(id){
+  const p=PROJECTS.find(x=>x.id===id);
+  if(!p) return;
+  currentProjectId=id;
+  document.getElementById('proj-sub-title').textContent = p.submission_id ? 'Modifier mon rendu' : 'Rendre le projet';
+  document.getElementById('proj-sub-course').textContent = p.title;
+  document.getElementById('proj-sub-team').value = p.team_name || '';
+  document.getElementById('proj-sub-content').value = '';
+  document.getElementById('proj-sub-file').value = '';
+  document.getElementById('proj-sub-file-label').textContent = 'Cliquer ou glisser un fichier ici';
+  showM('m-proj-submit');
+}
+
+async function submitProjectWork(){
+  const team_name=document.getElementById('proj-sub-team').value.trim();
+  const content=document.getElementById('proj-sub-content').value.trim();
+  const file=document.getElementById('proj-sub-file').files[0];
+  if(!content && !file){ toast('Rédigez une réponse ou déposez un fichier.','err'); return; }
+  const btn=document.getElementById('proj-sub-btn'); btn.disabled=true; btn.textContent='Envoi...';
+  let file_url=null;
+  if(file) file_url=await uploadIO(file);
+  const d=await api(`/projects/${currentProjectId}/submit`,{method:'POST',body:JSON.stringify({content:content||null,file_url,team_name:team_name||null})});
+  btn.disabled=false; btn.innerHTML='<span class="ms">send</span>Rendre le projet';
+  if(d?.success){ hideM('m-proj-submit'); loaded.projects=false; await loadProjects(); toast('✅ Projet rendu avec succès !'); }
+  else if(d) toast(d.message||'Erreur lors de l\'envoi.','err');
+}
+
 // ══════════════════════════════════════════════════════
 //  INTER-UNIVERSITÉS
 // ══════════════════════════════════════════════════════

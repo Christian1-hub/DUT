@@ -270,8 +270,6 @@ document.head.appendChild(spinStyle);
 
 /* ── RESPONSIVE GLOBAL ─────────────────────────────── */
 @media (max-width: 768px) {
-  /* Sidebar cachée par défaut sur mobile */
-  #sidebar { transform: translateX(-100%) !important; }
   /* Grilles → 1 colonne sur mobile */
   .grid { grid-template-columns: 1fr !important; }
   /* Textes plus petits */
@@ -312,7 +310,7 @@ if (!tk) location.href = 'indexconnexion.html';
 </script>
 
 <!-- SIDEBAR -->
-<aside class="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-white border-r border-slate-100 z-50 p-5">
+<aside id="sidebar" class="flex flex-col w-64 h-screen fixed left-0 top-0 bg-white border-r border-slate-100 z-50 p-5 -translate-x-full md:translate-x-0" style="transition:transform .28s cubic-bezier(.4,0,.2,1)">
   <div class="flex items-center gap-2 mb-8">
     <span class="ms f" style="color:#004a77;font-size:26px">admin_panel_settings</span>
     <span style="font-family:Manrope;font-weight:900;font-size:1.05rem;color:#004a77"><span style="color:#111">Camuno</span>Learn <span style="font-size:.7rem;background:#e8f1f8;color:#004a77;padding:2px 7px;border-radius:999px;">ADMIN</span></span>
@@ -332,15 +330,32 @@ if (!tk) location.href = 'indexconnexion.html';
     <button class="nb"    data-s="activity"    onclick="goTo('activity')"><span class="ms">history</span>Activité récente</button>
     <button class="nb"    data-s="courses"     onclick="goTo('courses')"><span class="ms">auto_stories</span>Cours publiés</button>
     <button class="nb"    data-s="communities" onclick="goTo('communities')"><span class="ms">forum</span>Communautés</button>
+    <button class="nb"    data-s="attendance" onclick="goTo('attendance')"><span class="ms">fact_check</span>Présences</button>
+    <button class="nb"    data-s="projects" onclick="goTo('projects')"><span class="ms">workspaces</span>Projets académiques</button>
+    <button class="nb"    data-s="notifications" onclick="goTo('notifications')"><span class="ms">notifications</span>Notifications</button>
   <button class="nb" data-s="calendrier" onclick="location.href='indexCalendrier.html'"><span class="ms">calendar_month</span>Calendrier</button>
   </nav>
   <button onclick="doLogout()" class="nb" style="color:#dc2626;margin-top:8px"><span class="ms">logout</span>Déconnexion</button>
 </aside>
+<div id="sb-overlay" onclick="toggleSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:39;backdrop-filter:blur(2px)"></div>
 
 <!-- TOPBAR -->
 <header class="fixed top-0 right-0 left-0 md:left-64 h-16 bg-white/90 backdrop-blur border-b border-slate-100 z-40 flex items-center justify-between px-6">
-  <h2 id="pg-title" style="font-family:Manrope;font-weight:800;font-size:1rem;color:#0f172a">Supervision</h2>
-  <img id="top-av" src="https://ui-avatars.com/api/?name=A&background=004a77&color=fff" style="width:34px;height:34px;border-radius:50%;border:2px solid #004a77;cursor:pointer"/>
+  <div class="flex items-center gap-3">
+    <button onclick="toggleSidebar()" class="md:hidden p-1.5 rounded-lg hover:bg-slate-100 border-none bg-transparent cursor-pointer"><span class="ms">menu</span></button>
+    <h2 id="pg-title" style="font-family:Manrope;font-weight:800;font-size:1rem;color:#0f172a">Supervision</h2>
+  </div>
+  <div class="flex items-center gap-2">
+    <button onclick="toggleNotif()" style="position:relative" class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 border-none bg-transparent cursor-pointer"><span class="ms">notifications</span><span id="notif-dot" style="display:none;position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:#dc2626"></span></button>
+    <div id="notif-drop" style="display:none;position:fixed;top:60px;right:12px;width:280px;max-height:70vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.12);border:1px solid #f0f0f0;z-index:200">
+      <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0;font-family:Manrope;font-weight:700;font-size:.875rem;display:flex;justify-content:space-between;align-items:center">
+        <span>Notifications</span>
+        <button onclick="markAllNotifsRead()" style="border:none;background:none;color:#004a77;font-size:.72rem;font-weight:700;cursor:pointer">Tout marquer lu</button>
+      </div>
+      <div id="notif-drop-list"><div style="padding:24px 16px;text-align:center"><span class="ms" style="font-size:36px;color:#d1d5db">notifications_off</span><p style="font-size:.8rem;color:#9ca3af;margin-top:6px">Aucune pour l'instant</p></div></div>
+    </div>
+    <img id="top-av" src="https://ui-avatars.com/api/?name=A&background=004a77&color=fff" style="width:34px;height:34px;border-radius:50%;border:2px solid #004a77;cursor:pointer"/>
+  </div>
 </header>
 
 <main class="md:ml-64 pt-16 pb-10 min-h-screen">
@@ -502,6 +517,52 @@ if (!tk) location.href = 'indexconnexion.html';
   </div>
 </div>
 
+<!-- PRÉSENCES -->
+<div id="sec-attendance" class="sec">
+  <div class="mb-6">
+    <h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#0f172a">Présences</h1>
+    <p style="font-size:.875rem;color:#94a3b8;margin-top:2px">Taux de présence par cours, tous enseignants confondus</p>
+  </div>
+  <div id="att-ov-list" style="display:flex;flex-direction:column;gap:10px">
+    <div class="sk" style="height:80px"></div>
+  </div>
+  <div id="att-ov-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#cbd5e1">fact_check</span>
+    <p style="font-weight:700;color:#64748b;margin-top:12px">Aucune séance de présence enregistrée pour l'instant</p>
+  </div>
+</div>
+
+<!-- PROJETS ACADÉMIQUES -->
+<div id="sec-projects" class="sec">
+  <div class="mb-6">
+    <h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#0f172a">Projets académiques</h1>
+    <p style="font-size:.875rem;color:#94a3b8;margin-top:2px">Tous les projets créés par les enseignants de l'université</p>
+  </div>
+  <div id="proj-ov-list" style="display:flex;flex-direction:column;gap:10px">
+    <div class="sk" style="height:90px"></div>
+  </div>
+  <div id="proj-ov-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#cbd5e1">workspaces</span>
+    <p style="font-weight:700;color:#64748b;margin-top:12px">Aucun projet académique créé pour l'instant</p>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="sec-notifications" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#0f172a">Notifications</h1><p style="font-size:.875rem;color:#94a3b8;margin-top:2px">Vos alertes et diffusions vers l'université</p></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="markAllNotifsRead()" class="btn bg bsm">Tout marquer lu</button>
+      <button onclick="openNotifBroadcast()" class="btn ba bsm"><span class="ms">campaign</span>Diffuser</button>
+    </div>
+  </div>
+  <div id="notif-list" style="display:flex;flex-direction:column;gap:10px"><div class="sk" style="height:70px"></div></div>
+  <div id="notif-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#cbd5e1">notifications_off</span>
+    <p style="font-weight:700;color:#64748b;margin-top:12px">Aucune notification</p>
+  </div>
+</div>
+
 <!-- MODAL TRAJET COURS -->
 <div id="m-journey" class="ov" onclick="if(event.target===this)hideM('m-journey')">
   <div class="mbox" style="max-width:680px;max-height:88vh;display:flex;flex-direction:column">
@@ -641,6 +702,31 @@ if (!tk) location.href = 'indexconnexion.html';
   </div>
 </div>
 
+<!-- MODAL DIFFUSION NOTIFICATION -->
+<div id="m-notif" class="ov" onclick="if(event.target===this)hideM('m-notif')">
+  <div class="mbox">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#0f172a">Diffuser une notification</h3>
+      <button onclick="hideM('m-notif')" style="border:none;background:none;cursor:pointer;color:#94a3b8;padding:4px"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Titre *</label><input id="nf-ttl" type="text" placeholder="Ex: Maintenance planifiée ce week-end" class="fld"/></div>
+      <div><label class="lbl">Message</label><textarea id="nf-msg" rows="3" class="fld" style="resize:none"></textarea></div>
+      <div><label class="lbl">Destinataires</label>
+        <select id="nf-role" class="fld">
+          <option value="">Toute l'université (étudiants + enseignants)</option>
+          <option value="etudiant">Étudiants uniquement</option>
+          <option value="enseignant">Enseignants uniquement</option>
+        </select>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-notif')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitNotifBroadcast()" id="nf-btn" class="btn ba" style="flex:1">Envoyer</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -650,7 +736,8 @@ if (!tk) location.href = 'indexconnexion.html';
 let currentPage  = 1;
 let totalPages   = 1;
 let loaded       = {};
-const TITLES     = { overview:'Supervision', users:'Utilisateurs', schools:'Universités', activity:'Activité récente' };
+const TITLES     = { overview:'Supervision', users:'Utilisateurs', schools:'Universités', activity:'Activité récente', courses:'Cours publiés', communities:'Communautés', attendance:'Présences', projects:'Projets académiques', notifications:'Notifications' };
+let NOTIFS = [];
 
 // ═══════════════════════════════════════════════
 //  INIT
@@ -658,6 +745,23 @@ const TITLES     = { overview:'Supervision', users:'Utilisateurs', schools:'Univ
 document.addEventListener('DOMContentLoaded', async () => {
   await loadMe();
   await loadOverview();
+  loadNotifications();
+});
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('-translate-x-full');
+  const ov = document.getElementById('sb-overlay');
+  ov.style.display = document.getElementById('sidebar').classList.contains('-translate-x-full') ? 'none' : 'block';
+}
+function toggleNotif(){
+  const d=document.getElementById('notif-drop');
+  d.style.display = d.style.display==='none' ? 'block' : 'none';
+}
+document.addEventListener('click', e => {
+  if(!e.target.closest('#notif-drop') && !e.target.closest('button[onclick="toggleNotif()"]')) {
+    const d = document.getElementById('notif-drop');
+    if(d) d.style.display='none';
+  }
 });
 
 async function api(path, opts = {}) {
@@ -692,11 +796,17 @@ function goTo(s) {
   document.getElementById('sec-'+s)?.classList.add('on');
   document.querySelectorAll('.nb[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s===s));
   document.getElementById('pg-title').textContent = TITLES[s]||'';
+  document.getElementById('sidebar').classList.add('-translate-x-full');
+  document.getElementById('sb-overlay').style.display='none';
+  document.getElementById('notif-drop').style.display='none';
   if (s==='users'    && !loaded.users)    { loadUsers(); loadSchoolFilter(); }
   if (s==='schools'  && !loaded.schools)  loadSchools();
   if (s==='activity'    && !loaded.activity)    loadActivity();
   if (s==='courses'     && !loaded.courses)     loadAdminCourses();
   if (s==='communities' && !loaded.communities) loadAdminCommunities();
+  if (s==='attendance'  && !loaded.attendance)  loadAdminAttendance();
+  if (s==='projects'    && !loaded.projects)    loadAdminProjects();
+  if (s==='notifications') loadNotifications();
   if (s==='overview') loadUpcomingEventsAdmin();
 }
 async function loadUpcomingEventsAdmin() {
@@ -1327,6 +1437,141 @@ function copyWhatsApp() {
 function showM(id){ document.getElementById(id).classList.add('open'); }
 function hideM(id){ document.getElementById(id).classList.remove('open'); }
 function toast(msg,type='ok'){ const el=document.getElementById('toast'); el.textContent=msg; el.className=type==='ok'?'ok show':'err show'; setTimeout(()=>el.classList.remove('show'),4000); }
+
+// ═══════════════════════════════════════════════
+//  NOTIFICATIONS
+// ═══════════════════════════════════════════════
+function timeAgo(dateStr){
+  const diff=(Date.now()-new Date(dateStr).getTime())/1000;
+  if(diff<60) return 'à l\'instant';
+  if(diff<3600) return Math.floor(diff/60)+' min';
+  if(diff<86400) return Math.floor(diff/3600)+' h';
+  return Math.floor(diff/86400)+' j';
+}
+
+async function loadNotifications(){
+  const d=await api('/notifications');
+  if(!d?.success) return;
+  NOTIFS=d.notifications; loaded.notifications=true;
+  document.getElementById('notif-dot').style.display=d.unreadCount>0?'block':'none';
+  renderNotifDropdown();
+  renderNotifSection();
+}
+
+function renderNotifDropdown(){
+  const el=document.getElementById('notif-drop-list');
+  if(!el) return;
+  if(!NOTIFS.length){ el.innerHTML='<div style="padding:24px 16px;text-align:center"><span class="ms" style="font-size:36px;color:#d1d5db">notifications_off</span><p style="font-size:.8rem;color:#9ca3af;margin-top:6px">Aucune pour l\'instant</p></div>'; return; }
+  el.innerHTML=NOTIFS.slice(0,8).map(n=>`
+    <div onclick="markNotifRead('${n.id}')" style="padding:10px 16px;border-bottom:1px solid #f6f6f6;cursor:pointer;${n.is_read?'':'background:#e8f1f8'}">
+      <p style="font-size:.8rem;font-weight:700;color:#0f172a">${n.title}</p>
+      ${n.message?`<p style="font-size:.75rem;color:#94a3b8;margin-top:2px">${n.message}</p>`:''}
+      <p style="font-size:.68rem;color:#cbd5e1;margin-top:3px">${timeAgo(n.created_at)}</p>
+    </div>`).join('')
+    + `<div style="padding:10px 16px;text-align:center"><button onclick="goTo('notifications')" style="border:none;background:none;color:#004a77;font-size:.78rem;font-weight:700;cursor:pointer">Voir tout</button></div>`;
+}
+
+function renderNotifSection(){
+  const el=document.getElementById('notif-list'), empty=document.getElementById('notif-empty');
+  if(!el) return;
+  if(!NOTIFS.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML=NOTIFS.map(n=>`
+    <div class="card" style="padding:16px;display:flex;gap:12px;align-items:flex-start;${n.is_read?'':'border-left:3px solid #004a77'}">
+      <div style="width:36px;height:36px;border-radius:10px;background:#e8f1f8;color:#004a77;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms">${n.type==='alert'?'warning':'notifications'}</span></div>
+      <div style="flex:1;min-width:0">
+        <p style="font-weight:700;font-size:.875rem;color:#0f172a">${n.title}</p>
+        ${n.message?`<p style="font-size:.8rem;color:#475569;margin-top:3px">${n.message}</p>`:''}
+        <p style="font-size:.7rem;color:#94a3b8;margin-top:5px">${timeAgo(n.created_at)}</p>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        ${!n.is_read?`<button onclick="markNotifRead('${n.id}')" style="border:none;background:none;cursor:pointer;color:#94a3b8" title="Marquer lu"><span class="ms" style="font-size:18px">done</span></button>`:''}
+        <button onclick="deleteNotif('${n.id}')" style="border:none;background:none;cursor:pointer;color:#cbd5e1" title="Supprimer"><span class="ms" style="font-size:18px">delete</span></button>
+      </div>
+    </div>`).join('');
+}
+
+async function markNotifRead(id){
+  const d=await api(`/notifications/${id}/read`,{method:'PUT'});
+  if(d?.success){
+    const n=NOTIFS.find(x=>x.id===id); if(n) n.is_read=true;
+    document.getElementById('notif-dot').style.display=NOTIFS.some(x=>!x.is_read)?'block':'none';
+    renderNotifDropdown(); renderNotifSection();
+  }
+}
+
+async function markAllNotifsRead(){
+  const d=await api('/notifications/read-all',{method:'PUT'});
+  if(d?.success){
+    NOTIFS.forEach(n=>n.is_read=true);
+    document.getElementById('notif-dot').style.display='none';
+    renderNotifDropdown(); renderNotifSection();
+  }
+}
+
+async function deleteNotif(id){
+  const d=await api(`/notifications/${id}`,{method:'DELETE'});
+  if(d?.success){ NOTIFS=NOTIFS.filter(x=>x.id!==id); renderNotifDropdown(); renderNotifSection(); }
+}
+
+function openNotifBroadcast(){
+  document.getElementById('nf-ttl').value='';
+  document.getElementById('nf-msg').value='';
+  document.getElementById('nf-role').value='';
+  showM('m-notif');
+}
+
+async function submitNotifBroadcast(){
+  const title=document.getElementById('nf-ttl').value.trim();
+  const message=document.getElementById('nf-msg').value.trim();
+  const role=document.getElementById('nf-role').value||undefined;
+  if(!title){ toast('Le titre est obligatoire.','err'); return; }
+  const btn=document.getElementById('nf-btn'); btn.disabled=true; btn.textContent='Envoi...';
+  const d=await api('/admin/notifications/broadcast',{method:'POST',body:JSON.stringify({title,message,role})});
+  btn.disabled=false; btn.textContent='Envoyer';
+  if(d?.success){ hideM('m-notif'); toast(`✅ Notification envoyée à ${d.sent} personne${d.sent!=1?'s':''}.`); }
+  else if(d) toast(d.message||'Erreur lors de l\'envoi.','err');
+}
+
+// ═══════════════════════════════════════════════
+//  PRÉSENCES (vue d'ensemble)
+// ═══════════════════════════════════════════════
+async function loadAdminAttendance(){
+  const d=await api('/admin/attendance-overview');
+  loaded.attendance=true;
+  const el=document.getElementById('att-ov-list'), empty=document.getElementById('att-ov-empty');
+  if(!d?.success || !d.courses.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML=d.courses.map(c=>{
+    const total=parseInt(c.present)+parseInt(c.absent)+parseInt(c.late)+parseInt(c.excused);
+    const rate=total>0?Math.round((parseInt(c.present)+parseInt(c.late))/total*100):null;
+    const col=rate===null?'#94a3b8':rate>=80?'#16a34a':rate>=50?'#d97706':'#dc2626';
+    return `<div class="card" style="padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div><p style="font-weight:700;font-size:.9rem;color:#0f172a">${c.course_title}</p><p style="font-size:.75rem;color:#94a3b8;margin-top:2px">${c.teacher_name||'—'} · ${c.total_sessions} séance${c.total_sessions!=1?'s':''}</p></div>
+      <span style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:${col}">${rate===null?'—':rate+'%'}</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  PROJETS ACADÉMIQUES (vue d'ensemble)
+// ═══════════════════════════════════════════════
+async function loadAdminProjects(){
+  const d=await api('/admin/projects');
+  loaded.projects=true;
+  const el=document.getElementById('proj-ov-list'), empty=document.getElementById('proj-ov-empty');
+  if(!d?.success || !d.projects.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML=d.projects.map(p=>{
+    const due=p.deadline?new Date(p.deadline).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'Pas de date limite';
+    return `<div class="card" style="padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+        <div><p style="font-weight:700;font-size:.9rem;color:#0f172a">${p.title}</p><p style="font-size:.75rem;color:#94a3b8;margin-top:2px">${p.teacher_name||'—'} · ${p.course_title||'Projet libre'} · Échéance : ${due}</p></div>
+        <span class="bdg" style="background:#f1f5f9;color:#475569">${p.submission_count} rendu${p.submission_count!=1?'s':''}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
 function doLogout(){ localStorage.clear(); location.href='indexconnexion.html'; }
 </script>
 </body>

@@ -456,4 +456,99 @@ router.get('/communities', async (req, res) => {
   }
 });
 
+// ── POST /api/admin/notifications/broadcast ──────────────────
+// Diffuser une notification à l'école entière ou à un rôle précis
+router.post('/notifications/broadcast', async (req, res) => {
+  try {
+    const { title, message, type, link, role } = req.body;
+    if (!title?.trim()) return res.status(400).json({ success: false, message: 'Titre requis.' });
+
+    const adminInfo = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
+    const school = adminInfo.rows[0]?.school;
+    const conditions = [];
+    const params     = [];
+    let   pi         = 1;
+    if (school) { conditions.push(`school=$${pi++}`); params.push(school); }
+    if (role)   { conditions.push(`role=$${pi++}`);   params.push(role); }
+    const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+
+    const users = await pool.query(`SELECT id FROM users ${where}`, params);
+    if (!users.rows.length) return res.json({ success: true, sent: 0 });
+
+    await Promise.all(users.rows.map(u =>
+      pool.query(
+        `INSERT INTO notifications (user_id, title, message, type, link) VALUES ($1,$2,$3,$4,$5)`,
+        [u.id, title.trim(), message||null, type||'info', link||null]
+      )
+    ));
+    res.json({ success: true, sent: users.rows.length });
+  } catch(e) {
+    console.error('[ADMIN NOTIF BROADCAST]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// ── GET /api/admin/attendance-overview ───────────────────────
+// Taux de présence par cours pour l'université de l'admin
+router.get('/attendance-overview', async (req, res) => {
+  try {
+    const adminInfo = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
+    const school    = adminInfo.rows[0]?.school;
+    const params    = school ? [school] : [];
+    const where     = school ? 'WHERE c.school=$1' : '';
+
+    const r = await pool.query(`
+      SELECT c.id AS course_id, c.title AS course_title,
+             u.first_name||' '||u.last_name AS teacher_name,
+             COUNT(DISTINCT s.id) AS total_sessions,
+             COUNT(ar.id) FILTER (WHERE ar.status='present') AS present,
+             COUNT(ar.id) FILTER (WHERE ar.status='absent')  AS absent,
+             COUNT(ar.id) FILTER (WHERE ar.status='late')    AS late,
+             COUNT(ar.id) FILTER (WHERE ar.status='excused') AS excused
+      FROM courses c
+      LEFT JOIN users u ON c.teacher_id=u.id
+      LEFT JOIN attendance_sessions s ON s.course_id=c.id
+      LEFT JOIN attendance_records ar ON ar.session_id=s.id
+      ${where}
+      GROUP BY c.id, u.first_name, u.last_name
+      HAVING COUNT(DISTINCT s.id) > 0
+      ORDER BY c.title
+    `, params);
+    res.json({ success: true, courses: r.rows });
+  } catch(e) {
+    console.error('[ADMIN ATTENDANCE]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// ── GET /api/admin/projects ───────────────────────────────────
+// Tous les projets académiques de l'université de l'admin
+router.get('/projects', async (req, res) => {
+  try {
+    const adminInfo = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
+    const school    = adminInfo.rows[0]?.school;
+    const params    = school ? [school] : [];
+    const where     = school ? 'WHERE p.school=$1' : '';
+
+    const r = await pool.query(`
+      SELECT p.id, p.title, p.description, p.deadline, p.status, p.created_at,
+             c.title AS course_title,
+             u.first_name||' '||u.last_name AS teacher_name,
+             COUNT(ps.id) AS submission_count,
+             COUNT(ps.id) FILTER (WHERE ps.grade IS NOT NULL) AS graded_count
+      FROM projects p
+      LEFT JOIN courses c ON p.course_id=c.id
+      LEFT JOIN users u ON p.teacher_id=u.id
+      LEFT JOIN project_submissions ps ON ps.project_id=p.id
+      ${where}
+      GROUP BY p.id, c.title, u.first_name, u.last_name
+      ORDER BY p.created_at DESC
+    `, params);
+    res.json({ success: true, projects: r.rows });
+  } catch(e) {
+    console.error('[ADMIN PROJECTS]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 module.exports = router;

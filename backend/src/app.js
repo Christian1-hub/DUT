@@ -18,6 +18,9 @@ const superadminRoutes = require('./routes/Superadmin');
 const crossRoutes      = require('./routes/crossaccess');
 const qrSessionRoutes  = require('./routes/qrsession');
 const calendarRoutes   = require('./routes/calendar');
+const notificationRoutes = require('./routes/notifications');
+const attendanceRoutes   = require('./routes/attendance');
+const projectRoutes      = require('./routes/projects');
 
 const app = express();
 
@@ -57,6 +60,9 @@ app.use('/api/superadmin', superadminRoutes);
 app.use('/api/cross',      crossRoutes);
 app.use('/api/qrsession',  qrSessionRoutes);
 app.use('/api/calendar',   calendarRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/attendance',    attendanceRoutes);
+app.use('/api/projects',      projectRoutes);
 
 // ── Santé ────────────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -85,6 +91,12 @@ app.get('/', (req, res) => {
       'POST /api/qrsession/create',
       'POST /api/qrsession/validate/:sessionId',
       'GET  /api/qrsession/status/:sessionId',
+      'GET  /api/notifications',
+      'PUT  /api/notifications/:id/read',
+      'POST /api/attendance/sessions',
+      'GET  /api/attendance/me',
+      'POST /api/projects',
+      'GET  /api/projects/student',
     ]
   });
 });
@@ -230,6 +242,77 @@ app.listen(PORT, async () => {
       )
     `);
     console.log('✅ academic_events : OK');
+
+    // Table notifications
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(200) NOT NULL,
+        message TEXT,
+        type VARCHAR(30) DEFAULT 'info',
+        link VARCHAR(255),
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ notifications : OK');
+
+    // Tables présences (gestion des présences des étudiants)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS attendance_sessions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        course_id UUID REFERENCES courses(id) ON DELETE CASCADE,
+        teacher_id UUID REFERENCES users(id),
+        title VARCHAR(200),
+        session_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS attendance_records (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id UUID NOT NULL REFERENCES attendance_sessions(id) ON DELETE CASCADE,
+        student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        status VARCHAR(20) NOT NULL DEFAULT 'present',
+        note VARCHAR(255),
+        UNIQUE(session_id, student_id)
+      )
+    `);
+    console.log('✅ attendance_sessions + attendance_records : OK');
+
+    // Tables projets académiques
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        title VARCHAR(200) NOT NULL,
+        description TEXT,
+        course_id UUID REFERENCES courses(id) ON DELETE SET NULL,
+        teacher_id UUID REFERENCES users(id),
+        school VARCHAR(100),
+        filiere VARCHAR(100),
+        deadline TIMESTAMP,
+        status VARCHAR(20) DEFAULT 'active',
+        file_url TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS project_submissions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        team_name VARCHAR(200),
+        content TEXT,
+        file_url TEXT,
+        grade NUMERIC(4,2),
+        feedback TEXT,
+        submitted_at TIMESTAMP DEFAULT NOW(),
+        graded_at TIMESTAMP,
+        UNIQUE(project_id, student_id)
+      )
+    `);
+    console.log('✅ projects + project_submissions : OK');
 
     // Créer la table role_requests si elle n'existe pas
     await pool.query(`

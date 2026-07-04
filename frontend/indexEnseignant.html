@@ -294,8 +294,6 @@ document.head.appendChild(spinStyle);
 
 /* ── RESPONSIVE GLOBAL ─────────────────────────────── */
 @media (max-width: 768px) {
-  /* Sidebar cachée par défaut sur mobile */
-  #sidebar { transform: translateX(-100%) !important; }
   /* Grilles → 1 colonne sur mobile */
   .grid { grid-template-columns: 1fr !important; }
   /* Textes plus petits */
@@ -369,6 +367,9 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
     <button class="nb" data-s="assignments" onclick="goTo('assignments')"><span class="ms">assignment</span>Devoirs & Quiz</button>
     <button class="nb" data-s="crossrequests" onclick="goTo('crossrequests')"><span class="ms">swap_horiz</span>Demandes Inter-Univ</button>
     <button class="nb" data-s="communities" onclick="goTo('communities')"><span class="ms">forum</span>Communautés</button>
+    <button class="nb" data-s="attendance" onclick="goTo('attendance')"><span class="ms">fact_check</span>Présences</button>
+    <button class="nb" data-s="projects" onclick="goTo('projects')"><span class="ms">workspaces</span>Projets académiques</button>
+    <button class="nb" data-s="notifications" onclick="goTo('notifications')"><span class="ms">notifications</span>Notifications</button>
     <button class="nb" data-s="stats" onclick="goTo('stats')"><span class="ms">analytics</span>Statistiques</button>
     <button class="nb" data-s="calendrier" onclick="location.href='indexCalendrier.html'"><span class="ms">calendar_month</span>Calendrier</button>
     <div class="my-2 border-t border-gray-100"></div>
@@ -385,10 +386,13 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
     <h2 id="pg-title" style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111">Vue d'ensemble</h2>
   </div>
   <div class="flex items-center gap-2">
-    <button onclick="toggleNotif()" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 border-none bg-transparent cursor-pointer"><span class="ms">notifications</span></button>
-    <div id="notif-drop" style="display:none;position:fixed;top:54px;right:12px;width:240px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.12);border:1px solid #f0f0f0;z-index:200">
-      <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0;font-family:Manrope;font-weight:700;font-size:.875rem">Notifications</div>
-      <div style="padding:24px 16px;text-align:center"><span class="ms" style="font-size:36px;color:#d1d5db">notifications_off</span><p style="font-size:.8rem;color:#9ca3af;margin-top:6px">Aucune pour l'instant</p></div>
+    <button onclick="toggleNotif()" style="position:relative" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 border-none bg-transparent cursor-pointer"><span class="ms">notifications</span><span id="notif-dot" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#dc2626"></span></button>
+    <div id="notif-drop" style="display:none;position:fixed;top:54px;right:12px;width:280px;max-height:70vh;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.12);border:1px solid #f0f0f0;z-index:200">
+      <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0;font-family:Manrope;font-weight:700;font-size:.875rem;display:flex;justify-content:space-between;align-items:center">
+        <span>Notifications</span>
+        <button onclick="markAllNotifsRead()" style="border:none;background:none;color:#ea580c;font-size:.72rem;font-weight:700;cursor:pointer">Tout marquer lu</button>
+      </div>
+      <div id="notif-drop-list"><div style="padding:24px 16px;text-align:center"><span class="ms" style="font-size:36px;color:#d1d5db">notifications_off</span><p style="font-size:.8rem;color:#9ca3af;margin-top:6px">Aucune pour l'instant</p></div></div>
     </div>
     <img id="top-av" src="https://ui-avatars.com/api/?name=P&background=ea580c&color=fff" onclick="goTo('profile')" class="w-8 h-8 rounded-full cursor-pointer" style="border:2px solid #ea580c"/>
   </div>
@@ -463,9 +467,26 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
 <div id="sec-courses" class="sec">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
     <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Mes Cours</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Supports uploadés, accessibles par vos étudiants</p></div>
-    <button onclick="openCourseCreate()" class="btn bp"><span class="ms">add</span>Nouveau cours</button>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;background:#f3f4f6;border-radius:10px;padding:3px">
+        <button id="co-view-grid" onclick="setCourseView('grid')" title="Vue grille" style="border:none;cursor:pointer;padding:6px 8px;border-radius:8px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1);color:#ea580c;display:flex;align-items:center"><span class="ms" style="font-size:18px">grid_view</span></button>
+        <button id="co-view-flyer" onclick="setCourseView('flyer')" title="Vue flyer" style="border:none;cursor:pointer;padding:6px 8px;border-radius:8px;background:transparent;color:#9ca3af;display:flex;align-items:center"><span class="ms" style="font-size:18px">view_carousel</span></button>
+      </div>
+      <button onclick="openCourseCreate()" class="btn bp"><span class="ms">add</span>Nouveau cours</button>
+    </div>
   </div>
   <div id="co-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"><div class="sk" style="height:180px"></div><div class="sk" style="height:180px"></div></div>
+  <div id="co-flyer" style="display:none">
+    <div style="position:relative;max-width:360px;margin:0 auto">
+      <div id="co-flyer-card"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
+        <button onclick="flyerNav(-1)" style="width:44px;height:44px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #f0f0f0;background:#fff;cursor:pointer;color:#374151"><span class="ms">chevron_left</span></button>
+        <span id="co-flyer-pos" style="font-size:.8rem;font-weight:700;color:#6b7280">0 / 0</span>
+        <button onclick="flyerNav(1)" style="width:44px;height:44px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #f0f0f0;background:#fff;cursor:pointer;color:#374151"><span class="ms">chevron_right</span></button>
+      </div>
+      <p style="text-align:center;font-size:.72rem;color:#d1d5db;margin-top:10px">👆 Glissez à gauche/droite pour naviguer</p>
+    </div>
+  </div>
   <div id="co-empty" class="card" style="display:none;text-align:center;padding:60px 20px"><span class="ms" style="font-size:48px;color:#d1d5db">auto_stories</span><p style="font-weight:700;color:#6b7280;margin-top:12px">Aucun cours créé</p><button onclick="openCourseCreate()" class="btn bp" style="margin-top:16px"><span class="ms">add</span>Nouveau cours</button></div>
 </div>
 
@@ -490,6 +511,57 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
   </div>
   <div id="cm-list" style="display:flex;flex-direction:column;gap:12px"><div class="sk" style="height:90px"></div><div class="sk" style="height:90px"></div></div>
   <div id="cm-empty" class="card" style="display:none;text-align:center;padding:60px 20px"><span class="ms" style="font-size:48px;color:#d1d5db">forum</span><p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune communauté créée</p><p style="font-size:.875rem;color:#9ca3af;margin-top:4px">Les communautés créées ici apparaissent dans le dashboard de vos étudiants</p><button onclick="showM('m-comm')" class="btn bp" style="margin-top:16px">Créer une communauté</button></div>
+</div>
+
+<!-- PRÉSENCES -->
+<div id="sec-attendance" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Présences</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Suivi des présences, séance par séance</p></div>
+    <button onclick="openAttendanceCreate()" class="btn bp"><span class="ms">add</span>Nouvelle séance</button>
+  </div>
+  <div style="margin-bottom:16px;max-width:420px"><label class="lbl">Cours</label><select id="att-course-sel" class="fld" onchange="onAttendanceCourseChange()"><option value="">Sélectionnez un cours...</option></select></div>
+  <div id="att-content" style="display:none">
+    <div class="card" style="padding:18px;margin-bottom:16px">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#111;margin-bottom:12px">Taux de présence par étudiant</h3>
+      <div id="att-stats-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+    <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#111;margin-bottom:12px">Historique des séances</h3>
+    <div id="att-sessions-list" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+  <div id="att-empty" class="card" style="text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">fact_check</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Sélectionnez un cours pour gérer les présences</p>
+  </div>
+</div>
+
+<!-- PROJETS ACADÉMIQUES -->
+<div id="sec-projects" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Projets académiques</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Projets de groupe ou individuels, distincts des devoirs classiques</p></div>
+    <button onclick="openProjectCreate()" class="btn bp"><span class="ms">add</span>Nouveau projet</button>
+  </div>
+  <div id="proj-list" style="display:flex;flex-direction:column;gap:12px"><div class="sk" style="height:110px"></div></div>
+  <div id="proj-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">workspaces</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucun projet créé</p>
+    <button onclick="openProjectCreate()" class="btn bp" style="margin-top:16px"><span class="ms">add</span>Nouveau projet</button>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="sec-notifications" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Notifications</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Vos alertes et diffusions vers vos étudiants</p></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="markAllNotifsRead()" class="btn bg bsm">Tout marquer lu</button>
+      <button onclick="openNotifBroadcast()" class="btn bp bsm"><span class="ms">campaign</span>Diffuser</button>
+    </div>
+  </div>
+  <div id="notif-list" style="display:flex;flex-direction:column;gap:10px"><div class="sk" style="height:70px"></div></div>
+  <div id="notif-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">notifications_off</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune notification</p>
+  </div>
 </div>
 
 <!-- STATISTIQUES -->
@@ -711,6 +783,91 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
   </div>
 </div>
 
+<!-- Séance de présence -->
+<div id="m-attendance" class="ov" onclick="if(event.target===this)hideM('m-attendance')">
+  <div class="mbox" style="max-width:520px;max-height:85vh;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0;flex-shrink:0">
+      <h3 id="m-att-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Nouvelle séance</h3>
+      <button onclick="hideM('m-attendance')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Titre de la séance</label><input id="att-ttl" type="text" placeholder="Ex: Cours du 12 mars" class="fld"/></div>
+        <div><label class="lbl">Date</label><input id="att-date" type="date" class="fld"/></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+          <label class="lbl" style="margin:0">Étudiants</label>
+          <div style="display:flex;gap:6px">
+            <button onclick="markAllAttendance('present')" class="btn bg bsm">Tous présents</button>
+            <button onclick="markAllAttendance('absent')" class="btn bg bsm">Tous absents</button>
+          </div>
+        </div>
+        <div id="att-roster" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px;flex-shrink:0">
+      <button onclick="hideM('m-attendance')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitAttendance()" id="att-btn" class="btn bp" style="flex:1">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Projet académique -->
+<div id="m-project" class="ov" onclick="if(event.target===this)hideM('m-project')">
+  <div class="mbox" style="max-width:520px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 id="m-proj-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Nouveau projet</h3>
+      <button onclick="hideM('m-project')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Titre *</label><input id="proj-ttl" type="text" placeholder="Ex: Projet de fin de semestre" class="fld"/></div>
+      <div><label class="lbl">Cours associé</label><select id="proj-course" class="fld"><option value="">Aucun cours spécifique</option></select></div>
+      <div><label class="lbl">Date limite</label><input id="proj-due" type="datetime-local" class="fld"/></div>
+      <div><label class="lbl">Description / consignes</label><textarea id="proj-desc" rows="3" placeholder="Objectifs, livrables attendus, critères d'évaluation..." class="fld" style="resize:none"></textarea></div>
+      <div>
+        <label class="lbl">Sujet PDF (optionnel)</label>
+        <div class="upz" onclick="document.getElementById('proj-file').click()"><span class="ms" style="font-size:26px;color:#d1d5db">upload_file</span><p style="font-size:.8rem;color:#6b7280;margin-top:5px" id="proj-file-label">Choisir un PDF</p></div>
+        <input type="file" id="proj-file" accept=".pdf" style="display:none" onchange="onFileChange('proj-file','proj-file-label')"/>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-project')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitProject()" id="proj-btn" class="btn bp" style="flex:1">Créer le projet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rendus de projet -->
+<div id="m-proj-subs" class="ov" onclick="if(event.target===this)hideM('m-proj-subs')">
+  <div class="mbox" style="max-width:500px;max-height:85vh;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid #f0f0f0;flex-shrink:0"><div><h3 id="proj-subs-ttl" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Rendus</h3><p id="proj-subs-sub" style="font-size:.75rem;color:#9ca3af;margin-top:2px"></p></div><button onclick="hideM('m-proj-subs')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'"><span class="ms">close</span></button></div>
+    <div id="proj-subs-list" style="flex:1;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</div>
+
+<!-- Diffusion de notification -->
+<div id="m-notif" class="ov" onclick="if(event.target===this)hideM('m-notif')">
+  <div class="mbox">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Diffuser une notification</h3>
+      <button onclick="hideM('m-notif')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Titre *</label><input id="nf-ttl" type="text" placeholder="Ex: Cours annulé demain" class="fld"/></div>
+      <div><label class="lbl">Message</label><textarea id="nf-msg" rows="3" class="fld" style="resize:none"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Destinataires</label><select id="nf-target" class="fld" onchange="updateNotifTargetOptions()"><option value="course">Étudiants d'un cours</option><option value="class">Étudiants d'une classe</option></select></div>
+        <div><label class="lbl">Cible</label><select id="nf-target-id" class="fld"></select></div>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-notif')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitNotifBroadcast()" id="nf-btn" class="btn bp" style="flex:1">Envoyer</button>
+    </div>
+  </div>
+</div>
+
 <!-- Copies -->
 <div id="m-subs" class="ov" onclick="if(event.target===this)hideM('m-subs')">
   <div class="mbox" style="max-width:500px;max-height:85vh;display:flex;flex-direction:column">
@@ -734,7 +891,10 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
 const TK = () => localStorage.getItem('camunolearn_token');
 let ME = null, CLASSES = [], COURSES = [], loaded = {}, editCourseId = null, currentClassId = null;
 let assignMode = 'devoir', quizCount = 0;
-const TITLES = {dashboard:'Vue d\'ensemble',classes:'Mes Classes',courses:'Mes Cours',assignments:'Devoirs & Quiz',communities:'Communautés',stats:'Statistiques',crossrequests:'Demandes Inter-Universités',profile:'Mon Profil'};
+let PROJECTS = [], NOTIFS = [], editProjectId = null;
+let courseViewMode = 'grid', flyerIndex = 0;
+let attCourseId = null, attRoster = [], editingSessionId = null;
+const TITLES = {dashboard:'Vue d\'ensemble',classes:'Mes Classes',courses:'Mes Cours',assignments:'Devoirs & Quiz',communities:'Communautés',attendance:'Présences',projects:'Projets académiques',notifications:'Notifications',stats:'Statistiques',crossrequests:'Demandes Inter-Universités',profile:'Mon Profil'};
 
 // ══════════════════════════════════════════════
 //  INIT — avec auto-réparation du rôle
@@ -785,6 +945,7 @@ async function bootstrap() {
       }
       updateSidebar();
       await loadDashboard();
+      loadNotifications();
     } else if (r.status === 401) {
       doLogout();
     } else {
@@ -872,6 +1033,9 @@ function goTo(s) {
   if (s==='stats'&&!loaded.stats) loadStats();
   if (s==='profile'&&!loaded.profile)         loadProfile();
   if (s==='crossrequests'&&!loaded.crossrequests) loadCrossRequests();
+  if (s==='attendance'&&!loaded.attendance) loadAttendance();
+  if (s==='projects'&&!loaded.projects) loadProjects();
+  if (s==='notifications') loadNotifications();
   if (s === 'dashboard') loadUpcomingEventsTeacher();
 }
 async function loadUpcomingEventsTeacher() {
@@ -1086,7 +1250,7 @@ async function loadCourses(){
 
 function renderCourses(){
   const g=document.getElementById('co-grid'),e=document.getElementById('co-empty');
-  if(!COURSES.length){g.innerHTML='';e.style.display='block';return;}
+  if(!COURSES.length){g.innerHTML='';e.style.display='block';if(courseViewMode==='flyer')renderCourseFlyer();return;}
   e.style.display='none';
   const dot={orange:'#ea580c',green:'#22c55e',blue:'#3b82f6',purple:'#8b5cf6'};
   const bg={orange:'#fff7ed|#ea580c',green:'#f0fdf4|#166534',blue:'#eff6ff|#1d4ed8',purple:'#faf5ff|#6d28d9'};
@@ -1123,7 +1287,68 @@ function renderCourses(){
       </div>
     </div>`;
   }).join('');
+  if(courseViewMode==='flyer')renderCourseFlyer();
 }
+
+// ══════════════════════════════════════════════
+//  MODE FLYER — parcourir les cours en carrousel
+// ══════════════════════════════════════════════
+function setCourseView(mode){
+  courseViewMode=mode;
+  const gBtn=document.getElementById('co-view-grid'), fBtn=document.getElementById('co-view-flyer');
+  gBtn.style.background = mode==='grid' ? '#fff' : 'transparent';
+  gBtn.style.color      = mode==='grid' ? '#ea580c' : '#9ca3af';
+  gBtn.style.boxShadow  = mode==='grid' ? '0 1px 3px rgba(0,0,0,.1)' : 'none';
+  fBtn.style.background = mode==='flyer' ? '#fff' : 'transparent';
+  fBtn.style.color      = mode==='flyer' ? '#ea580c' : '#9ca3af';
+  fBtn.style.boxShadow  = mode==='flyer' ? '0 1px 3px rgba(0,0,0,.1)' : 'none';
+  document.getElementById('co-grid').style.display  = mode==='grid'  ? 'grid' : 'none';
+  document.getElementById('co-flyer').style.display = mode==='flyer' ? 'block' : 'none';
+  if(mode==='flyer'){ flyerIndex=0; renderCourseFlyer(); }
+}
+
+function renderCourseFlyer(){
+  const wrap=document.getElementById('co-flyer-card'), pos=document.getElementById('co-flyer-pos');
+  if(!wrap) return;
+  if(!COURSES.length){ wrap.innerHTML='<div class="card" style="text-align:center;padding:40px 20px"><span class="ms" style="font-size:40px;color:#d1d5db">auto_stories</span><p style="color:#9ca3af;margin-top:10px">Aucun cours à afficher.</p></div>'; pos.textContent='0 / 0'; return; }
+  if(flyerIndex<0) flyerIndex=COURSES.length-1;
+  if(flyerIndex>=COURSES.length) flyerIndex=0;
+  const c=COURSES[flyerIndex];
+  const dot={orange:'#ea580c',green:'#22c55e',blue:'#3b82f6',purple:'#8b5cf6'};
+  const bg={orange:'#fff7ed|#ea580c',green:'#f0fdf4|#166534',blue:'#eff6ff|#1d4ed8',purple:'#faf5ff|#6d28d9'};
+  const d=dot[c.color]||dot.orange;
+  const[bgg,fg]=(bg[c.color]||bg.orange).split('|');
+  wrap.innerHTML=`<div class="card" style="overflow:hidden;cursor:pointer;user-select:none" onclick="location.href='pageCoursDetail.html?id=${c.id}'">
+    <div style="height:120px;background:linear-gradient(135deg,${d},${d}cc);display:flex;align-items:center;justify-content:center">
+      <span class="ms" style="font-size:48px;color:#fff">auto_stories</span>
+    </div>
+    <div style="padding:20px">
+      <span class="bdg" style="background:${bgg};color:${fg}">${c.filiere||'Cours'}</span>
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1.15rem;color:#111;margin-top:10px">${c.title}</h3>
+      ${c.description?`<p style="font-size:.8rem;color:#9ca3af;margin-top:6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">${c.description}</p>`:''}
+      <div style="display:flex;justify-content:space-between;border-top:1px solid #f3f4f6;padding-top:12px;margin-top:14px;font-size:.72rem;font-weight:600;color:#9ca3af">
+        <span><span class="ms" style="font-size:13px;vertical-align:middle">person</span> ${c.student_count} étud.</span>
+        <span><span class="ms" style="font-size:13px;vertical-align:middle">assignment</span> ${c.assignment_count} devoir${c.assignment_count!=1?'s':''}</span>
+      </div>
+    </div>
+  </div>`;
+  pos.textContent=`${flyerIndex+1} / ${COURSES.length}`;
+}
+
+function flyerNav(dir){ flyerIndex+=dir; renderCourseFlyer(); }
+
+let flyerTouchX=null;
+document.addEventListener('DOMContentLoaded', () => {
+  const el=document.getElementById('co-flyer-card');
+  if(!el) return;
+  el.addEventListener('touchstart', e => { flyerTouchX = e.touches[0].clientX; }, {passive:true});
+  el.addEventListener('touchend', e => {
+    if(flyerTouchX===null) return;
+    const dx = e.changedTouches[0].clientX - flyerTouchX;
+    if(Math.abs(dx) > 40) flyerNav(dx > 0 ? -1 : 1);
+    flyerTouchX = null;
+  });
+});
 
 async function openCourseCreate(){
   editCourseId=null;
@@ -1177,6 +1402,336 @@ async function submitCourse(){
 }
 
 async function deleteCourse(id){if(!confirm('Supprimer ce cours ?'))return;const d=await api(`/teacher/courses/${id}`,{method:'DELETE'});if(d?.success){loaded.courses=false;await loadCourses();}}
+
+// ══════════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════════
+function timeAgo(dateStr){
+  const diff=(Date.now()-new Date(dateStr).getTime())/1000;
+  if(diff<60) return 'à l\'instant';
+  if(diff<3600) return Math.floor(diff/60)+' min';
+  if(diff<86400) return Math.floor(diff/3600)+' h';
+  return Math.floor(diff/86400)+' j';
+}
+
+async function loadNotifications(){
+  const d=await api('/notifications');
+  if(!d?.success) return;
+  NOTIFS=d.notifications; loaded.notifications=true;
+  document.getElementById('notif-dot').style.display=d.unreadCount>0?'block':'none';
+  renderNotifDropdown();
+  renderNotifSection();
+}
+
+function renderNotifDropdown(){
+  const el=document.getElementById('notif-drop-list');
+  if(!el) return;
+  if(!NOTIFS.length){ el.innerHTML='<div style="padding:24px 16px;text-align:center"><span class="ms" style="font-size:36px;color:#d1d5db">notifications_off</span><p style="font-size:.8rem;color:#9ca3af;margin-top:6px">Aucune pour l\'instant</p></div>'; return; }
+  el.innerHTML=NOTIFS.slice(0,8).map(n=>`
+    <div onclick="markNotifRead('${n.id}')" style="padding:10px 16px;border-bottom:1px solid #f6f6f6;cursor:pointer;${n.is_read?'':'background:#fff7ed'}">
+      <p style="font-size:.8rem;font-weight:700;color:#111">${n.title}</p>
+      ${n.message?`<p style="font-size:.75rem;color:#9ca3af;margin-top:2px">${n.message}</p>`:''}
+      <p style="font-size:.68rem;color:#d1d5db;margin-top:3px">${timeAgo(n.created_at)}</p>
+    </div>`).join('')
+    + `<div style="padding:10px 16px;text-align:center"><button onclick="goTo('notifications')" style="border:none;background:none;color:#ea580c;font-size:.78rem;font-weight:700;cursor:pointer">Voir tout</button></div>`;
+}
+
+function renderNotifSection(){
+  const el=document.getElementById('notif-list'), empty=document.getElementById('notif-empty');
+  if(!el) return;
+  if(!NOTIFS.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML=NOTIFS.map(n=>`
+    <div class="card" style="padding:16px;display:flex;gap:12px;align-items:flex-start;${n.is_read?'':'border-left:3px solid #ea580c'}">
+      <div style="width:36px;height:36px;border-radius:10px;background:#fff7ed;color:#ea580c;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="ms">${n.type==='alert'?'warning':'notifications'}</span></div>
+      <div style="flex:1;min-width:0">
+        <p style="font-weight:700;font-size:.875rem;color:#111">${n.title}</p>
+        ${n.message?`<p style="font-size:.8rem;color:#6b7280;margin-top:3px">${n.message}</p>`:''}
+        <p style="font-size:.7rem;color:#9ca3af;margin-top:5px">${timeAgo(n.created_at)}</p>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        ${!n.is_read?`<button onclick="markNotifRead('${n.id}')" style="border:none;background:none;cursor:pointer;color:#9ca3af" title="Marquer lu"><span class="ms" style="font-size:18px">done</span></button>`:''}
+        <button onclick="deleteNotif('${n.id}')" style="border:none;background:none;cursor:pointer;color:#d1d5db" title="Supprimer"><span class="ms" style="font-size:18px">delete</span></button>
+      </div>
+    </div>`).join('');
+}
+
+async function markNotifRead(id){
+  const d=await api(`/notifications/${id}/read`,{method:'PUT'});
+  if(d?.success){
+    const n=NOTIFS.find(x=>x.id===id); if(n) n.is_read=true;
+    document.getElementById('notif-dot').style.display=NOTIFS.some(x=>!x.is_read)?'block':'none';
+    renderNotifDropdown(); renderNotifSection();
+  }
+}
+
+async function markAllNotifsRead(){
+  const d=await api('/notifications/read-all',{method:'PUT'});
+  if(d?.success){
+    NOTIFS.forEach(n=>n.is_read=true);
+    document.getElementById('notif-dot').style.display='none';
+    renderNotifDropdown(); renderNotifSection();
+  }
+}
+
+async function deleteNotif(id){
+  const d=await api(`/notifications/${id}`,{method:'DELETE'});
+  if(d?.success){ NOTIFS=NOTIFS.filter(x=>x.id!==id); renderNotifDropdown(); renderNotifSection(); }
+}
+
+async function openNotifBroadcast(){
+  if(!loaded.courses) await loadCourses();
+  if(!loaded.classes) await loadClasses();
+  document.getElementById('nf-ttl').value='';
+  document.getElementById('nf-msg').value='';
+  updateNotifTargetOptions();
+  showM('m-notif');
+}
+
+function updateNotifTargetOptions(){
+  const target=document.getElementById('nf-target').value;
+  if(target==='course') syncSel('nf-target-id',COURSES,'id','title','Sélectionnez un cours...',c=>`${c.title}${c.filiere?' ('+c.filiere+')':''}`);
+  else syncSel('nf-target-id',CLASSES,'id','name','Sélectionnez une classe...');
+}
+
+async function submitNotifBroadcast(){
+  const title=document.getElementById('nf-ttl').value.trim();
+  const message=document.getElementById('nf-msg').value.trim();
+  const target=document.getElementById('nf-target').value;
+  const target_id=document.getElementById('nf-target-id').value;
+  if(!title){toast('Le titre est obligatoire.','err');return;}
+  if(!target_id){toast('Sélectionnez une cible.','err');return;}
+  const btn=document.getElementById('nf-btn');btn.disabled=true;btn.textContent='Envoi...';
+  const d=await api('/teacher/notifications/broadcast',{method:'POST',body:JSON.stringify({title,message,target,target_id})});
+  btn.disabled=false;btn.textContent='Envoyer';
+  if(d?.success){ hideM('m-notif'); toast(`✅ Notification envoyée à ${d.sent} étudiant${d.sent!=1?'s':''}.`); }
+  else if(d) toast(d.message||'Erreur lors de l\'envoi.','err');
+}
+
+// ══════════════════════════════════════════════
+//  PRÉSENCES
+// ══════════════════════════════════════════════
+async function loadAttendance(){
+  if(!loaded.courses) await loadCourses();
+  loaded.attendance=true;
+  syncSel('att-course-sel',COURSES,'id','title','Sélectionnez un cours...',c=>`${c.title}${c.filiere?' ('+c.filiere+')':''}`);
+}
+
+async function onAttendanceCourseChange(){
+  attCourseId=document.getElementById('att-course-sel').value;
+  if(!attCourseId){ document.getElementById('att-content').style.display='none'; document.getElementById('att-empty').style.display='block'; return; }
+  document.getElementById('att-content').style.display='block';
+  document.getElementById('att-empty').style.display='none';
+  await Promise.all([loadAttendanceStats(), loadAttendanceSessions()]);
+}
+
+async function loadAttendanceStats(){
+  const d=await api(`/attendance/course/${attCourseId}/stats`);
+  const el=document.getElementById('att-stats-list');
+  if(!d?.success){ el.innerHTML=''; return; }
+  if(!d.stats.length){ el.innerHTML='<p style="font-size:.8rem;color:#9ca3af">Aucun étudiant inscrit à ce cours.</p>'; return; }
+  el.innerHTML=d.stats.map(s=>{
+    const total=parseInt(s.present)+parseInt(s.absent)+parseInt(s.late)+parseInt(s.excused);
+    const rate=total>0?Math.round((parseInt(s.present)+parseInt(s.late))/total*100):null;
+    const col=rate===null?'#9ca3af':rate>=80?'#16a34a':rate>=50?'#d97706':'#dc2626';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6">
+      <span style="font-size:.85rem;font-weight:600;color:#111">${s.first_name} ${s.last_name}</span>
+      <span style="font-size:.8rem;font-weight:700;color:${col}">${rate===null?'—':rate+'%'} <span style="color:#9ca3af;font-weight:500">(${total}/${s.total_sessions} séances)</span></span>
+    </div>`;
+  }).join('');
+}
+
+async function loadAttendanceSessions(){
+  const d=await api(`/attendance/sessions/course/${attCourseId}`);
+  const el=document.getElementById('att-sessions-list');
+  if(!d?.success){ el.innerHTML=''; return; }
+  if(!d.sessions.length){ el.innerHTML='<p style="font-size:.8rem;color:#9ca3af">Aucune séance enregistrée pour ce cours.</p>'; return; }
+  el.innerHTML=d.sessions.map(s=>{
+    const date=new Date(s.session_date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+    return `<div class="card cHov" style="padding:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap" onclick="openAttendanceEdit('${s.id}')">
+      <div><p style="font-weight:700;font-size:.875rem;color:#111">${s.title||'Séance du '+date}</p><p style="font-size:.75rem;color:#9ca3af">${date}</p></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <span class="bdg" style="background:#f0fdf4;color:#16a34a">${s.present_count} présent${s.present_count!=1?'s':''}</span>
+        ${s.absent_count>0?`<span class="bdg" style="background:#fef2f2;color:#dc2626">${s.absent_count} absent${s.absent_count!=1?'s':''}</span>`:''}
+        ${s.late_count>0?`<span class="bdg" style="background:#fffbeb;color:#d97706">${s.late_count} retard${s.late_count!=1?'s':''}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openAttendanceCreate(){
+  if(!attCourseId){ toast('Sélectionnez d\'abord un cours.','err'); return; }
+  editingSessionId=null;
+  document.getElementById('m-att-title').textContent='Nouvelle séance';
+  document.getElementById('att-ttl').value='';
+  document.getElementById('att-date').value=new Date().toISOString().slice(0,10);
+  const d=await api(`/teacher/courses/${attCourseId}/students`);
+  attRoster=(d?.students||[]).map(s=>({student_id:s.id,first_name:s.first_name,last_name:s.last_name,status:'present'}));
+  renderAttRoster();
+  showM('m-attendance');
+}
+
+async function openAttendanceEdit(sessionId){
+  editingSessionId=sessionId;
+  const d=await api(`/attendance/sessions/${sessionId}`);
+  if(!d?.success) return;
+  document.getElementById('m-att-title').textContent='Modifier la séance';
+  document.getElementById('att-ttl').value=d.session.title||'';
+  document.getElementById('att-date').value=(d.session.session_date||'').slice(0,10);
+  attRoster=d.students.map(s=>({student_id:s.student_id,first_name:s.first_name,last_name:s.last_name,status:s.status}));
+  renderAttRoster();
+  showM('m-attendance');
+}
+
+function renderAttRoster(){
+  const el=document.getElementById('att-roster');
+  if(!attRoster.length){ el.innerHTML='<p style="font-size:.8rem;color:#9ca3af">Aucun étudiant inscrit à ce cours.</p>'; return; }
+  const STATUSES=[['present','Présent'],['absent','Absent'],['late','Retard'],['excused','Excusé']];
+  el.innerHTML=attRoster.map((r,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #f3f4f6">
+      <span style="font-size:.82rem;font-weight:600;color:#111;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.first_name} ${r.last_name}</span>
+      <select class="fld" style="width:auto;padding:4px 8px;font-size:.75rem" onchange="attRoster[${i}].status=this.value">
+        ${STATUSES.map(([v,l])=>`<option value="${v}" ${r.status===v?'selected':''}>${l}</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
+
+function markAllAttendance(status){ attRoster.forEach(r=>r.status=status); renderAttRoster(); }
+
+async function submitAttendance(){
+  const title=document.getElementById('att-ttl').value.trim();
+  const session_date=document.getElementById('att-date').value;
+  const records=attRoster.map(r=>({student_id:r.student_id,status:r.status}));
+  const btn=document.getElementById('att-btn');btn.disabled=true;btn.textContent='Enregistrement...';
+  const body={course_id:attCourseId,title:title||null,session_date:session_date||null,records};
+  const d=editingSessionId
+    ?await api(`/attendance/sessions/${editingSessionId}`,{method:'PUT',body:JSON.stringify(body)})
+    :await api('/attendance/sessions',{method:'POST',body:JSON.stringify(body)});
+  btn.disabled=false;btn.textContent='Enregistrer';
+  if(d?.success){ hideM('m-attendance'); toast('✅ Présences enregistrées.'); loadAttendanceStats(); loadAttendanceSessions(); }
+  else if(d) toast(d.message||'Erreur.','err');
+}
+
+// ══════════════════════════════════════════════
+//  PROJETS ACADÉMIQUES
+// ══════════════════════════════════════════════
+async function loadProjects(){
+  if(!loaded.courses) await loadCourses();
+  const d=await api('/projects/teacher');
+  if(!d?.success) return;
+  PROJECTS=d.projects; loaded.projects=true;
+  renderProjects();
+}
+
+function renderProjects(){
+  const el=document.getElementById('proj-list'), empty=document.getElementById('proj-empty');
+  if(!PROJECTS.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML=PROJECTS.map(p=>{
+    const due=p.deadline?new Date(p.deadline).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'Pas de date limite';
+    return `<div class="card" style="padding:18px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-bottom:8px">
+        <div>
+          <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111">${p.title}</h3>
+          <p style="font-size:.75rem;color:#9ca3af;margin-top:2px">${p.course_title||'Aucun cours associé'} · Échéance : ${due}</p>
+        </div>
+        <div style="display:flex;gap:2px">
+          <button onclick="openProjectEdit('${p.id}')" style="padding:4px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#d1d5db"><span class="ms" style="font-size:18px">edit</span></button>
+          <button onclick="deleteProject('${p.id}')" style="padding:4px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#d1d5db"><span class="ms" style="font-size:18px">delete</span></button>
+        </div>
+      </div>
+      ${p.description?`<p style="font-size:.8rem;color:#6b7280;margin-bottom:10px">${p.description}</p>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid #f3f4f6;padding-top:10px">
+        <span style="font-size:.75rem;font-weight:600;color:#9ca3af">${p.submission_count} rendu${p.submission_count!=1?'s':''} · ${p.graded_count} noté${p.graded_count!=1?'s':''}</span>
+        <button onclick="openProjectSubs('${p.id}')" class="btn bp bsm">Voir les rendus</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openProjectCreate(){
+  editProjectId=null;
+  document.getElementById('m-proj-title').textContent='Nouveau projet';
+  document.getElementById('proj-btn').textContent='Créer le projet';
+  ['proj-ttl','proj-desc','proj-due'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('proj-file').value='';document.getElementById('proj-file-label').textContent='Choisir un PDF';
+  if(!loaded.courses) await loadCourses();
+  syncSel('proj-course',COURSES,'id','title','Aucun cours spécifique',c=>`${c.title}${c.filiere?' ('+c.filiere+')':''}`);
+  showM('m-project');
+}
+
+function openProjectEdit(id){
+  const p=PROJECTS.find(x=>x.id===id);
+  if(!p) return;
+  editProjectId=id;
+  document.getElementById('m-proj-title').textContent='Modifier le projet';
+  document.getElementById('proj-btn').textContent='Enregistrer';
+  document.getElementById('proj-ttl').value=p.title;
+  document.getElementById('proj-desc').value=p.description||'';
+  document.getElementById('proj-due').value=p.deadline?new Date(p.deadline).toISOString().slice(0,16):'';
+  syncSel('proj-course',COURSES,'id','title','Aucun cours spécifique',c=>`${c.title}${c.filiere?' ('+c.filiere+')':''}`);
+  document.getElementById('proj-course').value=p.course_id||'';
+  document.getElementById('proj-file').value='';document.getElementById('proj-file-label').textContent=p.file_url?'Fichier existant (cliquer pour remplacer)':'Choisir un PDF';
+  showM('m-project');
+}
+
+async function submitProject(){
+  const title=document.getElementById('proj-ttl').value.trim();
+  const description=document.getElementById('proj-desc').value.trim();
+  const course_id=document.getElementById('proj-course').value||null;
+  const deadline=document.getElementById('proj-due').value||null;
+  const file=document.getElementById('proj-file').files[0];
+  if(!title){toast('Le titre est obligatoire.','err');return;}
+  const btn=document.getElementById('proj-btn');btn.disabled=true;btn.textContent='Enregistrement...';
+  let file_url=null;
+  if(file) file_url=await uploadCloudinary(file,null,null,null);
+  const body={title,description,course_id,deadline};
+  if(file_url) body.file_url=file_url;
+  const d=editProjectId
+    ?await api(`/projects/${editProjectId}`,{method:'PUT',body:JSON.stringify(body)})
+    :await api('/projects',{method:'POST',body:JSON.stringify(body)});
+  btn.disabled=false;btn.textContent=editProjectId?'Enregistrer':'Créer le projet';
+  if(d?.success){ hideM('m-project'); loaded.projects=false; await loadProjects(); toast(`✅ Projet ${editProjectId?'modifié':'créé'}.`); }
+  else if(d) toast(d.message||'Erreur.','err');
+}
+
+async function deleteProject(id){
+  if(!confirm('Supprimer ce projet ?')) return;
+  const d=await api(`/projects/${id}`,{method:'DELETE'});
+  if(d?.success){ loaded.projects=false; await loadProjects(); }
+}
+
+async function openProjectSubs(id){
+  const p=PROJECTS.find(x=>x.id===id);
+  const d=await api(`/projects/${id}/submissions`);
+  if(!d?.success) return;
+  document.getElementById('proj-subs-ttl').textContent=p?p.title:'Rendus';
+  document.getElementById('proj-subs-sub').textContent=`${d.submissions.length} rendu${d.submissions.length!=1?'s':''}`;
+  const el=document.getElementById('proj-subs-list');
+  if(!d.submissions.length){ el.innerHTML='<p style="text-align:center;color:#9ca3af;padding:30px 0">Aucun rendu pour l\'instant.</p>'; }
+  else {
+    el.innerHTML=d.submissions.map(s=>`
+      <div class="card" style="padding:14px">
+        <p style="font-weight:700;font-size:.85rem;color:#111">${s.student_name}${s.team_name?' · '+s.team_name:''}</p>
+        <p style="font-size:.72rem;color:#9ca3af;margin-bottom:8px">Rendu le ${new Date(s.submitted_at).toLocaleDateString('fr-FR')}</p>
+        ${s.content?`<p style="font-size:.8rem;color:#374151;margin-bottom:8px">${s.content}</p>`:''}
+        ${s.file_url?`<a href="${s.file_url}" target="_blank" style="font-size:.75rem;color:#ea580c;font-weight:700">📎 Voir le fichier</a>`:''}
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+          <input type="number" min="0" max="20" step="0.25" placeholder="Note /20" value="${s.grade??''}" id="grade-${s.id}" class="fld" style="width:90px"/>
+          <button onclick="gradeSubmission('${s.id}')" class="btn bp bsm">Noter</button>
+        </div>
+      </div>`).join('');
+  }
+  showM('m-proj-subs');
+}
+
+async function gradeSubmission(id){
+  const grade=document.getElementById(`grade-${id}`).value;
+  if(grade===''||isNaN(grade)){toast('Entrez une note valide.','err');return;}
+  const d=await api(`/projects/submissions/${id}/grade`,{method:'PUT',body:JSON.stringify({grade:parseFloat(grade)})});
+  if(d?.success) toast('✅ Note enregistrée.');
+  else if(d) toast(d.message||'Erreur.','err');
+}
 
 // ══════════════════════════════════════════════
 //  DEVOIRS & QUIZ
