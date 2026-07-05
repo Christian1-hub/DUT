@@ -290,7 +290,6 @@ document.head.appendChild(spinStyle);
 }
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:99px}
 /* Error banner */
-#err-banner{display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:14px 16px;margin-bottom:20px}
 
 /* ── RESPONSIVE GLOBAL ─────────────────────────────── */
 @media (max-width: 768px) {
@@ -400,22 +399,6 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
 
 <main class="md:ml-56 pb-24 md:pb-8" style="padding-top:52px;min-height:100vh">
 <div style="max-width:920px;margin:0 auto;padding:24px 16px">
-
-<!-- Bannière d'erreur -->
-<div id="err-banner">
-  <div style="display:flex;align-items:flex-start;gap:10px">
-    <span class="ms" style="color:#dc2626;flex-shrink:0">warning</span>
-    <div>
-      <p style="font-weight:700;color:#991b1b;margin-bottom:4px" id="err-title">Erreur de connexion</p>
-      <p style="font-size:.8rem;color:#b91c1c" id="err-msg">—</p>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <button onclick="fixRole()" class="btn bsm" style="background:#dc2626;color:#fff">Réparer le rôle</button>
-        <button onclick="doLogout()" class="btn bsm bg">Se reconnecter</button>
-        <a href="debug.html" class="btn bsm bg">Ouvrir le debug</a>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- DASHBOARD -->
 <div id="sec-dashboard" class="sec on">
@@ -956,10 +939,6 @@ async function bootstrap() {
       // Mettre à jour le token (contient le rôle à jour)
       if (d.token) { localStorage.setItem('camunolearn_token', d.token); }
       ME = d.user;
-      // Vérifier que c'est bien un enseignant
-      if (ME.role !== 'enseignant' && ME.role !== 'admin') {
-        showErr('Rôle incorrect', `Votre compte a le rôle "${ME.role}". Cliquez sur "Réparer le rôle" pour vous définir comme enseignant.`);
-      }
       updateSidebar();
       await loadDashboard();
       loadNotifications();
@@ -971,35 +950,13 @@ async function bootstrap() {
     }
   } catch(e) {
     // Serveur non accessible
-    showErr('Serveur inaccessible', `Impossible de joindre le serveur. Vérifiez que le backend tourne sur le port 3000.`);
     document.getElementById('greet').textContent = 'Serveur non connecté';
     document.getElementById('greet-sub').textContent = 'Lancez le backend avec: cd backend && node src/app.js';
   }
 }
 
-// Réparer le rôle depuis le frontend
-async function fixRole() {
-  try {
-    const r = await fetch(`${API}/auth/role`, {
-      method: 'PUT',
-      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${TK()}` },
-      body: JSON.stringify({ role: 'enseignant' })
-    });
-    const d = await r.json();
-    if (r.ok && d.token) {
-      localStorage.setItem('camunolearn_token', d.token);
-      const user = JSON.parse(localStorage.getItem('camunolearn_user')||'{}');
-      user.role = 'enseignant'; localStorage.setItem('camunolearn_user', JSON.stringify(user));
-      localStorage.setItem('userRole','enseignant');
-      document.getElementById('err-banner').style.display = 'none';
-      toast('Rôle réparé ! Rechargement...');
-      setTimeout(() => location.reload(), 1500);
-    } else toast('Erreur réparation. Reconnectez-vous.','err');
-  } catch(e) { toast('Serveur non accessible.','err'); }
-}
-
 // ══════════════════════════════════════════════
-//  API — auto-retry avec token refresh
+//  API
 // ══════════════════════════════════════════════
 async function api(path, opts = {}) {
   try {
@@ -1012,20 +969,14 @@ async function api(path, opts = {}) {
     // Sauvegarder automatiquement tout nouveau token reçu
     if (data?.token) { localStorage.setItem('camunolearn_token', data.token); }
     if (r.status === 403) {
-      showErr('Accès refusé (403)', `${data.message} — Le token ne contient pas le bon rôle. Cliquez "Réparer le rôle".`);
+      toast(data.message || 'Accès refusé.', 'err');
       return null;
     }
     return data;
   } catch(e) {
-    showErr('Erreur réseau', 'Impossible de joindre le serveur. Vérifiez que node src/app.js tourne sur le port 3000.');
+    toast('Serveur non accessible.', 'err');
     return null;
   }
-}
-
-function showErr(title, msg) {
-  document.getElementById('err-banner').style.display = 'block';
-  document.getElementById('err-title').textContent = title;
-  document.getElementById('err-msg').textContent = msg;
 }
 
 // ══════════════════════════════════════════════
@@ -1118,7 +1069,7 @@ function updateSidebar() {
 async function loadDashboard() {
   const d = await api('/teacher/dashboard');
   if (!d) return;
-  if (!d.success) { showErr('Erreur dashboard', d.message||'Erreur inconnue'); return; }
+  if (!d.success) { toast(d.message||'Erreur inconnue', 'err'); return; }
   ME = d.user;
   updateSidebar();
 
@@ -1579,14 +1530,18 @@ async function loadAttendanceStats(){
   const d=await api(`/attendance/course/${attCourseId}/stats`);
   const el=document.getElementById('att-stats-list');
   if(!d?.success){ el.innerHTML=''; return; }
-  if(!d.stats.length){ el.innerHTML='<p style="font-size:.8rem;color:#9ca3af">Aucun étudiant inscrit à ce cours.</p>'; return; }
-  el.innerHTML=d.stats.map(s=>{
+  if(!d.stats.length){ el.innerHTML='<p style="font-size:.8rem;color:#9ca3af">Aucun étudiant inscrit à ce cours. Vérifiez que des étudiants sont bien rattachés à ce cours (filière/école) avant de créer une séance.</p>'; return; }
+  const noSessions = d.stats.every(s => parseInt(s.total_sessions) === 0);
+  el.innerHTML = (noSessions ? `<p style="font-size:.8rem;color:#9ca3af;margin-bottom:10px">Aucune séance créée pour ce cours pour l'instant — cliquez sur "Nouvelle séance" pour commencer à suivre les présences.</p>` : '')
+    + d.stats.map(s=>{
     const total=parseInt(s.present)+parseInt(s.absent)+parseInt(s.late)+parseInt(s.excused);
+    const totalSessions=parseInt(s.total_sessions);
     const rate=total>0?Math.round((parseInt(s.present)+parseInt(s.late))/total*100):null;
     const col=rate===null?'#9ca3af':rate>=80?'#16a34a':rate>=50?'#d97706':'#dc2626';
+    const detail = totalSessions===0 ? 'aucune séance' : `${total}/${totalSessions} séances`;
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6">
       <span style="font-size:.85rem;font-weight:600;color:#111">${s.first_name} ${s.last_name}</span>
-      <span style="font-size:.8rem;font-weight:700;color:${col}">${rate===null?'—':rate+'%'} <span style="color:#9ca3af;font-weight:500">(${total}/${s.total_sessions} séances)</span></span>
+      <span style="font-size:.8rem;font-weight:700;color:${col}">${rate===null?'—':rate+'%'} <span style="color:#9ca3af;font-weight:500">(${detail})</span></span>
     </div>`;
   }).join('');
 }

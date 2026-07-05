@@ -771,7 +771,7 @@ async function api(path, opts = {}) {
       headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${TK()}`, ...(opts.headers||{}) }
     });
     if (r.status === 401) { doLogout(); return null; }
-    if (r.status === 403) { toast('Accès réservé aux administrateurs.','err'); doLogout(); return null; }
+    if (r.status === 403) { toast('Accès refusé.','err'); return null; }
     return r.json();
   } catch(e) { toast('Erreur réseau.','err'); return null; }
 }
@@ -780,7 +780,6 @@ async function loadMe() {
   const d = await api('/auth/me');
   if (!d?.success) return;
   const u = d.user;
-  if (u.role !== 'admin') { doLogout(); return; }
   const url = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.first_name+' '+u.last_name)}&background=004a77&color=fff`;
   document.getElementById('side-av').src  = url;
   document.getElementById('top-av').src   = url;

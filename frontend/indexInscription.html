@@ -343,6 +343,7 @@ async function submitIdentity() {
       token = d.token;
       localStorage.setItem('camunolearn_token', token);
       localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
+      sessionStorage.setItem('camunolearn_onboarding', '1');
       computeFlow();
       goStep('role');
     } else {
@@ -548,6 +549,7 @@ async function saveSchool(body) {
 }
 
 function redirectToDashboard(role) {
+  sessionStorage.removeItem('camunolearn_onboarding');
   const routes = { admin:'indexADMIN.html', enseignant:'indexEnseignant.html', etudiant:'indexETUDIANT.html', superadmin:'indexSUPERADMIN.html' };
   location.href = routes[role] || 'indexETUDIANT.html';
 }
@@ -561,15 +563,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   const prefillEmail = params.get('email');
   if (prefillEmail) document.getElementById('emailInput').value = prefillEmail;
 
-  if (!token) {
+  // Un token peut traîner dans ce navigateur sans que ce soit CETTE personne
+  // qui est en train de s'inscrire (ex: un prof reste connecté sur l'ordi,
+  // et un étudiant vient s'inscrire juste après sur le même appareil).
+  // On ne réutilise donc un token existant QUE si ce même onglet a
+  // explicitement démarré/continué cette inscription (sessionStorage,
+  // jamais partagé entre personnes ni persistant après fermeture de l'onglet).
+  const continuingOnboarding = sessionStorage.getItem('camunolearn_onboarding') === '1';
+
+  if (!token || !continuingOnboarding) {
+    localStorage.removeItem('camunolearn_token');
+    localStorage.removeItem('camunolearn_user');
+    token = null;
     freshSignup = true;
     computeFlow();
     goStep('identity');
     return;
   }
 
-  // Un token existe déjà : compte créé mais profil incomplet
-  // (ex: activation par PIN, ou inscription interrompue) → sauter l'étape identité
+  // Ici : on sait que c'est bien cette personne qui continue volontairement
+  // son inscription dans cet onglet (ex: activation par PIN, ou étape école
+  // interrompue) → on peut sauter l'étape identité en confiance.
   freshSignup = false;
   try {
     const r = await fetch(API_BASE + '/auth/me', { headers: { Authorization: 'Bearer ' + token } });

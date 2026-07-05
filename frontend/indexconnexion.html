@@ -247,6 +247,10 @@ function hideLoader() {
 function redirectAfterLogin(user, needsSchool) {
     if (needsSchool) {
         showLoader('Bienvenue !', 'Complétez votre profil...');
+        // Signale à indexInscription.html que c'est bien CETTE personne, dans
+        // CET onglet, qui continue son propre profil (évite qu'un token
+        // laissé par quelqu'un d'autre sur ce navigateur soit récupéré).
+        sessionStorage.setItem('camunolearn_onboarding', '1');
         setTimeout(() => {
             window.location.href = 'indexInscription.html';
         }, 1000);

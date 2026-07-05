@@ -252,6 +252,7 @@ async function activateAccount() {
       const role = d.user.role;
       let redirect = 'indexInscription.html';
       if (role === 'admin') redirect = 'indexADMIN.html';
+      if (redirect === 'indexInscription.html') sessionStorage.setItem('camunolearn_onboarding', '1');
       setTimeout(() => location.href = redirect, 3200);
     } else {
       // Erreur PIN
