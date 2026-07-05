@@ -148,7 +148,7 @@ async function uploadAndSetAvatar(file, apiBase, getToken) {
       body: JSON.stringify({ avatar_url: avatarUrl })
     });
     var saved = await save.json();
-    if (saved && saved.token) localStorage.setItem('camunolearn_token', saved.token);
+    if (saved && saved.token) saveTK(saved.token);
 
     return avatarUrl;
 
@@ -368,6 +368,10 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
     <button class="nb" data-s="communities" onclick="goTo('communities')"><span class="ms">forum</span>Communautés</button>
     <button class="nb" data-s="attendance" onclick="goTo('attendance')"><span class="ms">fact_check</span>Présences</button>
     <button class="nb" data-s="projects" onclick="goTo('projects')"><span class="ms">workspaces</span>Projets académiques</button>
+    <button class="nb" data-s="resources" onclick="goTo('resources')"><span class="ms">folder_open</span>Ressources</button>
+    <button class="nb" data-s="messages" onclick="goTo('messages')"><span class="ms">chat</span>Messagerie<span id="msg-nav-bdg" style="display:none;margin-left:auto;background:#dc2626;color:#fff;font-size:.65rem;font-weight:800;border-radius:999px;padding:1px 6px"></span></button>
+    <button class="nb" data-s="certificates" onclick="goTo('certificates')"><span class="ms">workspace_premium</span>Attestations</button>
+    <button class="nb" data-s="schedule" onclick="goTo('schedule')"><span class="ms">calendar_view_week</span>Emploi du temps</button>
     <button class="nb" data-s="notifications" onclick="goTo('notifications')"><span class="ms">notifications</span>Notifications</button>
     <button class="nb" data-s="stats" onclick="goTo('stats')"><span class="ms">analytics</span>Statistiques</button>
     <button class="nb" data-s="calendrier" onclick="location.href='indexCalendrier.html'"><span class="ms">calendar_month</span>Calendrier</button>
@@ -531,6 +535,61 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
     <span class="ms" style="font-size:48px;color:#d1d5db">workspaces</span>
     <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucun projet créé</p>
     <button onclick="openProjectCreate()" class="btn bp" style="margin-top:16px"><span class="ms">add</span>Nouveau projet</button>
+  </div>
+</div>
+
+<!-- RESSOURCES -->
+<div id="sec-resources" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Bibliothèque de ressources</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Partagez documents et liens avec vos étudiants</p></div>
+    <button onclick="openResourceCreate()" class="btn bp"><span class="ms">add</span>Ajouter une ressource</button>
+  </div>
+  <div id="res-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"><div class="sk" style="height:100px"></div></div>
+  <div id="res-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">folder_open</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune ressource publiée</p>
+    <button onclick="openResourceCreate()" class="btn bp" style="margin-top:16px"><span class="ms">add</span>Ajouter une ressource</button>
+  </div>
+</div>
+
+<!-- MESSAGERIE -->
+<div id="sec-messages" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Messagerie</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Discutez avec vos étudiants et l'administration</p></div>
+    <button onclick="openNewConv()" class="btn bp bsm"><span class="ms">edit</span>Nouveau message</button>
+  </div>
+  <div id="conv-list" style="display:flex;flex-direction:column;gap:8px"><div class="sk" style="height:64px"></div></div>
+  <div id="conv-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">chat</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune conversation pour l'instant</p>
+  </div>
+</div>
+
+<!-- ATTESTATIONS -->
+<div id="sec-certificates" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Attestations</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Émettez des certificats numériques à vos étudiants</p></div>
+    <button onclick="openCertIssue()" class="btn bp"><span class="ms">add</span>Émettre une attestation</button>
+  </div>
+  <div id="cert-list" style="display:flex;flex-direction:column;gap:10px"><div class="sk" style="height:70px"></div></div>
+  <div id="cert-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">workspace_premium</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune attestation émise</p>
+    <button onclick="openCertIssue()" class="btn bp" style="margin-top:16px"><span class="ms">add</span>Émettre une attestation</button>
+  </div>
+</div>
+
+<!-- EMPLOI DU TEMPS -->
+<div id="sec-schedule" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Emploi du temps</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Vos créneaux hebdomadaires récurrents</p></div>
+    <button onclick="openSchedCreate()" class="btn bp"><span class="ms">add</span>Ajouter un créneau</button>
+  </div>
+  <div id="sched-list" style="display:flex;flex-direction:column;gap:10px"><div class="sk" style="height:60px"></div></div>
+  <div id="sched-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#d1d5db">calendar_view_week</span>
+    <p style="font-weight:700;color:#6b7280;margin-top:12px">Aucun créneau programmé</p>
+    <button onclick="openSchedCreate()" class="btn bp" style="margin-top:16px"><span class="ms">add</span>Ajouter un créneau</button>
   </div>
 </div>
 
@@ -838,6 +897,118 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
   </div>
 </div>
 
+<!-- Ressource -->
+<div id="m-resource" class="ov" onclick="if(event.target===this)hideM('m-resource')">
+  <div class="mbox" style="max-width:520px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Ajouter une ressource</h3>
+      <button onclick="hideM('m-resource')" style="border:none;background:none;cursor:pointer;color:#9ca3af"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Titre *</label><input id="res-ttl" type="text" placeholder="Ex: Poly de cours — Chapitre 3" class="fld"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Catégorie</label><select id="res-cat" class="fld"><option value="cours">Cours</option><option value="td">TD</option><option value="correction">Correction</option><option value="livre">Livre</option><option value="autre">Autre</option></select></div>
+        <div><label class="lbl">Cours associé</label><select id="res-course" class="fld"><option value="">Général (toute la filière)</option></select></div>
+      </div>
+      <div><label class="lbl">Description</label><textarea id="res-desc" rows="2" class="fld" style="resize:none"></textarea></div>
+      <div><label class="lbl">Lien externe (optionnel)</label><input id="res-link" type="url" placeholder="https://..." class="fld"/></div>
+      <div>
+        <label class="lbl">Fichier (optionnel si lien renseigné)</label>
+        <div class="upz" onclick="document.getElementById('res-file').click()"><span class="ms" style="font-size:26px;color:#d1d5db">upload_file</span><p style="font-size:.8rem;color:#6b7280;margin-top:5px" id="res-file-label">Choisir un fichier</p></div>
+        <input type="file" id="res-file" style="display:none" onchange="onFileChange('res-file','res-file-label')"/>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-resource')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitResource()" id="res-btn" class="btn bp" style="flex:1">Publier</button>
+    </div>
+  </div>
+</div>
+
+<!-- Attestation -->
+<div id="m-cert" class="ov" onclick="if(event.target===this)hideM('m-cert')">
+  <div class="mbox" style="max-width:480px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Émettre une attestation</h3>
+      <button onclick="hideM('m-cert')" style="border:none;background:none;cursor:pointer;color:#9ca3af"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Étudiant *</label><select id="cert-student" class="fld"><option value="">Choisir un étudiant...</option></select></div>
+      <div><label class="lbl">Titre de l'attestation *</label><input id="cert-ttl" type="text" placeholder="Ex: Attestation de réussite — Algorithmique" class="fld"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Cours associé</label><select id="cert-course" class="fld"><option value="">Aucun cours spécifique</option></select></div>
+        <div><label class="lbl">Note (optionnel)</label><input id="cert-grade" type="number" min="0" max="20" step="0.25" placeholder="/20" class="fld"/></div>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-cert')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitCertIssue()" id="cert-btn" class="btn bp" style="flex:1">Émettre</button>
+    </div>
+  </div>
+</div>
+
+<!-- Créneau emploi du temps -->
+<div id="m-sched" class="ov" onclick="if(event.target===this)hideM('m-sched')">
+  <div class="mbox" style="max-width:480px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 id="sched-modal-title" style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Ajouter un créneau</h3>
+      <button onclick="hideM('m-sched')" style="border:none;background:none;cursor:pointer;color:#9ca3af"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Cours *</label><select id="sched-course" class="fld"></select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Jour *</label><select id="sched-day" class="fld">
+          <option value="0">Lundi</option><option value="1">Mardi</option><option value="2">Mercredi</option>
+          <option value="3">Jeudi</option><option value="4">Vendredi</option><option value="5">Samedi</option><option value="6">Dimanche</option>
+        </select></div>
+        <div><label class="lbl">Salle</label><input id="sched-room" type="text" placeholder="Ex: Salle B12" class="fld"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Heure de début *</label><input id="sched-start" type="time" class="fld"/></div>
+        <div><label class="lbl">Heure de fin *</label><input id="sched-end" type="time" class="fld"/></div>
+      </div>
+    </div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-sched')" class="btn bg" style="flex:1">Annuler</button>
+      <button onclick="submitSched()" id="sched-btn" class="btn bp" style="flex:1">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Nouvelle conversation -->
+<div id="m-new-conv" class="ov" onclick="if(event.target===this)hideM('m-new-conv')">
+  <div class="mbox" style="max-width:420px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Nouveau message</h3>
+      <button onclick="hideM('m-new-conv')" style="border:none;background:none;cursor:pointer;color:#9ca3af"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:16px 22px;max-height:50vh;overflow-y:auto" id="contact-list">
+      <div class="sk" style="height:44px;margin-bottom:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Conversation -->
+<div id="m-chat" class="ov" onclick="if(event.target===this)hideM('m-chat')">
+  <div class="mbox" style="max-width:480px;display:flex;flex-direction:column;height:70vh">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f3f4f6;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <img id="chat-av" src="" style="width:36px;height:36px;border-radius:50%;object-fit:cover"/>
+        <div>
+          <h3 id="chat-name" style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#111">—</h3>
+          <p id="chat-role" style="font-size:.7rem;color:#9ca3af"></p>
+        </div>
+      </div>
+      <button onclick="hideM('m-chat')" style="border:none;background:none;cursor:pointer;color:#9ca3af"><span class="ms">close</span></button>
+    </div>
+    <div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px"></div>
+    <div style="display:flex;gap:8px;padding:14px 16px;border-top:1px solid #f3f4f6;flex-shrink:0">
+      <input id="chat-input" type="text" placeholder="Écrire un message..." class="fld" style="flex:1" onkeydown="if(event.key==='Enter')sendChatMessage()"/>
+      <button onclick="sendChatMessage()" class="btn bp bsm"><span class="ms">send</span></button>
+    </div>
+  </div>
+</div>
+
 <!-- Rendus de projet -->
 <div id="m-proj-subs" class="ov" onclick="if(event.target===this)hideM('m-proj-subs')">
   <div class="mbox" style="max-width:500px;max-height:85vh;display:flex;flex-direction:column">
@@ -888,13 +1059,27 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
 // ══════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════
-const TK = () => localStorage.getItem('camunolearn_token');
+// Un token présent dans localStorage est PARTAGÉ entre tous les onglets du
+// même navigateur : si quelqu'un d'autre se connecte dans un autre onglet
+// (ex: un superadmin), ce token change pour tout le monde. On "épingle" donc
+// le token de CET onglet dans sessionStorage (jamais partagé) dès le
+// chargement, pour que cet onglet garde sa propre identité même si
+// localStorage change ensuite ailleurs.
+if (!sessionStorage.getItem('camunolearn_token') && localStorage.getItem('camunolearn_token')) {
+  sessionStorage.setItem('camunolearn_token', localStorage.getItem('camunolearn_token'));
+}
+const TK = () => sessionStorage.getItem('camunolearn_token') || localStorage.getItem('camunolearn_token');
+function saveTK(t) {
+  if (!t) return;
+  sessionStorage.setItem('camunolearn_token', t);
+  localStorage.setItem('camunolearn_token', t);
+}
 let ME = null, CLASSES = [], COURSES = [], loaded = {}, editCourseId = null, currentClassId = null;
 let assignMode = 'devoir', quizCount = 0;
 let PROJECTS = [], NOTIFS = [], editProjectId = null;
 let courseViewMode = 'grid', flyerIndex = 0;
 let attCourseId = null, attRoster = [], editingSessionId = null;
-const TITLES = {dashboard:'Vue d\'ensemble',classes:'Mes Classes',courses:'Mes Cours',assignments:'Devoirs & Quiz',communities:'Communautés',attendance:'Présences',projects:'Projets académiques',notifications:'Notifications',stats:'Statistiques',crossrequests:'Demandes Inter-Universités',profile:'Mon Profil'};
+const TITLES = {dashboard:'Vue d\'ensemble',classes:'Mes Classes',courses:'Mes Cours',assignments:'Devoirs & Quiz',communities:'Communautés',attendance:'Présences',projects:'Projets académiques',resources:'Bibliothèque de ressources',messages:'Messagerie',certificates:'Attestations',schedule:'Emploi du temps',notifications:'Notifications',stats:'Statistiques',crossrequests:'Demandes Inter-Universités',profile:'Mon Profil'};
 
 // ══════════════════════════════════════════════
 //  INIT — avec auto-réparation du rôle
@@ -937,11 +1122,12 @@ async function bootstrap() {
     const d = await r.json();
     if (r.ok && d.success) {
       // Mettre à jour le token (contient le rôle à jour)
-      if (d.token) { localStorage.setItem('camunolearn_token', d.token); }
+      if (d.token) { saveTK(d.token); }
       ME = d.user;
       updateSidebar();
       await loadDashboard();
       loadNotifications();
+      loadConversations();
     } else if (r.status === 401) {
       doLogout();
     } else {
@@ -967,7 +1153,7 @@ async function api(path, opts = {}) {
     if (r.status === 401) { doLogout(); return null; }
     const data = await r.json();
     // Sauvegarder automatiquement tout nouveau token reçu
-    if (data?.token) { localStorage.setItem('camunolearn_token', data.token); }
+    if (data?.token) { saveTK(data.token); }
     if (r.status === 403) {
       toast(data.message || 'Accès refusé.', 'err');
       return null;
@@ -1003,6 +1189,10 @@ function goTo(s) {
   if (s==='crossrequests'&&!loaded.crossrequests) loadCrossRequests();
   if (s==='attendance'&&!loaded.attendance) loadAttendance();
   if (s==='projects'&&!loaded.projects) loadProjects();
+  if (s==='resources'&&!loaded.resources) loadResources();
+  if (s==='messages') loadConversations();
+  if (s==='certificates'&&!loaded.certificates) loadCertificates();
+  if (s==='schedule'&&!loaded.schedule) loadSchedule();
   if (s==='notifications') loadNotifications();
   if (s === 'dashboard') loadUpcomingEventsTeacher();
 }
@@ -1706,6 +1896,287 @@ async function deleteProject(id){
   if(d?.success){ loaded.projects=false; await loadProjects(); }
 }
 
+// ══════════════════════════════════════════════════════
+//  BIBLIOTHÈQUE DE RESSOURCES
+// ══════════════════════════════════════════════════════
+let RESOURCES = [];
+const RES_ICONS = { cours:'menu_book', td:'edit_note', correction:'fact_check', livre:'auto_stories', autre:'description' };
+
+async function loadResources(){
+  if(!loaded.courses) await loadCourses();
+  const d = await api('/resources/teacher');
+  if(!d?.success) return;
+  RESOURCES = d.resources; loaded.resources = true;
+  const el = document.getElementById('res-list'), empty = document.getElementById('res-empty');
+  if(!RESOURCES.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML = RESOURCES.map(r => `
+    <div class="card" style="padding:16px">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+        <div style="display:flex;gap:10px;align-items:flex-start;min-width:0">
+          <span class="ms" style="font-size:20px;color:#ea580c;background:#fff7ed;padding:7px;border-radius:8px;flex-shrink:0">${RES_ICONS[r.category]||'description'}</span>
+          <div style="min-width:0">
+            <h3 style="font-family:Manrope;font-weight:800;font-size:.9rem;color:#111;word-break:break-word">${r.title}</h3>
+            <p style="font-size:.7rem;color:#9ca3af;margin-top:2px">${r.course_title||'Général'} · ${r.downloads_count||0} téléchargement${r.downloads_count!=1?'s':''}</p>
+          </div>
+        </div>
+        <button onclick="deleteResource('${r.id}')" style="border:none;background:transparent;cursor:pointer;color:#d1d5db;flex-shrink:0"><span class="ms" style="font-size:18px">delete</span></button>
+      </div>
+    </div>`).join('');
+}
+
+async function openResourceCreate(){
+  ['res-ttl','res-desc','res-link'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('res-cat').value='cours';
+  document.getElementById('res-file').value=''; document.getElementById('res-file-label').textContent='Choisir un fichier';
+  if(!loaded.courses) await loadCourses();
+  syncSel('res-course',COURSES,'id','title','Général (toute la filière)',c=>`${c.title}${c.filiere?' ('+c.filiere+')':''}`);
+  showM('m-resource');
+}
+
+async function submitResource(){
+  const title = document.getElementById('res-ttl').value.trim();
+  const category = document.getElementById('res-cat').value;
+  const course_id = document.getElementById('res-course').value || null;
+  const description = document.getElementById('res-desc').value.trim();
+  const link_url = document.getElementById('res-link').value.trim();
+  const file = document.getElementById('res-file').files[0];
+  if(!title){ toast('Le titre est obligatoire.','err'); return; }
+  if(!file && !link_url){ toast('Ajoutez un fichier ou un lien.','err'); return; }
+  const btn = document.getElementById('res-btn'); btn.disabled=true; btn.textContent='Publication...';
+  let file_url = null;
+  if(file) file_url = await uploadCloudinary(file,null,null,null);
+  const d = await api('/resources', {method:'POST', body: JSON.stringify({title,category,course_id,description,link_url:link_url||null,file_url})});
+  btn.disabled=false; btn.textContent='Publier';
+  if(d?.success){ hideM('m-resource'); loaded.resources=false; await loadResources(); toast('✅ Ressource publiée.'); }
+  else if(d) toast(d.message||'Erreur.','err');
+}
+
+async function deleteResource(id){
+  if(!confirm('Supprimer cette ressource ?')) return;
+  const d = await api(`/resources/${id}`, {method:'DELETE'});
+  if(d?.success){ loaded.resources=false; await loadResources(); }
+}
+
+// ══════════════════════════════════════════════════════
+//  ATTESTATIONS / CERTIFICATS
+// ══════════════════════════════════════════════════════
+async function loadCertificates(){
+  const d = await api('/certificates/teacher');
+  if(!d?.success) return;
+  loaded.certificates = true;
+  const el = document.getElementById('cert-list'), empty = document.getElementById('cert-empty');
+  if(!d.certificates.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML = d.certificates.map(c => `
+    <div class="card" style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;${c.status==='revoked'?'opacity:.55':''}">
+      <div style="display:flex;gap:10px;align-items:center;min-width:0">
+        <span class="ms" style="font-size:24px;color:#d97706">workspace_premium</span>
+        <div style="min-width:0">
+          <p style="font-weight:700;font-size:.85rem;color:#111">${c.title}</p>
+          <p style="font-size:.7rem;color:#9ca3af">${c.student_name} · <code>${c.certificate_number}</code></p>
+        </div>
+      </div>
+      ${c.status==='revoked'
+        ? '<span class="bdg" style="background:#fef2f2;color:#dc2626">Révoquée</span>'
+        : `<button onclick="revokeCert('${c.id}')" class="btn bg bsm">Révoquer</button>`}
+    </div>`).join('');
+}
+
+async function openCertIssue(){
+  document.getElementById('cert-ttl').value=''; document.getElementById('cert-grade').value='';
+  if(!SCHOOL_ROSTER.length) await api('/teacher/school-students').then(d=>{ if(d?.success) SCHOOL_ROSTER=d.students; });
+  syncSel('cert-student',SCHOOL_ROSTER,'id','id','Choisir un étudiant...',s=>`${s.first_name} ${s.last_name}${s.filiere?' — '+s.filiere:''}`);
+  if(!loaded.courses) await loadCourses();
+  syncSel('cert-course',COURSES,'id','title','Aucun cours spécifique',c=>`${c.title}`);
+  showM('m-cert');
+}
+
+async function submitCertIssue(){
+  const student_id = document.getElementById('cert-student').value;
+  const title = document.getElementById('cert-ttl').value.trim();
+  const course_id = document.getElementById('cert-course').value || null;
+  const grade = document.getElementById('cert-grade').value || null;
+  if(!student_id || !title){ toast('Étudiant et titre requis.','err'); return; }
+  const btn = document.getElementById('cert-btn'); btn.disabled=true; btn.textContent='Émission...';
+  const d = await api('/certificates', {method:'POST', body: JSON.stringify({student_id,title,course_id,grade})});
+  btn.disabled=false; btn.textContent='Émettre';
+  if(d?.success){ hideM('m-cert'); loaded.certificates=false; await loadCertificates(); toast('✅ Attestation émise.'); }
+  else if(d) toast(d.message||'Erreur.','err');
+}
+
+async function revokeCert(id){
+  if(!confirm('Révoquer cette attestation ?')) return;
+  const d = await api(`/certificates/${id}/revoke`, {method:'PUT'});
+  if(d?.success){ loaded.certificates=false; await loadCertificates(); }
+}
+
+// ══════════════════════════════════════════════════════
+//  EMPLOI DU TEMPS
+// ══════════════════════════════════════════════════════
+const SCHED_DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+let editSchedId = null;
+
+async function loadSchedule(){
+  if(!loaded.courses) await loadCourses();
+  const d = await api('/schedule/teacher');
+  if(!d?.success) return;
+  loaded.schedule = true;
+  window.SCHEDULE_SLOTS = d.slots;
+  const el = document.getElementById('sched-list'), empty = document.getElementById('sched-empty');
+  if(!d.slots.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML = d.slots.map(s => `
+    <div class="card" style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div>
+        <p style="font-weight:700;font-size:.85rem;color:#111">${s.course_title} <span style="color:#9ca3af;font-weight:600">· ${SCHED_DAYS[s.day_of_week]}</span></p>
+        <p style="font-size:.75rem;color:#9ca3af">${s.start_time.slice(0,5)} – ${s.end_time.slice(0,5)}${s.room?' · Salle '+s.room:''}</p>
+      </div>
+      <div style="display:flex;gap:2px">
+        <button onclick="openSchedEdit('${s.id}')" style="border:none;background:transparent;cursor:pointer;color:#d1d5db"><span class="ms" style="font-size:18px">edit</span></button>
+        <button onclick="deleteSched('${s.id}')" style="border:none;background:transparent;cursor:pointer;color:#d1d5db"><span class="ms" style="font-size:18px">delete</span></button>
+      </div>
+    </div>`).join('');
+}
+
+async function openSchedCreate(){
+  editSchedId = null;
+  document.getElementById('sched-modal-title').textContent = 'Ajouter un créneau';
+  document.getElementById('sched-btn').textContent = 'Enregistrer';
+  ['sched-room','sched-start','sched-end'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sched-day').value = '0';
+  if(!loaded.courses) await loadCourses();
+  syncSel('sched-course',COURSES,'id','title','Choisir un cours...',c=>`${c.title}${c.filiere?' ('+c.filiere+')':''}`);
+  showM('m-sched');
+}
+
+function openSchedEdit(id){
+  const s = (window.SCHEDULE_SLOTS||[]).find(x=>x.id===id);
+  if(!s) return;
+  editSchedId = id;
+  document.getElementById('sched-modal-title').textContent = 'Modifier le créneau';
+  document.getElementById('sched-btn').textContent = 'Enregistrer';
+  syncSel('sched-course',COURSES,'id','title','Choisir un cours...',c=>`${c.title}${c.filiere?' ('+c.filiere+')':''}`);
+  document.getElementById('sched-course').value = s.course_id;
+  document.getElementById('sched-day').value = s.day_of_week;
+  document.getElementById('sched-room').value = s.room||'';
+  document.getElementById('sched-start').value = s.start_time.slice(0,5);
+  document.getElementById('sched-end').value = s.end_time.slice(0,5);
+  showM('m-sched');
+}
+
+async function submitSched(){
+  const course_id = document.getElementById('sched-course').value;
+  const day_of_week = document.getElementById('sched-day').value;
+  const room = document.getElementById('sched-room').value.trim();
+  const start_time = document.getElementById('sched-start').value;
+  const end_time = document.getElementById('sched-end').value;
+  if(!course_id || !start_time || !end_time){ toast('Cours et horaires requis.','err'); return; }
+  const btn = document.getElementById('sched-btn'); btn.disabled=true; btn.textContent='Enregistrement...';
+  const body = { course_id, day_of_week, start_time, end_time, room: room||null };
+  const d = editSchedId
+    ? await api(`/schedule/${editSchedId}`, {method:'PUT', body: JSON.stringify(body)})
+    : await api('/schedule', {method:'POST', body: JSON.stringify(body)});
+  btn.disabled=false; btn.textContent='Enregistrer';
+  if(d?.success){ hideM('m-sched'); loaded.schedule=false; await loadSchedule(); toast(`✅ Créneau ${editSchedId?'modifié':'ajouté'}.`); }
+  else if(d) toast(d.message||'Erreur.','err');
+}
+
+async function deleteSched(id){
+  if(!confirm('Supprimer ce créneau ?')) return;
+  const d = await api(`/schedule/${id}`, {method:'DELETE'});
+  if(d?.success){ loaded.schedule=false; await loadSchedule(); }
+}
+
+// ══════════════════════════════════════════════════════
+//  MESSAGERIE DIRECTE
+// ══════════════════════════════════════════════════════
+let CONVERSATIONS = [], currentConvId = null;
+
+async function loadConversations(){
+  const d = await api('/messages/conversations');
+  if(!d?.success) return;
+  CONVERSATIONS = d.conversations;
+  const totalUnread = CONVERSATIONS.reduce((s,c)=>s+parseInt(c.unread_count||0),0);
+  const bdg = document.getElementById('msg-nav-bdg');
+  if(bdg){ bdg.style.display = totalUnread ? 'inline-block' : 'none'; bdg.textContent = totalUnread; }
+
+  const el = document.getElementById('conv-list'), empty = document.getElementById('conv-empty');
+  if(!el) return;
+  if(!CONVERSATIONS.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML = CONVERSATIONS.map(c => `
+    <div class="card" style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="openConversation('${c.id}')">
+      <img src="${c.other_avatar||('https://ui-avatars.com/api/?name='+encodeURIComponent(c.other_name)+'&background=ea580c&color=fff')}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0"/>
+      <div style="min-width:0;flex:1">
+        <div style="display:flex;justify-content:space-between;gap:8px">
+          <p style="font-weight:700;font-size:.85rem;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.other_name}</p>
+          ${c.last_at?`<span style="font-size:.65rem;color:#9ca3af;flex-shrink:0">${new Date(c.last_at).toLocaleDateString('fr-FR')}</span>`:''}
+        </div>
+        <p style="font-size:.75rem;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.last_message||'Nouvelle conversation'}</p>
+      </div>
+      ${parseInt(c.unread_count)?`<span style="background:#ea580c;color:#fff;font-size:.65rem;font-weight:800;border-radius:999px;padding:2px 7px;flex-shrink:0">${c.unread_count}</span>`:''}
+    </div>`).join('');
+}
+
+async function openConversation(convId){
+  currentConvId = convId;
+  const conv = CONVERSATIONS.find(c=>c.id===convId);
+  document.getElementById('chat-name').textContent = conv?.other_name || 'Conversation';
+  document.getElementById('chat-role').textContent = conv?.other_role === 'etudiant' ? 'Étudiant' : (conv?.other_role === 'admin' ? 'Administration' : 'Enseignant');
+  document.getElementById('chat-av').src = conv?.other_avatar || ('https://ui-avatars.com/api/?name='+encodeURIComponent(conv?.other_name||'U')+'&background=ea580c&color=fff');
+  showM('m-chat');
+  await refreshChat();
+}
+
+async function refreshChat(){
+  if(!currentConvId) return;
+  const d = await api(`/messages/conversations/${currentConvId}/messages`);
+  if(!d?.success) return;
+  const box = document.getElementById('chat-messages');
+  box.innerHTML = d.messages.map(m => `
+    <div style="display:flex;justify-content:${m.sender_id===ME.id?'flex-end':'flex-start'}">
+      <div style="max-width:75%;padding:8px 12px;border-radius:12px;font-size:.85rem;${m.sender_id===ME.id?'background:#ea580c;color:#fff;border-bottom-right-radius:3px':'background:#f3f4f6;color:#111;border-bottom-left-radius:3px'}">
+        ${m.content}
+      </div>
+    </div>`).join('');
+  box.scrollTop = box.scrollHeight;
+  loadConversations();
+}
+
+async function sendChatMessage(){
+  const input = document.getElementById('chat-input');
+  const content = input.value.trim();
+  if(!content || !currentConvId) return;
+  input.value = '';
+  const d = await api(`/messages/conversations/${currentConvId}/messages`, {method:'POST', body: JSON.stringify({content})});
+  if(d?.success) await refreshChat();
+  else toast(d?.message||'Erreur d\'envoi.', 'err');
+}
+
+async function openNewConv(){
+  const d = await api('/messages/contacts');
+  const el = document.getElementById('contact-list');
+  if(!d?.success || !d.contacts.length){ el.innerHTML = '<p style="text-align:center;color:#9ca3af;font-size:.85rem;padding:20px">Aucun contact disponible.</p>'; showM('m-new-conv'); return; }
+  el.innerHTML = d.contacts.map(c => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 6px;cursor:pointer;border-radius:8px" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''" onclick="startConversation('${c.id}')">
+      <img src="${c.avatar_url||('https://ui-avatars.com/api/?name='+encodeURIComponent(c.first_name+' '+c.last_name)+'&background=ea580c&color=fff')}" style="width:38px;height:38px;border-radius:50%;object-fit:cover"/>
+      <div>
+        <p style="font-weight:700;font-size:.85rem;color:#111">${c.first_name} ${c.last_name}</p>
+        <p style="font-size:.7rem;color:#9ca3af">${c.role==='etudiant'?'Étudiant':c.role==='admin'?'Administration':'Enseignant'}</p>
+      </div>
+    </div>`).join('');
+  showM('m-new-conv');
+}
+
+async function startConversation(userId){
+  const d = await api('/messages/conversations', {method:'POST', body: JSON.stringify({user_id:userId})});
+  if(!d?.success){ toast(d?.message||'Erreur.', 'err'); return; }
+  hideM('m-new-conv');
+  await loadConversations();
+  openConversation(d.conversation_id);
+}
+
 async function openProjectSubs(id){
   const p=PROJECTS.find(x=>x.id===id);
   const d=await api(`/projects/${id}/submissions`);
@@ -2175,7 +2646,7 @@ function toggleSidebar() {
   if (isOpen) { sb.classList.add('-translate-x-full'); if(ov) ov.style.display='none'; }
   else { sb.classList.remove('-translate-x-full'); if(ov) ov.style.display='block'; }
 }
-function doLogout(){localStorage.clear();location.href='indexconnexion.html';}
+function doLogout(){localStorage.clear();sessionStorage.clear();location.href='indexconnexion.html';}
 document.addEventListener('click',e=>{
   if(!e.target.closest('#notif-drop')&&!e.target.closest('button[onclick="toggleNotif()"]'))document.getElementById('notif-drop').style.display='none';
   if(!e.target.closest('#sidebar')&&!e.target.closest('button[onclick*="sidebar"]'))document.getElementById('sidebar').classList.add('-translate-x-full');
@@ -2194,10 +2665,15 @@ const SECTION_REFRESH = {
   stats:         loadStats,
   attendance:    () => { if (attCourseId) { loadAttendanceStats(); loadAttendanceSessions(); } },
   projects:      loadProjects,
+  resources:     loadResources,
+  certificates:  loadCertificates,
+  schedule:      loadSchedule,
+  messages:      () => { loadConversations(); if(document.getElementById('m-chat').classList.contains('open')) refreshChat(); },
 };
 setInterval(() => {
   if (document.hidden || !ME) return;
   loadNotifications();
+  loadConversations();
   const activeId = document.querySelector('.sec.on')?.id;
   if (!activeId) return;
   const key = activeId.replace('sec-', '');

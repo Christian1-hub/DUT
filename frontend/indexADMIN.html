@@ -348,6 +348,10 @@ if (!tk) location.href = 'indexconnexion.html';
     <button class="nb"    data-s="communities" onclick="goTo('communities')"><span class="ms">forum</span>Communautés</button>
     <button class="nb"    data-s="attendance" onclick="goTo('attendance')"><span class="ms">fact_check</span>Présences</button>
     <button class="nb"    data-s="projects" onclick="goTo('projects')"><span class="ms">workspaces</span>Projets académiques</button>
+    <button class="nb"    data-s="resources" onclick="goTo('resources')"><span class="ms">folder_open</span>Ressources</button>
+    <button class="nb"    data-s="messages" onclick="goTo('messages')"><span class="ms">chat</span>Messagerie<span id="msg-nav-bdg" style="display:none;margin-left:auto;background:#dc2626;color:#fff;font-size:.65rem;font-weight:800;border-radius:999px;padding:1px 6px"></span></button>
+    <button class="nb"    data-s="certificates" onclick="goTo('certificates')"><span class="ms">workspace_premium</span>Attestations</button>
+    <button class="nb"    data-s="schedule" onclick="goTo('schedule')"><span class="ms">calendar_view_week</span>Emploi du temps</button>
     <button class="nb"    data-s="notifications" onclick="goTo('notifications')"><span class="ms">notifications</span>Notifications</button>
   <button class="nb" data-s="calendrier" onclick="location.href='indexCalendrier.html'"><span class="ms">calendar_month</span>Calendrier</button>
   </nav>
@@ -563,6 +567,58 @@ if (!tk) location.href = 'indexconnexion.html';
   </div>
 </div>
 
+<!-- RESSOURCES -->
+<div id="sec-resources" class="sec">
+  <div class="mb-6">
+    <h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#0f172a">Bibliothèque de ressources</h1>
+    <p style="font-size:.875rem;color:#94a3b8;margin-top:2px">Toutes les ressources publiées par les enseignants de l'université</p>
+  </div>
+  <div id="res-ov-list" style="display:flex;flex-direction:column;gap:10px"><div class="sk" style="height:70px"></div></div>
+  <div id="res-ov-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#cbd5e1">folder_open</span>
+    <p style="font-weight:700;color:#64748b;margin-top:12px">Aucune ressource publiée pour l'instant</p>
+  </div>
+</div>
+
+<!-- MESSAGERIE -->
+<div id="sec-messages" class="sec">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#0f172a">Messagerie</h1><p style="font-size:.875rem;color:#94a3b8;margin-top:2px">Discutez avec les enseignants et étudiants de votre université</p></div>
+    <button onclick="openNewConv()" class="btn ba bsm"><span class="ms">edit</span>Nouveau message</button>
+  </div>
+  <div id="conv-list" style="display:flex;flex-direction:column;gap:8px"><div class="sk" style="height:64px"></div></div>
+  <div id="conv-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#cbd5e1">chat</span>
+    <p style="font-weight:700;color:#64748b;margin-top:12px">Aucune conversation pour l'instant</p>
+  </div>
+</div>
+
+<!-- ATTESTATIONS -->
+<div id="sec-certificates" class="sec">
+  <div class="mb-6">
+    <h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#0f172a">Attestations</h1>
+    <p style="font-size:.875rem;color:#94a3b8;margin-top:2px">Toutes les attestations émises dans votre université</p>
+  </div>
+  <div id="cert-ov-list" style="display:flex;flex-direction:column;gap:10px"><div class="sk" style="height:70px"></div></div>
+  <div id="cert-ov-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#cbd5e1">workspace_premium</span>
+    <p style="font-weight:700;color:#64748b;margin-top:12px">Aucune attestation émise pour l'instant</p>
+  </div>
+</div>
+
+<!-- EMPLOI DU TEMPS -->
+<div id="sec-schedule" class="sec">
+  <div class="mb-6">
+    <h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#0f172a">Emploi du temps</h1>
+    <p style="font-size:.875rem;color:#94a3b8;margin-top:2px">Tous les créneaux hebdomadaires de votre université</p>
+  </div>
+  <div id="sched-ov-list" style="display:flex;flex-direction:column;gap:10px"><div class="sk" style="height:60px"></div></div>
+  <div id="sched-ov-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
+    <span class="ms" style="font-size:48px;color:#cbd5e1">calendar_view_week</span>
+    <p style="font-weight:700;color:#64748b;margin-top:12px">Aucun créneau programmé pour l'instant</p>
+  </div>
+</div>
+
 <!-- NOTIFICATIONS -->
 <div id="sec-notifications" class="sec">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
@@ -743,6 +799,40 @@ if (!tk) location.href = 'indexconnexion.html';
   </div>
 </div>
 
+<!-- MODAL NOUVELLE CONVERSATION -->
+<div id="m-new-conv" class="ov" onclick="if(event.target===this)hideM('m-new-conv')">
+  <div class="mbox" style="max-width:420px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#0f172a">Nouveau message</h3>
+      <button onclick="hideM('m-new-conv')" style="border:none;background:none;cursor:pointer;color:#94a3b8"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:16px 22px;max-height:50vh;overflow-y:auto" id="contact-list">
+      <div class="sk" style="height:44px;margin-bottom:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONVERSATION -->
+<div id="m-chat" class="ov" onclick="if(event.target===this)hideM('m-chat')">
+  <div class="mbox" style="max-width:480px;display:flex;flex-direction:column;height:70vh">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f1f5f9;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <img id="chat-av" src="" style="width:36px;height:36px;border-radius:50%;object-fit:cover"/>
+        <div>
+          <h3 id="chat-name" style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#0f172a">—</h3>
+          <p id="chat-role" style="font-size:.7rem;color:#94a3b8"></p>
+        </div>
+      </div>
+      <button onclick="hideM('m-chat')" style="border:none;background:none;cursor:pointer;color:#94a3b8"><span class="ms">close</span></button>
+    </div>
+    <div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px"></div>
+    <div style="display:flex;gap:8px;padding:14px 16px;border-top:1px solid #f1f5f9;flex-shrink:0">
+      <input id="chat-input" type="text" placeholder="Écrire un message..." class="fld" style="flex:1" onkeydown="if(event.key==='Enter')sendChatMessage()"/>
+      <button onclick="sendChatMessage()" class="btn ba bsm"><span class="ms">send</span></button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -752,7 +842,8 @@ if (!tk) location.href = 'indexconnexion.html';
 let currentPage  = 1;
 let totalPages   = 1;
 let loaded       = {};
-const TITLES     = { overview:'Supervision', users:'Utilisateurs', schools:'Universités', activity:'Activité récente', courses:'Cours publiés', communities:'Communautés', attendance:'Présences', projects:'Projets académiques', notifications:'Notifications' };
+let ME = null;
+const TITLES     = { overview:'Supervision', users:'Utilisateurs', schools:'Universités', activity:'Activité récente', courses:'Cours publiés', communities:'Communautés', attendance:'Présences', projects:'Projets académiques', resources:'Ressources', messages:'Messagerie', certificates:'Attestations', schedule:'Emploi du temps', notifications:'Notifications' };
 let NOTIFS = [];
 
 // ═══════════════════════════════════════════════
@@ -762,6 +853,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadMe();
   await loadOverview();
   loadNotifications();
+  loadConversations();
 });
 
 function toggleSidebar(){
@@ -796,6 +888,7 @@ async function loadMe() {
   const d = await api('/auth/me');
   if (!d?.success) return;
   const u = d.user;
+  ME = u;
   const url = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.first_name+' '+u.last_name)}&background=004a77&color=fff`;
   document.getElementById('side-av').src  = url;
   document.getElementById('top-av').src   = url;
@@ -821,6 +914,10 @@ function goTo(s) {
   if (s==='communities' && !loaded.communities) loadAdminCommunities();
   if (s==='attendance'  && !loaded.attendance)  loadAdminAttendance();
   if (s==='projects'    && !loaded.projects)    loadAdminProjects();
+  if (s==='resources'   && !loaded.resources)   loadAdminResources();
+  if (s==='messages')                           loadConversations();
+  if (s==='certificates' && !loaded.certificates) loadAdminCertificates();
+  if (s==='schedule'    && !loaded.schedule)    loadAdminSchedule();
   if (s==='notifications') loadNotifications();
   if (s==='overview') loadUpcomingEventsAdmin();
 }
@@ -1587,6 +1684,150 @@ async function loadAdminProjects(){
     </div>`;
   }).join('');
 }
+
+// ═══════════════════════════════════════════════
+//  RESSOURCES (vue d'ensemble)
+// ═══════════════════════════════════════════════
+const RES_ICONS = { cours:'menu_book', td:'edit_note', correction:'fact_check', livre:'auto_stories', autre:'description' };
+async function loadAdminResources(){
+  const d = await api('/resources/admin');
+  loaded.resources = true;
+  const el = document.getElementById('res-ov-list'), empty = document.getElementById('res-ov-empty');
+  if(!d?.success || !d.resources.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML = d.resources.map(r => `
+    <div class="card" style="padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;gap:10px;align-items:center;min-width:0">
+        <span class="ms" style="font-size:20px;color:#004a77;background:#eff6ff;padding:7px;border-radius:8px;flex-shrink:0">${RES_ICONS[r.category]||'description'}</span>
+        <div style="min-width:0"><p style="font-weight:700;font-size:.9rem;color:#0f172a">${r.title}</p><p style="font-size:.75rem;color:#94a3b8;margin-top:2px">${r.teacher_name||'—'} · ${r.course_title||'Général'} · ${r.downloads_count||0} téléchargement${r.downloads_count!=1?'s':''}</p></div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  ATTESTATIONS (vue d'ensemble)
+// ═══════════════════════════════════════════════
+async function loadAdminCertificates(){
+  const d = await api('/certificates/admin');
+  loaded.certificates = true;
+  const el = document.getElementById('cert-ov-list'), empty = document.getElementById('cert-ov-empty');
+  if(!d?.success || !d.certificates.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML = d.certificates.map(c => `
+    <div class="card" style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;${c.status==='revoked'?'opacity:.55':''}">
+      <div style="display:flex;gap:10px;align-items:center;min-width:0">
+        <span class="ms" style="font-size:24px;color:#d97706">workspace_premium</span>
+        <div style="min-width:0"><p style="font-weight:700;font-size:.85rem;color:#0f172a">${c.title}</p><p style="font-size:.7rem;color:#94a3b8">${c.student_name} · ${c.teacher_name||'—'} · <code>${c.certificate_number}</code></p></div>
+      </div>
+      <span class="bdg" style="background:${c.status==='revoked'?'#fef2f2':'#f0fdf4'};color:${c.status==='revoked'?'#dc2626':'#16a34a'}">${c.status==='revoked'?'Révoquée':'Valide'}</span>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  EMPLOI DU TEMPS (vue d'ensemble)
+// ═══════════════════════════════════════════════
+const SCHED_DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+async function loadAdminSchedule(){
+  const d = await api('/schedule/admin');
+  loaded.schedule = true;
+  const el = document.getElementById('sched-ov-list'), empty = document.getElementById('sched-ov-empty');
+  if(!d?.success || !d.slots.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML = d.slots.map(s => `
+    <div class="card" style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div><p style="font-weight:700;font-size:.85rem;color:#0f172a">${s.course_title} <span style="color:#94a3b8;font-weight:600">· ${SCHED_DAYS[s.day_of_week]}</span></p><p style="font-size:.75rem;color:#94a3b8">${s.teacher_name||'—'} · ${s.start_time.slice(0,5)} – ${s.end_time.slice(0,5)}${s.room?' · Salle '+s.room:''}</p></div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  MESSAGERIE DIRECTE
+// ═══════════════════════════════════════════════
+let CONVERSATIONS = [], currentConvId = null;
+
+async function loadConversations(){
+  const d = await api('/messages/conversations');
+  if(!d?.success) return;
+  CONVERSATIONS = d.conversations;
+  const totalUnread = CONVERSATIONS.reduce((s,c)=>s+parseInt(c.unread_count||0),0);
+  const bdg = document.getElementById('msg-nav-bdg');
+  if(bdg){ bdg.style.display = totalUnread ? 'inline-block' : 'none'; bdg.textContent = totalUnread; }
+
+  const el = document.getElementById('conv-list'), empty = document.getElementById('conv-empty');
+  if(!el) return;
+  if(!CONVERSATIONS.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML = CONVERSATIONS.map(c => `
+    <div class="card" style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="openConversation('${c.id}')">
+      <img src="${c.other_avatar||('https://ui-avatars.com/api/?name='+encodeURIComponent(c.other_name)+'&background=004a77&color=fff')}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0"/>
+      <div style="min-width:0;flex:1">
+        <div style="display:flex;justify-content:space-between;gap:8px">
+          <p style="font-weight:700;font-size:.85rem;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.other_name}</p>
+          ${c.last_at?`<span style="font-size:.65rem;color:#94a3b8;flex-shrink:0">${new Date(c.last_at).toLocaleDateString('fr-FR')}</span>`:''}
+        </div>
+        <p style="font-size:.75rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.last_message||'Nouvelle conversation'}</p>
+      </div>
+      ${parseInt(c.unread_count)?`<span style="background:#004a77;color:#fff;font-size:.65rem;font-weight:800;border-radius:999px;padding:2px 7px;flex-shrink:0">${c.unread_count}</span>`:''}
+    </div>`).join('');
+}
+
+async function openConversation(convId){
+  currentConvId = convId;
+  const conv = CONVERSATIONS.find(c=>c.id===convId);
+  document.getElementById('chat-name').textContent = conv?.other_name || 'Conversation';
+  document.getElementById('chat-role').textContent = conv?.other_role === 'etudiant' ? 'Étudiant' : (conv?.other_role === 'enseignant' ? 'Enseignant' : 'Administration');
+  document.getElementById('chat-av').src = conv?.other_avatar || ('https://ui-avatars.com/api/?name='+encodeURIComponent(conv?.other_name||'U')+'&background=004a77&color=fff');
+  showM('m-chat');
+  await refreshChat();
+}
+
+async function refreshChat(){
+  if(!currentConvId) return;
+  const d = await api(`/messages/conversations/${currentConvId}/messages`);
+  if(!d?.success) return;
+  const box = document.getElementById('chat-messages');
+  box.innerHTML = d.messages.map(m => `
+    <div style="display:flex;justify-content:${m.sender_id===ME.id?'flex-end':'flex-start'}">
+      <div style="max-width:75%;padding:8px 12px;border-radius:12px;font-size:.85rem;${m.sender_id===ME.id?'background:#004a77;color:#fff;border-bottom-right-radius:3px':'background:#f1f5f9;color:#0f172a;border-bottom-left-radius:3px'}">
+        ${m.content}
+      </div>
+    </div>`).join('');
+  box.scrollTop = box.scrollHeight;
+  loadConversations();
+}
+
+async function sendChatMessage(){
+  const input = document.getElementById('chat-input');
+  const content = input.value.trim();
+  if(!content || !currentConvId) return;
+  input.value = '';
+  const d = await api(`/messages/conversations/${currentConvId}/messages`, {method:'POST', body: JSON.stringify({content})});
+  if(d?.success) await refreshChat();
+  else toast(d?.message||'Erreur d\'envoi.', 'err');
+}
+
+async function openNewConv(){
+  const d = await api('/messages/contacts');
+  const el = document.getElementById('contact-list');
+  if(!d?.success || !d.contacts.length){ el.innerHTML = '<p style="text-align:center;color:#94a3b8;font-size:.85rem;padding:20px">Aucun contact disponible.</p>'; showM('m-new-conv'); return; }
+  el.innerHTML = d.contacts.map(c => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 6px;cursor:pointer;border-radius:8px" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''" onclick="startConversation('${c.id}')">
+      <img src="${c.avatar_url||('https://ui-avatars.com/api/?name='+encodeURIComponent(c.first_name+' '+c.last_name)+'&background=004a77&color=fff')}" style="width:38px;height:38px;border-radius:50%;object-fit:cover"/>
+      <div>
+        <p style="font-weight:700;font-size:.85rem;color:#0f172a">${c.first_name} ${c.last_name}</p>
+        <p style="font-size:.7rem;color:#94a3b8">${c.role==='etudiant'?'Étudiant':c.role==='enseignant'?'Enseignant':'Administration'}</p>
+      </div>
+    </div>`).join('');
+  showM('m-new-conv');
+}
+
+async function startConversation(userId){
+  const d = await api('/messages/conversations', {method:'POST', body: JSON.stringify({user_id:userId})});
+  if(!d?.success){ toast(d?.message||'Erreur.', 'err'); return; }
+  hideM('m-new-conv');
+  await loadConversations();
+  openConversation(d.conversation_id);
+}
+
 function doLogout(){ localStorage.clear(); sessionStorage.clear(); location.href='indexconnexion.html'; }
 
 // ═══════════════════════════════════════════════
@@ -1601,10 +1842,15 @@ const SECTION_REFRESH = {
   communities:   loadAdminCommunities,
   attendance:    loadAdminAttendance,
   projects:      loadAdminProjects,
+  resources:     loadAdminResources,
+  certificates:  loadAdminCertificates,
+  schedule:      loadAdminSchedule,
+  messages:      () => { loadConversations(); if(document.getElementById('m-chat').classList.contains('open')) refreshChat(); },
 };
 setInterval(() => {
   if (document.hidden || !TK()) return;
   loadNotifications();
+  loadConversations();
   const activeId = document.querySelector('.sec.on')?.id;
   if (!activeId) return;
   const key = activeId.replace('sec-', '');
