@@ -235,9 +235,9 @@ function hideLoader() {
 //
 //  Règle simple :
 //  ┌─────────────────────────────────────────────────┐
-//  │  school = null ou vide ?                        │
-//  │    OUI → indexSélectionEcole.html               │
-//  │           (étudiant ET professeur)              │
+//  │  school = null ou vide (et rôle != superadmin) ?│
+//  │    OUI → indexInscription.html                  │
+//  │           (complète le profil : rôle/école)     │
 //  │    NON → dashboard selon rôle :                 │
 //  │           etudiant   → indexETUDIANT.html       │
 //  │           enseignant → indexEnseignant.html     │
@@ -246,9 +246,9 @@ function hideLoader() {
 // ══════════════════════════════════════════════════════
 function redirectAfterLogin(user, needsSchool) {
     if (needsSchool) {
-        showLoader('Bienvenue !', 'Sélectionnez votre établissement...');
+        showLoader('Bienvenue !', 'Complétez votre profil...');
         setTimeout(() => {
-            window.location.href = 'indexSélectionEcole.html';
+            window.location.href = 'indexInscription.html';
         }, 1000);
         return;
     }
@@ -318,6 +318,12 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             // data.needsSchool = false → école déjà en base
             redirectAfterLogin(data.user, data.needsSchool);
 
+        } else if (data.reason === 'email_not_found') {
+            // Email inconnu → pas de compte, on redirige directement vers l'inscription
+            showLoader('Compte introuvable', 'Redirection vers la création de compte...');
+            setTimeout(() => {
+                window.location.href = 'indexInscription.html?email=' + encodeURIComponent(email);
+            }, 1200);
         } else {
             hideLoader();
             btn.disabled = false;

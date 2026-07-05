@@ -13,50 +13,6 @@ const mkToken = (user) => jwt.sign(
 );
 
 // ═══════════════════════════════════════════════════════
-// QR SESSION (intégré ici pour éviter les problèmes de module)
-// ═══════════════════════════════════════════════════════
-const qrSessions = new Map();
-
-// POST /api/auth/qr/create
-router.post('/qr/create', (req, res) => {
-  const { v4: uuidv4 } = require('crypto');
-  const sessionId = uuidv4 ? uuidv4() : require('crypto').randomUUID();
-  qrSessions.set(sessionId, { status: 'pending', role: null, createdAt: Date.now() });
-  setTimeout(() => qrSessions.delete(sessionId), 5 * 60 * 1000);
-  res.json({ success: true, sessionId });
-});
-
-// POST /api/auth/qr/validate/:sessionId
-router.post('/qr/validate/:sessionId', async (req, res) => {
-  const session = qrSessions.get(req.params.sessionId);
-  if (!session) return res.status(404).json({ success: false, message: 'QR expiré ou invalide.' });
-  if (session.status === 'validated') return res.status(400).json({ success: false, message: 'QR déjà utilisé.' });
-
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ success: false, message: 'Non authentifié.' });
-
-  try {
-    const decoded = jwt.verify(authHeader.replace('Bearer ', ''), SECRET);
-    const r = await pool.query('SELECT role FROM users WHERE id=$1', [decoded.id]);
-    if (!r.rows.length) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
-    const realRole = r.rows[0].role;
-    session.status = 'validated';
-    session.role = realRole;
-    qrSessions.set(req.params.sessionId, session);
-    res.json({ success: true, role: realRole });
-  } catch(e) {
-    res.status(401).json({ success: false, message: 'Token invalide.' });
-  }
-});
-
-// GET /api/auth/qr/status/:sessionId
-router.get('/qr/status/:sessionId', (req, res) => {
-  const session = qrSessions.get(req.params.sessionId);
-  if (!session) return res.json({ status: 'expired' });
-  res.json({ status: session.status, role: session.role });
-});
-
-// ═══════════════════════════════════════════════════════
 // AUTH ROUTES
 // ═══════════════════════════════════════════════════════
 
@@ -103,17 +59,17 @@ router.post('/login', async (req, res) => {
       [email.toLowerCase().trim()]
     );
     if (!r.rows.length) {
-      return res.status(401).json({ success: false, message: 'Email ou mot de passe incorrect.' });
+      return res.status(401).json({ success: false, message: 'Aucun compte associé à cet email.', reason: 'email_not_found' });
     }
     const user = r.rows[0];
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
-      return res.status(401).json({ success: false, message: 'Email ou mot de passe incorrect.' });
+      return res.status(401).json({ success: false, message: 'Mot de passe incorrect.', reason: 'wrong_password' });
     }
     delete user.password_hash;
     const token = mkToken(user);
     const needsRole   = !user.role || user.role === 'etudiant';
-    const needsSchool = !user.school;
+    const needsSchool = !user.school && user.role !== 'superadmin';
     res.json({ success: true, token, user, needsRole, needsSchool });
   } catch(e) {
     console.error('[LOGIN]', e.message);
@@ -376,14 +332,6 @@ router.post('/role-requests/:id/approve', auth, async (req, res) => {
     // Mettre à jour le rôle de l'utilisateur
     await pool.query(`UPDATE users SET role=$1 WHERE id=$2`, [request.requested_role, request.user_id]);
 
-    // Mettre à jour la session QR si elle existe
-    if (request.session_id) {
-      await pool.query(
-        `UPDATE qr_sessions SET status='validated', role=$1 WHERE session_id=$2`,
-        [request.requested_role, request.session_id]
-      );
-    }
-
     // Marquer la demande comme approuvée
     await pool.query(`UPDATE role_requests SET status='approved' WHERE id=$1`, [req.params.id]);
 
@@ -400,14 +348,8 @@ router.post('/role-requests/:id/reject', auth, async (req, res) => {
   try {
     if (req.user.role !== 'superadmin') return res.status(403).json({ success: false, message: 'Accès refusé.' });
 
-    const rq = await pool.query(`SELECT * FROM role_requests WHERE id=$1`, [req.params.id]);
+    const rq = await pool.query(`SELECT id FROM role_requests WHERE id=$1`, [req.params.id]);
     if (!rq.rows.length) return res.status(404).json({ success: false, message: 'Demande introuvable.' });
-    const request = rq.rows[0];
-
-    // Session QR → expired
-    if (request.session_id) {
-      await pool.query(`UPDATE qr_sessions SET status='expired' WHERE session_id=$1`, [request.session_id]);
-    }
 
     await pool.query(`UPDATE role_requests SET status='rejected' WHERE id=$1`, [req.params.id]);
     res.json({ success: true, message: 'Demande refusée.' });

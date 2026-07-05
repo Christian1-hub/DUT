@@ -16,7 +16,6 @@ const forumRoutes      = require('./routes/forum');
 const adminRoutes      = require('./routes/admin');
 const superadminRoutes = require('./routes/Superadmin');
 const crossRoutes      = require('./routes/crossaccess');
-const qrSessionRoutes  = require('./routes/qrsession');
 const calendarRoutes   = require('./routes/calendar');
 const notificationRoutes = require('./routes/notifications');
 const attendanceRoutes   = require('./routes/attendance');
@@ -58,7 +57,6 @@ app.use('/api/forum',      forumRoutes);
 app.use('/api/admin',      adminRoutes);
 app.use('/api/superadmin', superadminRoutes);
 app.use('/api/cross',      crossRoutes);
-app.use('/api/qrsession',  qrSessionRoutes);
 app.use('/api/calendar',   calendarRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/attendance',    attendanceRoutes);
@@ -88,9 +86,6 @@ app.get('/', (req, res) => {
       'PUT  /api/cross/request/:id',
       'GET  /api/admin/stats',
       'GET  /api/superadmin/stats',
-      'POST /api/qrsession/create',
-      'POST /api/qrsession/validate/:sessionId',
-      'GET  /api/qrsession/status/:sessionId',
       'GET  /api/notifications',
       'PUT  /api/notifications/:id/read',
       'POST /api/attendance/sessions',
@@ -327,20 +322,6 @@ app.listen(PORT, async () => {
       )
     `);
     console.log('✅ role_requests : OK');
-
-    // Créer la table qr_sessions si elle n'existe pas
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS qr_sessions (
-        session_id VARCHAR(36) PRIMARY KEY,
-        status VARCHAR(20) DEFAULT 'pending',
-        role VARCHAR(20),
-        user_info JSONB,
-        created_at TIMESTAMP DEFAULT NOW(),
-        expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '15 minutes'
-      )
-    `);
-    await pool.query(`ALTER TABLE qr_sessions ADD COLUMN IF NOT EXISTS user_info JSONB`);
-    console.log('✅ qr_sessions : OK');
     console.log('\n✅ Serveur prêt !\n');
   } catch(e) {
     console.error('❌ PostgreSQL non connecté:', e.message);

@@ -1,291 +1,606 @@
 <!DOCTYPE html>
-<html class="light" lang="fr">
+<html lang="fr">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Inscription - CamunoLearn</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "primary": "#00602a",
-                        "on-primary": "#ffffff",
-                        "surface-container-lowest": "#ffffff",
-                        "on-surface": "#191c1e",
-                        "on-surface-variant": "#3f493f",
-                        "outline-variant": "#becabc",
-                        "background": "#f8f9fb",
-                    },
-                    "fontFamily": {
-                        "headline": ["Manrope"],
-                        "body": ["Inter"],
-                    }
-                },
-            },
-        }
-    </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .hero-gradient { background: linear-gradient(135deg, #00602a 0%, #1a7a3c 100%); }
-        .academic-gradient { background: linear-gradient(135deg, #59d655 0%, #1a7a3c 100%); }
-        .tonal-elevation { box-shadow: 0px 12px 32px rgba(25, 28, 30, 0.08); }
-        .strength-bar { transition: width 0.3s ease-in-out, background-color 0.3s; }
-        .fade-up {
-            opacity: 0;
-            transform: translateY(28px);
-            transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        .fade-up.show { opacity: 1; transform: translateY(0); }
-        .alert { border-radius: 12px; padding: 12px 16px; font-size: 0.85rem; margin-bottom: 4px; }
-        .alert-error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-        .alert-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col relative overflow-x-hidden bg-[#f8f9fb]">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Inscription - CamunoLearn</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  *{font-family:'Inter',sans-serif;box-sizing:border-box}
+  body{background:#f8f9fb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;margin:0}
+  .ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 400;user-select:none;line-height:1;vertical-align:middle}
+  .ms.f{font-variation-settings:'FILL' 1,'wght' 400}
+  .wrap{width:100%;max-width:600px}
+  .logo{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px}
+  .logo-txt{font-family:Manrope;font-weight:900;font-size:1.3rem;color:#00602a}
+  .logo-txt b{color:#191c1e}
+  .card{background:#fff;border-radius:20px;border:1px solid #f0f0f0;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+  .stepbar{background:#f9fafb;border-bottom:1px solid #f0f0f0;padding:14px 24px;font-size:.8rem;color:#9ca3af;font-weight:700}
+  .stepbar b{color:#00602a}
+  .body-pad{padding:28px}
+  @media(max-width:480px){.body-pad{padding:20px 16px}}
+  .step{display:none;animation:up .25s ease both}
+  .step.on{display:block}
+  @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  h1{font-family:Manrope;font-weight:800;font-size:1.3rem;color:#111;margin:0 0 6px}
+  .sub{font-size:.875rem;color:#9ca3af;margin-bottom:20px}
+  label.lbl{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:6px}
+  .fld{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:.9rem;outline:none;font-family:inherit;background:#fafafa}
+  .fld:focus{border-color:#00602a;background:#fff}
+  .field{margin-bottom:16px}
+  .btn-main{background:#00602a;color:#fff;border:none;padding:14px;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer;width:100%;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
+  .btn-main:hover:not(:disabled){background:#004d21}
+  .btn-main:disabled{opacity:.5;cursor:not-allowed}
+  .btn-link{background:none;border:none;color:#9ca3af;font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:16px;padding:0;font-family:inherit}
+  .alert{border-radius:10px;padding:10px 14px;font-size:.82rem;margin-bottom:16px}
+  .alert-error{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+  .alert-success{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
 
-    <!-- API Base URL — changer en production -->
-    <script>
-        const API_BASE = (function() {
+  .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:480px){.roles{grid-template-columns:1fr}}
+  .role-card{border:2px solid #e5e7eb;border-radius:14px;padding:20px 14px;cursor:pointer;text-align:center;transition:all .18s;background:#fafafa}
+  .role-card:hover{border-color:#00602a;background:#f0fdf4}
+  @media(max-width:480px){.role-card{padding:14px;display:flex;align-items:center;gap:12px;text-align:left}}
+  .role-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:1.3rem}
+  @media(max-width:480px){.role-icon{margin:0;flex-shrink:0}}
+  .role-name{font-family:Manrope;font-weight:800;font-size:.9rem;color:#191c1e}
+  .role-desc{font-size:.72rem;color:#9ca3af;margin-top:2px}
+
+  .school-card{border:2px solid #f0f0f0;border-radius:12px;padding:12px;cursor:pointer;transition:all .15s;background:#fff;display:flex;align-items:center;gap:10px}
+  .school-card:hover{border-color:#00602a}
+  .school-card.sel{border-color:#00602a;background:#f0fdf4}
+  .school-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:320px;overflow-y:auto;padding-right:4px}
+  @media(max-width:480px){.school-grid{grid-template-columns:1fr}}
+
+  .pill{padding:7px 14px;border-radius:999px;border:1.5px solid #e5e7eb;cursor:pointer;font-size:.8rem;font-weight:600;color:#6b7280;transition:all .15s;background:#fff}
+  .pill:hover{border-color:#00602a;color:#00602a}
+  .pill.sel{background:#00602a;color:#fff;border-color:#00602a}
+
+  .level-card{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;border:2px solid #f0f0f0;cursor:pointer;transition:all .15s;background:#fff}
+  .level-card:hover{border-color:#00602a}
+  .level-card.sel{border-color:#00602a;background:#f0fdf4}
+
+  .code-input{width:100%;padding:16px;border-radius:12px;border:2px solid #e5e7eb;font-size:1.6rem;font-weight:800;font-family:Manrope;letter-spacing:.3em;text-align:center;text-transform:uppercase;outline:none;margin-bottom:10px}
+  .code-input:focus{border-color:#00602a}
+
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:99px}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <span class="ms f" style="color:#00602a;font-size:28px">school</span>
+    <span class="logo-txt"><b>Camuno</b>Learn</span>
+  </div>
+
+  <div class="card">
+    <div class="stepbar">Étape <b id="step-num">1</b> sur <b id="step-total">4</b> — <span id="step-label">Votre compte</span></div>
+    <div class="body-pad">
+
+      <div id="alert-box" class="alert alert-error" style="display:none"></div>
+
+      <!-- STEP: IDENTITÉ (uniquement pour une inscription neuve) -->
+      <div class="step on" id="step-identity">
+        <h1>Créer un compte</h1>
+        <p class="sub">Accédez aux ressources académiques du Cameroun.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field"><label class="lbl">Prénom</label><input id="firstNameInput" class="fld" type="text" placeholder="Jean"/></div>
+          <div class="field"><label class="lbl">Nom</label><input id="lastNameInput" class="fld" type="text" placeholder="Ebanda"/></div>
+        </div>
+        <div class="field"><label class="lbl">Email</label><input id="emailInput" class="fld" type="email" placeholder="nom@etudiant.cm"/></div>
+        <div class="field">
+          <label class="lbl">Mot de passe</label>
+          <div style="position:relative">
+            <input id="passwordInput" class="fld" type="password" placeholder="••••••••" style="padding-right:44px"/>
+            <button type="button" id="togglePassword" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:#9ca3af"><span class="ms" id="passwordIcon">visibility</span></button>
+          </div>
+          <div style="padding:0 2px;margin-top:8px">
+            <span id="strengthText" style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af">Force : Vide</span>
+            <div style="width:100%;height:5px;background:#f3f4f6;border-radius:99px;overflow:hidden;margin-top:4px">
+              <div id="strengthBar" style="height:100%;width:0;background:#d1d5db;transition:width .3s,background-color .3s"></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-main" id="btn-identity" onclick="submitIdentity()">Continuer <span class="ms">arrow_forward</span></button>
+        <p style="text-align:center;font-size:.82rem;color:#9ca3af;margin-top:16px">Déjà un compte ? <a href="indexconnexion.html" style="color:#00602a;font-weight:700;text-decoration:none">Se connecter</a></p>
+      </div>
+
+      <!-- STEP: RÔLE -->
+      <div class="step" id="step-role">
+        <button class="btn-link" onclick="backTo('identity')"><span class="ms" style="font-size:16px">arrow_back</span>Retour</button>
+        <h1>Choisissez votre profil</h1>
+        <p class="sub">Sélectionnez comment vous allez utiliser CamunoLearn.</p>
+        <div class="roles">
+          <div class="role-card" onclick="selectRole('etudiant')">
+            <div class="role-icon" style="background:#f0fdf4">🎓</div>
+            <div class="role-name">Étudiant</div>
+            <div class="role-desc">Accéder aux cours</div>
+          </div>
+          <div class="role-card" onclick="selectRole('enseignant')">
+            <div class="role-icon" style="background:#eff6ff">👨‍🏫</div>
+            <div class="role-name">Professeur</div>
+            <div class="role-desc">Code établissement requis</div>
+          </div>
+          <div class="role-card" onclick="selectRole('admin')">
+            <div class="role-icon" style="background:#f5f3ff">⚙️</div>
+            <div class="role-name">Admin</div>
+            <div class="role-desc">Code établissement requis</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP: ÉCOLE -->
+      <div class="step" id="step-school">
+        <button class="btn-link" onclick="backTo('role')"><span class="ms" style="font-size:16px">arrow_back</span>Retour</button>
+        <h1>Votre établissement</h1>
+        <p class="sub">Sélectionnez votre université pour accéder à votre espace.</p>
+        <div style="position:relative;margin-bottom:14px">
+          <span class="ms" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;color:#9ca3af">search</span>
+          <input id="school-search" class="fld" style="padding-left:40px" placeholder="Rechercher un établissement..." oninput="filterSchools(this.value)"/>
+        </div>
+        <div id="school-grid" class="school-grid"></div>
+        <p id="no-school" style="display:none;text-align:center;color:#9ca3af;font-size:.875rem;padding:16px">Aucun établissement trouvé.</p>
+        <button class="btn-main" id="btn-school" disabled onclick="continueFromSchool()" style="margin-top:16px">Continuer <span class="ms">arrow_forward</span></button>
+      </div>
+
+      <!-- STEP: CODE (prof / admin) -->
+      <div class="step" id="step-code">
+        <button class="btn-link" onclick="backTo('school')"><span class="ms" style="font-size:16px">arrow_back</span>Retour</button>
+        <div id="code-icon" style="font-size:2.6rem;text-align:center;margin-bottom:10px"></div>
+        <h1 style="text-align:center">Code d'accès établissement</h1>
+        <p class="sub" style="text-align:center" id="code-sub">Entrez le code secret de votre établissement.</p>
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:.8rem;color:#166534;text-align:center">
+          🔒 Ce code est partagé entre collègues de <strong id="code-school-name"></strong>
+        </div>
+        <input id="school-code-input" class="code-input" placeholder="------" maxlength="8" autocomplete="off"
+               oninput="this.value=this.value.toUpperCase();validateCodeInput()"/>
+        <div id="code-error" class="alert alert-error" style="display:none"></div>
+        <button class="btn-main" id="btn-code" disabled onclick="submitCode()"><span class="ms">lock_open</span>Valider le code</button>
+        <p style="text-align:center;font-size:.75rem;color:#9ca3af;margin-top:10px">Code oublié ? Contactez un collègue ou le super-administrateur.</p>
+      </div>
+
+      <!-- STEP: FILIÈRE (étudiant) -->
+      <div class="step" id="step-filiere">
+        <button class="btn-link" onclick="backTo('school')"><span class="ms" style="font-size:16px">arrow_back</span>Retour</button>
+        <h1>Votre filière</h1>
+        <p class="sub">Choisissez votre filière pour être inscrit automatiquement dans vos cours.</p>
+        <div id="filiere-grid" style="max-height:320px;overflow-y:auto;padding-right:4px;display:flex;flex-direction:column;gap:14px;margin-bottom:16px"></div>
+        <button class="btn-main" id="btn-filiere" disabled onclick="toNiveau()">Continuer <span class="ms">arrow_forward</span></button>
+      </div>
+
+      <!-- STEP: NIVEAU (étudiant) -->
+      <div class="step" id="step-niveau">
+        <button class="btn-link" onclick="backTo('filiere')"><span class="ms" style="font-size:16px">arrow_back</span>Retour</button>
+        <h1>Votre niveau</h1>
+        <p class="sub">Sélectionnez votre niveau académique actuel.</p>
+        <div id="level-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+        <button class="btn-main" id="btn-niveau" disabled onclick="finishStudent()"><span class="ms">check_circle</span>Accéder à mon espace</button>
+      </div>
+
+    </div>
+  </div>
+  <p style="text-align:center;font-size:.75rem;color:#c1c7c5;margin-top:20px">© 2026 CamunoLearn — Douala</p>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIG & DONNÉES
+// ══════════════════════════════════════════════════════
+const API_BASE = (function() {
   var h = window.location.hostname;
   if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
   return 'https://camunolearn-api.onrender.com/api';
 })();
-    </script>
 
-    <div class="fixed top-5 right-5 z-50">
-        <button id="langToggle" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-md border border-gray-200 hover:bg-gray-50 transition-colors text-sm font-medium text-on-surface">
-            <span class="material-symbols-outlined text-base">language</span>
-            <span id="langLabel">FR</span>
-        </button>
-    </div>
+const SCHOOLS = [
+  { name:'IUT de Douala',                    icon:'precision_manufacturing', short:'IUT' },
+  { name:'ENSET de Douala',                  icon:'engineering',             short:'ENSET' },
+  { name:'Université de Douala',             icon:'account_balance',         short:'UdD' },
+  { name:'UCAC - ICAM',                      icon:'church',                  short:'UCAC' },
+  { name:'FMSP Douala',                      icon:'local_hospital',          short:'FMSP' },
+  { name:'Institut Universitaire de la Côte',icon:'waves',                   short:'IUC' },
+  { name:'ESSEC Douala',                     icon:'trending_up',             short:'ESSEC' },
+  { name:'Université de Yaoundé I',          icon:'account_balance',         short:'UY1' },
+  { name:'Université de Yaoundé II',         icon:'account_balance',         short:'UY2' },
+  { name:"SUP'PTIC Douala",                  icon:'computer',                short:"SUP'PTIC" },
+];
 
-    <div class="fixed inset-0 -z-10">
-        <div class="absolute -top-24 -left-24 w-96 h-96 hero-gradient opacity-10 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-32 -right-32 w-[30rem] h-[30rem] hero-gradient opacity-10 rounded-full blur-3xl"></div>
-    </div>
+const FILIERES = {
+  'IUT de Douala': {
+    'MTT — Technologies du Tertiaire': [
+      'GLT — Génie Logistique & Transport', 'GRH — Génie des Ressources Humaines',
+      'OGA — Organisation & Gestion Administrative', 'GAPMO — Gestion Appliquée aux PMO',
+      'TCO — Technique de Commercialisation', 'CFI — Comptabilité & Finance',
+    ],
+    'MTI — Technologies Industrielles': [
+      'GIM — Génie Industriel & Maintenance', 'GMP — Génie Mécanique & Productique',
+      'GTE — Génie Thermique & Énergie', 'GME — Génie Métallurgique', 'GMI — Génie des Mines',
+      'GC — Génie Civil', 'BTA — Biotechnologie & Technologie Alimentaire', 'MET — Météorologie',
+      'ENR — Énergie Renouvelable',
+    ],
+    "MTIN — Technologies de l'Information & du Numérique": [
+      'GEII — Génie Électrique & Informatique Industrielle', 'GI — Génie Informatique',
+      'GRT — Génie Réseaux & Télécoms', 'GBM — Génie Biomédical',
+    ],
+  },
+  'ENSET de Douala': {
+    'Génie Électrique & Industriel': [
+      'GEII — Génie Électrique & Informatique Industrielle', 'GI — Génie Industriel', 'GE — Génie Électrotechnique',
+    ],
+    'Informatique': ['INFO — Informatique', 'GL — Génie Logiciel'],
+  },
+  'Université de Douala': {
+    'Droit': ['DROIT — Droit Général', 'DROIT AFF — Droit des Affaires'],
+    'Gestion & Économie': ['GESTION — Sciences de Gestion', 'ECONOMIE — Sciences Économiques'],
+    'Lettres & Sciences Humaines': ['LETTRES — Lettres Modernes', 'SH — Sciences Humaines'],
+  },
+  'UCAC - ICAM': { 'Génie': ['GI — Génie Industriel', 'GC — Génie Civil', 'GBM — Génie Biomédical'] },
+  'ESSEC Douala': { 'Commerce & Gestion': ['GESTION — Sciences de Gestion', 'MARKETING — Marketing', 'FINANCE — Finance & Comptabilité'] },
+  '__default__': { 'Général': ['Informatique', 'Gestion', 'Droit', 'Sciences', 'Lettres', 'Médecine', 'Pharmacie', 'Génie Civil', 'Électrotechnique'] },
+};
 
-    <main class="flex-grow flex items-center justify-center px-4 py-16">
-        <div class="w-full max-w-lg">
-            <div class="bg-white rounded-2xl p-10 tonal-elevation border border-gray-100 flex flex-col gap-8">
-                
-                <div class="flex flex-col items-center text-center">
-                    <div class="flex items-center gap-2 mb-6 fade-up">
-                        <span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">school</span>
-                        <span class="font-headline font-extrabold text-2xl tracking-tight text-primary"><span class="text-on-surface">Camuno</span>Learn</span>
-                    </div>
-                    <div class="space-y-2">
-                        <h1 class="font-headline text-2xl font-bold text-on-surface tracking-tight text-gray-900 fade-up" data-i18n="signup_title">Créer un compte </h1>
-                        <p class="font-body text-gray-500 text-sm fade-up" data-i18n="signup_subtitle">Accédez aux ressources académiques du Cameroun</p>
-                    </div>
-                </div>
+const LEVELS = [
+  { v:'L1', label:'Licence 1 (1ère année)',   sub:'Première année de cycle' },
+  { v:'L2', label:'Licence 2 (2ème année)',   sub:'Deuxième année de cycle' },
+  { v:'L3', label:'Licence 3 (3ème année)',   sub:'Troisième année de cycle' },
+  { v:'M1', label:'Master 1',                 sub:'Première année de master' },
+  { v:'M2', label:'Master 2',                 sub:'Deuxième année de master' },
+  { v:'BTS', label:'BTS (Formation Alternée)',sub:'Brevet de Technicien Supérieur' },
+];
 
-                <!-- Alerte dynamique -->
-                <div id="alertBox" class="hidden"></div>
+const STEP_LABELS = {identity:'Votre compte', role:'Votre profil', school:'Établissement', code:"Code d'accès", filiere:'Filière', niveau:'Niveau'};
 
-                <form class="space-y-5 fade-up" id="registrationForm">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="text-[0.7rem] font-bold uppercase tracking-widest text-gray-400 ml-1" data-i18n="firstname_label">Prénom</label>
-                            <input id="firstNameInput" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary/20 transition-all" 
-                                   type="text" placeholder="Jean" required/>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[0.7rem] font-bold uppercase tracking-widest text-gray-400 ml-1" data-i18n="lastname_label">Nom</label>
-                            <input id="lastNameInput" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary/20 transition-all" 
-                                   type="text" placeholder="Ebanda" required/>
-                        </div>
-                    </div>
+// ══════════════════════════════════════════════════════
+//  ÉTAT
+// ══════════════════════════════════════════════════════
+let token = localStorage.getItem('camunolearn_token');
+let freshSignup = !token;
+let selectedRole = null, selectedSchool = null, selectedFiliere = null, selectedLevel = null;
+let flow = [];
 
-                    <div class="space-y-1.5">
-                        <label class="text-[0.7rem] font-bold uppercase tracking-widest text-gray-400 ml-1" data-i18n="email_label">Email académique</label>
-                        <input id="emailInput" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary/20 transition-all" 
-                               type="email" placeholder="nom@etudiant.cm" required/>
-                    </div>
+function computeFlow() {
+  flow = [];
+  if (freshSignup) flow.push('identity');
+  flow.push('role', 'school');
+  if (selectedRole === 'etudiant') flow.push('filiere', 'niveau');
+  else if (selectedRole === 'enseignant' || selectedRole === 'admin') flow.push('code');
+}
 
-                    <div class="space-y-1.5">
-                        <label class="text-[0.7rem] font-bold uppercase tracking-widest text-gray-400 ml-1" data-i18n="password_label">Mot de passe</label>
-                        <div class="relative flex items-center bg-gray-50 rounded-xl px-4 py-3.5 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                            <input id="passwordInput" class="bg-transparent border-none focus:ring-0 w-full font-body text-sm text-on-surface" 
-                                   type="password" placeholder="••••••••" required/>
-                            <button type="button" id="togglePassword" class="flex items-center justify-center text-gray-400 hover:text-primary transition-colors focus:outline-none">
-                                <span class="material-symbols-outlined text-[1.2rem]" id="passwordIcon">visibility</span>
-                            </button>
-                        </div>
-                        <div class="px-1 pt-2">
-                            <div class="flex justify-between items-center mb-1">
-                                <span id="strengthText" class="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400">Force : Vide</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                <div id="strengthBar" class="strength-bar h-full w-0 bg-gray-300"></div>
-                            </div>
-                            <p class="text-[0.65rem] text-gray-400 mt-1">Utilisez 8 caractères ou plus (lettres, chiffres & symboles).</p>
-                        </div>
-                    </div>
+function goStep(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('on'));
+  document.getElementById('step-' + id).classList.add('on');
+  hideAlert();
+  const idx = flow.indexOf(id);
+  document.getElementById('step-num').textContent   = idx >= 0 ? idx + 1 : 1;
+  document.getElementById('step-total').textContent = flow.length || 1;
+  document.getElementById('step-label').textContent = STEP_LABELS[id] || '';
+}
+function backTo(id) { goStep(id); }
 
-                    <div class="flex items-start gap-3 px-1">
-                        <input type="checkbox" id="termsCheck" class="mt-1 rounded text-primary focus:ring-primary h-4 w-4 border-gray-300" required>
-                        <span class="text-xs text-gray-500 leading-relaxed">
-                            J'accepte de respecter la charte d'Utilisateur et les conditions d'utilisation.
-                        </span>
-                    </div>
+function showAlert(msg) {
+  const box = document.getElementById('alert-box');
+  box.textContent = msg;
+  box.style.display = 'block';
+  box.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function hideAlert() { document.getElementById('alert-box').style.display = 'none'; }
 
-                    <!-- Bio optionnelle -->
-                    <div class="space-y-1">
-                        <label class="text-[0.7rem] font-bold uppercase tracking-widest text-gray-400 ml-1">Présentez-vous (optionnel)</label>
-                        <div class="flex items-start gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-200 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-                            <span class="material-symbols-outlined text-gray-400 text-[1.2rem] mt-0.5">person_edit</span>
-                            <textarea id="bioInput" rows="2"
-                                   class="bg-transparent border-none focus:ring-0 w-full font-body text-sm text-on-surface resize-none"
-                                   placeholder="Ex: Passionné de technologie, fan de foot, je veux devenir ingénieur..."></textarea>
-                        </div>
-                        <p class="text-[0.65rem] text-gray-400 ml-1">Votre présentation sera visible dans votre profil</p>
-                    </div>
+// ══════════════════════════════════════════════════════
+//  STEP 1 — IDENTITÉ
+// ══════════════════════════════════════════════════════
+document.getElementById('togglePassword').addEventListener('click', () => {
+  const input = document.getElementById('passwordInput');
+  const icon  = document.getElementById('passwordIcon');
+  const isPass = input.type === 'password';
+  input.type = isPass ? 'text' : 'password';
+  icon.textContent = isPass ? 'visibility_off' : 'visibility';
+});
 
-                    <button id="submitBtn" class="w-full academic-gradient text-white py-4 rounded-xl font-headline font-bold text-sm tracking-wide shadow-lg shadow-primary/20 hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2" type="submit">
-                        S'inscrire gratuitement
-                        <span class="material-symbols-outlined text-[1.2rem]">arrow_forward</span>
-                    </button>
-                </form>
+document.getElementById('passwordInput').addEventListener('input', () => {
+  const val = document.getElementById('passwordInput').value;
+  const bar = document.getElementById('strengthBar');
+  const txt = document.getElementById('strengthText');
+  if (!val) { bar.style.width='0'; bar.style.background='#d1d5db'; txt.textContent='Force : Vide'; txt.style.color='#9ca3af'; return; }
+  let strength = 0;
+  if (val.length >= 8) strength++;
+  if (val.match(/[a-z]/) && val.match(/[A-Z]/)) strength++;
+  if (val.match(/[0-9]/)) strength++;
+  if (val.match(/[^a-zA-Z0-9]/)) strength++;
+  const levels = [
+    { w:'10%',  color:'#f87171', label:'Force : Trop court' },
+    { w:'30%',  color:'#fb923c', label:'Force : Faible' },
+    { w:'60%',  color:'#facc15', label:'Force : Moyenne' },
+    { w:'100%', color:'#22c55e', label:'Force : Excellente' },
+  ];
+  const lvl = levels[Math.min(strength, 3)];
+  bar.style.width = lvl.w; bar.style.background = lvl.color;
+  txt.textContent = lvl.label; txt.style.color = lvl.color;
+});
 
-                <div class="pt-4 flex flex-col gap-6 text-center fade-up">
-                    <div class="h-[1px] w-full bg-gray-100"></div>
-                    <p class="font-body text-sm text-gray-500">
-                        Vous avez déjà un compte ?
-                        <a class="text-primary font-bold hover:underline ml-1" href="indexconnexion.html">Se connecter</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </main>
+async function submitIdentity() {
+  hideAlert();
+  const first_name = document.getElementById('firstNameInput').value.trim();
+  const last_name  = document.getElementById('lastNameInput').value.trim();
+  const email      = document.getElementById('emailInput').value.trim();
+  const password   = document.getElementById('passwordInput').value;
+  if (!first_name || !last_name || !email || !password) { showAlert('Tous les champs sont obligatoires.'); return; }
+  if (password.length < 8) { showAlert('Mot de passe trop court (min 8 caractères).'); return; }
 
-    <footer class="w-full py-8 bg-white border-t border-gray-100 mt-auto">
-        <div class="max-w-7xl mx-auto px-8 flex justify-between items-center text-gray-400 text-xs font-medium">
-            <p>© 2026 CamunoLearn — Douala</p>
-            <div class="flex gap-6">
-                <a href="#" class="hover:text-primary">Support</a>
-                <a href="#" class="hover:text-primary">Confidentialité</a>
-            </div>
-        </div>
-    </footer>
+  const btn = document.getElementById('btn-identity');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite">autorenew</span> Inscription...';
 
-    <script>
-        // ── Password toggle ───────────────────────────────────
-        document.getElementById('togglePassword').addEventListener('click', () => {
-            const input = document.getElementById('passwordInput');
-            const icon  = document.getElementById('passwordIcon');
-            const isPass = input.type === 'password';
-            input.type  = isPass ? 'text' : 'password';
-            icon.textContent = isPass ? 'visibility_off' : 'visibility';
-        });
+  try {
+    const r = await fetch(API_BASE + '/auth/register', {
+      method: 'POST', headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ first_name, last_name, email, password }),
+    });
+    const d = await r.json();
+    if (r.ok && d.success) {
+      token = d.token;
+      localStorage.setItem('camunolearn_token', token);
+      localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
+      computeFlow();
+      goStep('role');
+    } else {
+      showAlert(d.message || 'Une erreur est survenue.');
+      btn.disabled = false; btn.innerHTML = 'Continuer <span class="ms">arrow_forward</span>';
+    }
+  } catch (e) {
+    showAlert('Impossible de contacter le serveur. Vérifiez votre connexion.');
+    btn.disabled = false; btn.innerHTML = 'Continuer <span class="ms">arrow_forward</span>';
+  }
+}
 
-        // ── Password strength ─────────────────────────────────
-        document.getElementById('passwordInput').addEventListener('input', () => {
-            const val = document.getElementById('passwordInput').value;
-            const bar = document.getElementById('strengthBar');
-            const txt = document.getElementById('strengthText');
+// ══════════════════════════════════════════════════════
+//  STEP 2 — RÔLE
+// ══════════════════════════════════════════════════════
+async function selectRole(role) {
+  selectedRole = role;
+  computeFlow();
+  await saveRole(role);
+  renderSchools(SCHOOLS);
+  goStep('school');
+}
 
-            if (!val) {
-                bar.style.width = '0'; txt.textContent = 'Force : Vide';
-                txt.className = 'text-[0.65rem] font-bold uppercase tracking-wider text-gray-400';
-                return;
-            }
+async function saveRole(role) {
+  try {
+    const r = await fetch(API_BASE + '/auth/role', {
+      method: 'PUT', headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + token },
+      body: JSON.stringify({ role }),
+    });
+    const d = await r.json();
+    if (d.token) { token = d.token; localStorage.setItem('camunolearn_token', token); }
+    if (d.user)  localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
+  } catch(e) {}
+}
 
-            let strength = 0;
-            if (val.length >= 8) strength++;
-            if (val.match(/[a-z]/) && val.match(/[A-Z]/)) strength++;
-            if (val.match(/[0-9]/)) strength++;
-            if (val.match(/[^a-zA-Z0-9]/)) strength++;
+// ══════════════════════════════════════════════════════
+//  STEP 3 — ÉCOLE
+// ══════════════════════════════════════════════════════
+function renderSchools(list) {
+  const grid = document.getElementById('school-grid');
+  const none = document.getElementById('no-school');
+  if (!list.length) { grid.innerHTML = ''; none.style.display = 'block'; return; }
+  none.style.display = 'none';
+  grid.innerHTML = list.map(s => `
+    <div class="school-card ${selectedSchool === s.name ? 'sel' : ''}" onclick="selectSchool('${s.name.replace(/'/g, "\\'")}')">
+      <div style="width:38px;height:38px;border-radius:10px;background:${selectedSchool===s.name?'#00602a':'#f0fdf4'};color:${selectedSchool===s.name?'#fff':'#00602a'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.18s">
+        <span class="ms" style="font-size:18px">${s.icon}</span>
+      </div>
+      <div style="min-width:0">
+        <p style="font-size:.78rem;font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0">${s.name}</p>
+        <p style="font-size:.68rem;color:#9ca3af;margin:2px 0 0">${s.short}</p>
+      </div>
+      ${selectedSchool === s.name ? '<span class="ms f" style="color:#00602a;font-size:18px;flex-shrink:0;margin-left:auto">check_circle</span>' : ''}
+    </div>`).join('');
+}
 
-            const levels = [
-                { w: '10%', cls: 'bg-red-400',    color: 'text-red-400',    label: 'Force : Trop court' },
-                { w: '30%', cls: 'bg-orange-400',  color: 'text-orange-400', label: 'Force : Faible' },
-                { w: '60%', cls: 'bg-yellow-400',  color: 'text-yellow-500', label: 'Force : Moyenne' },
-                { w: '100%',cls: 'bg-green-500',   color: 'text-green-600',  label: 'Force : Excellente' },
-            ];
-            const lvl = levels[Math.min(strength, 3)];
-            bar.style.width = lvl.w;
-            bar.className = `strength-bar h-full ${lvl.cls}`;
-            txt.textContent = lvl.label;
-            txt.className = `text-[0.65rem] font-bold uppercase tracking-wider ${lvl.color}`;
-        });
+function filterSchools(val) {
+  const term = val.toLowerCase().trim();
+  const filtered = term ? SCHOOLS.filter(s => s.name.toLowerCase().includes(term) || s.short.toLowerCase().includes(term)) : SCHOOLS;
+  renderSchools(filtered);
+}
 
-        // ── Alert helper ──────────────────────────────────────
-        function showAlert(message, type = 'error') {
-            const box = document.getElementById('alertBox');
-            box.className = `alert alert-${type}`;
-            box.textContent = message;
-            box.classList.remove('hidden');
-            box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-        function hideAlert() {
-            document.getElementById('alertBox').classList.add('hidden');
-        }
+function selectSchool(name) {
+  selectedSchool = name;
+  selectedFiliere = null; selectedLevel = null;
+  const search = document.getElementById('school-search').value.toLowerCase();
+  renderSchools(SCHOOLS.filter(s => !search || s.name.toLowerCase().includes(search) || s.short.toLowerCase().includes(search)));
+  document.getElementById('btn-school').disabled = false;
+}
 
-        // ── Form submit → API ─────────────────────────────────
-        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            hideAlert();
+function continueFromSchool() {
+  if (!selectedSchool) return;
+  if (selectedRole === 'enseignant' || selectedRole === 'admin') {
+    document.getElementById('code-icon').textContent = selectedRole === 'enseignant' ? '👨‍🏫' : '⚙️';
+    document.getElementById('code-sub').textContent = selectedRole === 'enseignant'
+      ? 'Entrez le code prof secret de votre établissement.'
+      : 'Entrez le code admin secret de votre établissement.';
+    document.getElementById('code-school-name').textContent = selectedSchool;
+    document.getElementById('school-code-input').value = '';
+    document.getElementById('btn-code').disabled = true;
+    document.getElementById('code-error').style.display = 'none';
+    goStep('code');
+    setTimeout(() => document.getElementById('school-code-input').focus(), 100);
+  } else {
+    renderFilieres();
+    goStep('filiere');
+  }
+}
 
-            const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<span class="animate-spin material-symbols-outlined">autorenew</span> Inscription...';
-            btn.disabled = true;
+// ══════════════════════════════════════════════════════
+//  STEP 4a — CODE (prof / admin)
+// ══════════════════════════════════════════════════════
+function validateCodeInput() {
+  const val = document.getElementById('school-code-input').value.trim();
+  const minLen = selectedRole === 'enseignant' ? 6 : 8;
+  document.getElementById('btn-code').disabled = val.length < minLen;
+}
 
-            const payload = {
-                first_name: document.getElementById('firstNameInput').value.trim(),
-                last_name:  document.getElementById('lastNameInput').value.trim(),
-                email:      document.getElementById('emailInput').value.trim(),
-                password:   document.getElementById('passwordInput').value,
-                bio:        document.getElementById('bioInput').value.trim() || null,
-            };
+async function submitCode() {
+  const code = document.getElementById('school-code-input').value.trim().toUpperCase();
+  const errDiv = document.getElementById('code-error');
+  const btn = document.getElementById('btn-code');
+  errDiv.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite">autorenew</span> Vérification...';
 
-            try {
-                const response = await fetch(`${API_BASE}/auth/register`, {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify(payload),
-                });
+  try {
+    const r = await fetch(API_BASE + '/auth/verify-school-code', {
+      method: 'POST', headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + token },
+      body: JSON.stringify({ school: selectedSchool, code }),
+    });
+    const d = await r.json();
+    if (d.success) {
+      await saveSchool({ school: selectedSchool });
+    } else {
+      errDiv.textContent = d.message || 'Code incorrect.';
+      errDiv.style.display = 'block';
+      btn.disabled = false; btn.innerHTML = '<span class="ms">lock_open</span>Valider le code';
+    }
+  } catch(e) {
+    errDiv.textContent = 'Erreur réseau — réessayez.';
+    errDiv.style.display = 'block';
+    btn.disabled = false; btn.innerHTML = '<span class="ms">lock_open</span>Valider le code';
+  }
+}
 
-                const data = await response.json();
+// ══════════════════════════════════════════════════════
+//  STEP 4b/5 — FILIÈRE & NIVEAU (étudiant)
+// ══════════════════════════════════════════════════════
+function renderFilieres() {
+  const grid = document.getElementById('filiere-grid');
+  const schoolFilieres = FILIERES[selectedSchool] || FILIERES['__default__'];
+  grid.innerHTML = Object.entries(schoolFilieres).map(([mention, filieres]) => `
+    <div>
+      <p style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:10px;padding:6px 10px;background:#f9fafb;border-radius:8px">${mention}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${filieres.map(f => `<button type="button" class="pill ${selectedFiliere === f ? 'sel' : ''}" onclick="selectFiliere('${f.replace(/'/g, "\\'")}')">${f.split(' — ')[0]}</button>`).join('')}
+      </div>
+    </div>`).join('');
+}
 
-                if (response.ok && data.success) {
-                    // Stocker le token
-                    localStorage.setItem('camunolearn_token', data.token);
-                    localStorage.setItem('camunolearn_user', JSON.stringify(data.user));
+function selectFiliere(f) {
+  selectedFiliere = f;
+  document.querySelectorAll('#filiere-grid .pill').forEach(p => p.classList.toggle('sel', p.textContent.trim() === f.split(' — ')[0]));
+  document.getElementById('btn-filiere').disabled = false;
+}
 
-                    showAlert('Compte créé ! Redirection...', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'indexSélectionRole.html';
-                    }, 1200);
-                } else {
-                    showAlert(data.message || 'Une erreur est survenue.', 'error');
-                    btn.innerHTML = 'S\'inscrire gratuitement <span class="material-symbols-outlined text-[1.2rem]">arrow_forward</span>';
-                    btn.disabled = false;
-                }
-            } catch (err) {
-                showAlert('Impossible de contacter le serveur. Vérifiez votre connexion.', 'error');
-                btn.innerHTML = 'S\'inscrire gratuitement <span class="material-symbols-outlined text-[1.2rem]">arrow_forward</span>';
-                btn.disabled = false;
-            }
-        });
+function toNiveau() {
+  if (!selectedFiliere) return;
+  renderLevels();
+  goStep('niveau');
+}
 
-        // ── Animations entrée ─────────────────────────────────
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.fade-up').forEach((el, i) => {
-                setTimeout(() => el.classList.add('show'), 150 + i * 160);
-            });
-        });
+function renderLevels() {
+  const list = document.getElementById('level-list');
+  list.innerHTML = LEVELS.map(l => `
+    <div class="level-card ${selectedLevel === l.v ? 'sel' : ''}" onclick="selectLevel('${l.v}')">
+      <div style="width:40px;height:40px;border-radius:10px;background:${selectedLevel===l.v?'#00602a':'#f3f4f6'};color:${selectedLevel===l.v?'#fff':'#6b7280'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.875rem;flex-shrink:0;transition:.18s">${l.v}</div>
+      <div style="flex:1"><p style="font-size:.875rem;font-weight:700;color:#111;margin:0">${l.label}</p><p style="font-size:.72rem;color:#9ca3af;margin:2px 0 0">${l.sub}</p></div>
+      ${selectedLevel === l.v ? '<span class="ms f" style="color:#00602a;font-size:20px;flex-shrink:0">check_circle</span>' : ''}
+    </div>`).join('');
+}
 
-        // ── Lang toggle (simplifié) ───────────────────────────
-        let currentLang = 'fr';
-        document.getElementById('langToggle').addEventListener('click', () => {
-            currentLang = currentLang === 'fr' ? 'en' : 'fr';
-            document.getElementById('langLabel').textContent = currentLang.toUpperCase();
-        });
-    </script>
+function selectLevel(v) {
+  selectedLevel = v;
+  renderLevels();
+  document.getElementById('btn-niveau').disabled = false;
+}
+
+async function finishStudent() {
+  if (!selectedFiliere || !selectedLevel) return;
+  await saveSchool({ school: selectedSchool, filiere: selectedFiliere, level: selectedLevel });
+}
+
+// ══════════════════════════════════════════════════════
+//  ENREGISTREMENT ÉCOLE + REDIRECTION FINALE
+// ══════════════════════════════════════════════════════
+async function saveSchool(body) {
+  const btnId = flow[flow.length - 1] === 'code' ? 'btn-code' : (flow[flow.length - 1] === 'niveau' ? 'btn-niveau' : 'btn-school');
+  const btn = document.getElementById(btnId);
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite">autorenew</span> Enregistrement...';
+
+  try {
+    const r = await fetch(`${API_BASE}/auth/school`, {
+      method: 'PUT', headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if (r.ok && d.success) {
+      if (d.token) localStorage.setItem('camunolearn_token', d.token);
+      if (d.user)  localStorage.setItem('camunolearn_user', JSON.stringify(d.user));
+      redirectToDashboard(selectedRole);
+    } else {
+      showAlert(d.message || 'Erreur lors de l\'enregistrement.');
+      btn.disabled = false; btn.innerHTML = orig;
+    }
+  } catch(e) {
+    showAlert('Erreur réseau — réessayez.');
+    btn.disabled = false; btn.innerHTML = orig;
+  }
+}
+
+function redirectToDashboard(role) {
+  const routes = { admin:'indexADMIN.html', enseignant:'indexEnseignant.html', etudiant:'indexETUDIANT.html', superadmin:'indexSUPERADMIN.html' };
+  location.href = routes[role] || 'indexETUDIANT.html';
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT — détection intelligente du point d'entrée
+// ══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+  // Pré-remplissage de l'email si on vient de la page de connexion
+  const params = new URLSearchParams(location.search);
+  const prefillEmail = params.get('email');
+  if (prefillEmail) document.getElementById('emailInput').value = prefillEmail;
+
+  if (!token) {
+    freshSignup = true;
+    computeFlow();
+    goStep('identity');
+    return;
+  }
+
+  // Un token existe déjà : compte créé mais profil incomplet
+  // (ex: activation par PIN, ou inscription interrompue) → sauter l'étape identité
+  freshSignup = false;
+  try {
+    const r = await fetch(API_BASE + '/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+    const d = await r.json();
+    if (d.success) {
+      const user = d.user;
+      if (d.token) { token = d.token; localStorage.setItem('camunolearn_token', token); }
+      localStorage.setItem('camunolearn_user', JSON.stringify(user));
+
+      if (user.school) { redirectToDashboard(user.role); return; }
+
+      if (user.role === 'enseignant' || user.role === 'admin' || user.role === 'superadmin') {
+        selectedRole = user.role;
+        computeFlow();
+        renderSchools(SCHOOLS);
+        goStep('school');
+      } else {
+        computeFlow();
+        goStep('role');
+      }
+    } else {
+      localStorage.removeItem('camunolearn_token');
+      token = null; freshSignup = true;
+      computeFlow(); goStep('identity');
+    }
+  } catch(e) {
+    // Serveur injoignable mais token présent : proposer directement le choix de rôle
+    computeFlow();
+    goStep('role');
+  }
+});
+</script>
 </body>
 </html>

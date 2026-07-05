@@ -12,8 +12,6 @@ const CACHE_URLS = [
   './indexADMIN.html',
   './indexSUPERADMIN.html',
   './indexCalendrier.html',
-  './indexSélectionRole.html',
-  './indexSélectionEcole.html',
   './manifest.json',
 ];
 
