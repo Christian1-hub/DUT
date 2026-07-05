@@ -371,7 +371,7 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
 <!-- TOPBAR -->
 <header class="fixed top-0 right-0 left-0 md:left-56 z-40 flex items-center justify-between px-5" style="height:52px;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-bottom:1px solid #f0f0f0">
   <div class="flex items-center gap-3">
-    <button onclick="toggleSidebar()" class="md:hidden p-1.5 rounded-lg hover:bg-gray-100 border-none bg-transparent cursor-pointer"><span class="ms">menu</span></button>
+    <button id="sb-toggle-btn" onclick="toggleSidebar()" class="md:hidden p-1.5 rounded-lg hover:bg-gray-100 border-none bg-transparent cursor-pointer"><span class="ms">menu</span></button>
     <h2 id="pg-title" style="font-family:Manrope;font-weight:800;font-size:1rem;color:#111">Vue d'ensemble</h2>
   </div>
   <div class="flex items-center gap-2">
@@ -2635,7 +2635,7 @@ function toggleSidebar() {
 function doLogout(){localStorage.clear();sessionStorage.clear();location.href='indexconnexion.html';}
 document.addEventListener('click',e=>{
   if(!e.target.closest('#notif-drop')&&!e.target.closest('button[onclick="toggleNotif()"]'))document.getElementById('notif-drop').style.display='none';
-  if(!e.target.closest('#sidebar')&&!e.target.closest('button[onclick*="sidebar"]'))document.getElementById('sidebar').classList.add('-translate-x-full');
+  if(!e.target.closest('#sidebar')&&!e.target.closest('#sb-toggle-btn')){document.getElementById('sidebar').classList.add('-translate-x-full');document.getElementById('sb-overlay').style.display='none';}
 });
 
 // ══════════════════════════════════════════════
