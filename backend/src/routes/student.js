@@ -189,21 +189,26 @@ router.post('/assignments/:id/submit', async (req, res) => {
     );
 
     const doSave = async (grade) => {
+      // Note : graded_at est calculé côté JS (et non via un CASE WHEN $n IS NOT NULL
+      // en SQL) car réutiliser le même paramètre dans un test booléen ET dans une
+      // affectation typée fait échouer l'inférence de type de Postgres avec l'erreur
+      // "could not determine data type of parameter $n".
+      const gradedAt = grade !== null ? new Date() : null;
       if (existing.rows.length) {
         return pool.query(
           `UPDATE assignment_submissions
            SET content=$1, file_url=$2, submitted_at=NOW(),
                grade=COALESCE($3, grade),
-               graded_at=CASE WHEN $3 IS NOT NULL THEN NOW() ELSE graded_at END
-           WHERE id=$4 RETURNING *`,
-          [content?.trim()||null, file_url||null, grade, existing.rows[0].id]
+               graded_at=COALESCE($4, graded_at)
+           WHERE id=$5 RETURNING *`,
+          [content?.trim()||null, file_url||null, grade, gradedAt, existing.rows[0].id]
         );
       }
       return pool.query(
         `INSERT INTO assignment_submissions (assignment_id, student_id, content, file_url, grade, graded_at)
-         VALUES ($1,$2,$3,$4,$5, CASE WHEN $5 IS NOT NULL THEN NOW() ELSE NULL END)
+         VALUES ($1,$2,$3,$4,$5,$6)
          RETURNING *`,
-        [req.params.id, req.user.id, content?.trim()||null, file_url||null, grade]
+        [req.params.id, req.user.id, content?.trim()||null, file_url||null, grade, gradedAt]
       );
     };
 

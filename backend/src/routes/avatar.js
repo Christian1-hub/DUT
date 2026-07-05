@@ -26,8 +26,8 @@ function updateAllAvatars(user) {
 
 // Upload et mise à jour de la photo
 async function uploadAndSetAvatar(file, API, TK) {
-  const UPLOADIO_KEY        = public_W23MTdC4sM22hJB8SGp22Q4b8hFW        || '';
-  const UPLOADIO_ACCOUNT_ID = W23MTdC || '';
+  const UPLOADIO_KEY        = 'public_W23MTdC4sM22hJB8SGp22Q4b8hFW';
+  const UPLOADIO_ACCOUNT_ID = 'W23MTdC';
 
   if (!UPLOADIO_KEY || UPLOADIO_KEY === 'your_uploadio_api_key') {
     alert('Upload.io non configuré. Renseignez UPLOADIO_KEY et UPLOADIO_ACCOUNT_ID.');

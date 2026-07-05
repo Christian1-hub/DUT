@@ -20,6 +20,10 @@ const calendarRoutes   = require('./routes/calendar');
 const notificationRoutes = require('./routes/notifications');
 const attendanceRoutes   = require('./routes/attendance');
 const projectRoutes      = require('./routes/projects');
+const resourceRoutes     = require('./routes/resources');
+const messageRoutes      = require('./routes/messages');
+const certificateRoutes  = require('./routes/certificates');
+const scheduleRoutes     = require('./routes/schedule');
 
 const app = express();
 
@@ -61,6 +65,10 @@ app.use('/api/calendar',   calendarRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/attendance',    attendanceRoutes);
 app.use('/api/projects',      projectRoutes);
+app.use('/api/resources',     resourceRoutes);
+app.use('/api/messages',      messageRoutes);
+app.use('/api/certificates',  certificateRoutes);
+app.use('/api/schedule',      scheduleRoutes);
 
 // ── Santé ────────────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -308,6 +316,80 @@ app.listen(PORT, async () => {
       )
     `);
     console.log('✅ projects + project_submissions : OK');
+
+    // Table bibliothèque de ressources
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS resources (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        title VARCHAR(200) NOT NULL,
+        description TEXT,
+        category VARCHAR(50) DEFAULT 'autre',
+        file_url TEXT,
+        link_url TEXT,
+        course_id UUID REFERENCES courses(id) ON DELETE SET NULL,
+        teacher_id UUID REFERENCES users(id),
+        school VARCHAR(100),
+        filiere VARCHAR(100),
+        downloads_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ resources : OK');
+
+    // Tables messagerie directe
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS conversations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_a UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        user_b UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+        sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ conversations + messages : OK');
+
+    // Table attestations / certificats numériques
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS certificates (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        certificate_number VARCHAR(50) UNIQUE NOT NULL,
+        student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        course_id UUID REFERENCES courses(id) ON DELETE SET NULL,
+        teacher_id UUID REFERENCES users(id),
+        title VARCHAR(200) NOT NULL,
+        school VARCHAR(100),
+        grade NUMERIC(4,2),
+        status VARCHAR(20) DEFAULT 'valid',
+        issued_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ certificates : OK');
+
+    // Table emploi du temps (séances récurrentes hebdomadaires)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS schedule_slots (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+        teacher_id UUID REFERENCES users(id),
+        day_of_week SMALLINT NOT NULL,
+        start_time TIME NOT NULL,
+        end_time TIME NOT NULL,
+        room VARCHAR(100),
+        school VARCHAR(100),
+        filiere VARCHAR(100),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ schedule_slots : OK');
 
     // Créer la table role_requests si elle n'existe pas
     await pool.query(`

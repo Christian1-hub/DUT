@@ -7,8 +7,10 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
 <script>
 // ══════════════════════════════════════════════════════
-//  AVATAR — Photo de profil (fonctionne sans Upload.io)
+//  AVATAR — Photo de profil (Upload.io, repli base64)
 // ══════════════════════════════════════════════════════
+const UPLOADIO_KEY        = 'public_W23MTdC4sM22hJB8SGp22Q4b8hFW';
+const UPLOADIO_ACCOUNT_ID = 'W23MTdC';
 
 // Couleurs selon le rôle
 const ROLE_COLORS = {
@@ -68,9 +70,9 @@ async function uploadAndSetAvatar(file, apiBase, getToken) {
   var avatarUrl = null;
 
   // Tenter Upload.io si clé configurée
-  var hasUploadio = window.UPLOADIO_KEY && 
-                    window.UPLOADIO_KEY !== 'your_uploadio_api_key' &&
-                    window.UPLOADIO_KEY.startsWith('public_');
+  var hasUploadio = UPLOADIO_KEY &&
+                    UPLOADIO_KEY !== 'your_uploadio_api_key' &&
+                    UPLOADIO_KEY.startsWith('public_');
 
   try {
     var resized = await resizeImage(file, 400);
@@ -116,7 +118,7 @@ async function uploadAndSetAvatar(file, apiBase, getToken) {
       body: JSON.stringify({ avatar_url: avatarUrl })
     });
     var saved = await save.json();
-    if (saved && saved.token) localStorage.setItem('camunolearn_token', saved.token);
+    if (saved && saved.token) saveTK(saved.token);
 
     return avatarUrl;
 
@@ -303,7 +305,21 @@ const API = (function() {
   if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:3000/api';
   return 'https://camunolearn-api.onrender.com/api';
 })();
-const TK  = () => localStorage.getItem('camunolearn_token');
+// Un token présent dans localStorage est PARTAGÉ entre tous les onglets du
+// même navigateur : si quelqu'un d'autre se connecte dans un autre onglet
+// (ex: un superadmin), ce token change pour tout le monde. On "épingle" donc
+// le token de CET onglet dans sessionStorage (jamais partagé) dès le
+// chargement, pour que cet onglet garde sa propre identité même si
+// localStorage change ensuite ailleurs.
+if (!sessionStorage.getItem('camunolearn_token') && localStorage.getItem('camunolearn_token')) {
+  sessionStorage.setItem('camunolearn_token', localStorage.getItem('camunolearn_token'));
+}
+const TK  = () => sessionStorage.getItem('camunolearn_token') || localStorage.getItem('camunolearn_token');
+function saveTK(t) {
+  if (!t) return;
+  sessionStorage.setItem('camunolearn_token', t);
+  localStorage.setItem('camunolearn_token', t);
+}
 // Vérification rôle admin via token (côté client seulement pour UX, le vrai check est dans le backend)
 const tk = TK();
 if (!tk) location.href = 'indexconnexion.html';
@@ -1571,7 +1587,7 @@ async function loadAdminProjects(){
     </div>`;
   }).join('');
 }
-function doLogout(){ localStorage.clear(); location.href='indexconnexion.html'; }
+function doLogout(){ localStorage.clear(); sessionStorage.clear(); location.href='indexconnexion.html'; }
 
 // ═══════════════════════════════════════════════
 //  RAFRAÎCHISSEMENT AUTOMATIQUE (effet temps réel)
