@@ -270,6 +270,8 @@ document.head.appendChild(spinStyle);
   tr:last-child td { border:none; }
   tr:hover td { background:#f8fafc; }
 
+#sidebar nav{overflow-y:auto;min-height:0;scrollbar-width:thin}
+
 /* ── RESPONSIVE GLOBAL ─────────────────────────────── */
 @media (max-width: 768px) {
   /* Grilles → 1 colonne sur mobile */
@@ -283,8 +285,6 @@ document.head.appendChild(spinStyle);
   table { display: block; overflow-x: auto; }
   /* Modaux plein écran */
   .mbox, .modal { width: 100% !important; max-width: 100% !important; border-radius: 16px 16px 0 0 !important; }
-  /* Cards flex → column */
-  .card > div[style*="display:flex"] { flex-direction: column !important; }
   /* Boutons pleine largeur sur mobile */
   .btn-group { flex-direction: column !important; }
   /* Stats grid → 2 colonnes */
@@ -327,19 +327,19 @@ if (!tk) location.href = 'indexconnexion.html';
 
 <!-- SIDEBAR -->
 <aside id="sidebar" class="flex flex-col w-64 h-screen fixed left-0 top-0 bg-white border-r border-slate-100 z-50 p-5 -translate-x-full md:translate-x-0" style="transition:transform .28s cubic-bezier(.4,0,.2,1)">
-  <div class="flex items-center gap-2 mb-8">
+  <div class="flex items-center gap-2 mb-8 flex-shrink-0">
     <span class="ms f" style="color:#004a77;font-size:26px">admin_panel_settings</span>
     <span style="font-family:Manrope;font-weight:900;font-size:1.05rem;color:#004a77"><span style="color:#111">Camuno</span>Learn <span style="font-size:.7rem;background:#e8f1f8;color:#004a77;padding:2px 7px;border-radius:999px;">ADMIN</span></span>
   </div>
   <!-- Profil admin -->
-  <div style="background:#e8f1f8;border-radius:12px;padding:12px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+  <div style="background:#e8f1f8;border-radius:12px;padding:12px;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-shrink:0">
     <div id="side-av-wrap" style="position:relative;display:inline-block;flex-shrink:0"><img id="side-av" src="https://ui-avatars.com/api/?name=A&background=004a77&color=fff" style="width:36px;height:36px;border-radius:50%;object-fit:cover"/></div>
     <div style="min-width:0">
       <p id="side-name" style="font-size:.8rem;font-weight:700;color:#111;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Admin</p>
       <p id="side-school" style="font-size:.7rem;color:#64748b;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</p>
     </div>
   </div>
-  <nav class="flex flex-col gap-1 flex-grow">
+  <nav class="flex flex-col gap-1 flex-grow overflow-y-auto min-h-0">
     <button class="nb on" data-s="overview"  onclick="goTo('overview')"><span class="ms">analytics</span>Supervision</button>
     <button class="nb"    data-s="users"     onclick="goTo('users')"><span class="ms">person_search</span>Utilisateurs</button>
     <button class="nb"    data-s="schools"   onclick="goTo('schools')"><span class="ms">account_balance</span>Universités</button>
@@ -355,7 +355,7 @@ if (!tk) location.href = 'indexconnexion.html';
     <button class="nb"    data-s="notifications" onclick="goTo('notifications')"><span class="ms">notifications</span>Notifications</button>
   <button class="nb" data-s="calendrier" onclick="location.href='indexCalendrier.html'"><span class="ms">calendar_month</span>Calendrier</button>
   </nav>
-  <button onclick="doLogout()" class="nb" style="color:#dc2626;margin-top:8px"><span class="ms">logout</span>Déconnexion</button>
+  <button onclick="doLogout()" class="nb flex-shrink-0" style="color:#dc2626;margin-top:8px"><span class="ms">logout</span>Déconnexion</button>
 </aside>
 <div id="sb-overlay" onclick="toggleSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:39;backdrop-filter:blur(2px)"></div>
 
