@@ -124,10 +124,35 @@ router.post('/classes', async (req, res) => {
     const u = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
     const school = u.rows[0]?.school || 'Non défini';
     const r = await pool.query(
-      `INSERT INTO classes (name, filiere, niveau, description, school, teacher_id)
-       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [name.trim(), filiere||null, level||null, description||null, school, req.user.id]
+      `INSERT INTO classes (name, filiere, level, description, academic_year, school, teacher_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [name.trim(), filiere||null, level||null, description||null, academic_year||null, school, req.user.id]
     );
+    const classId = r.rows[0].id;
+
+    // Rattacher automatiquement les étudiants déjà inscrits sur cette école/filière
+    // (le prof peut créer la classe APRÈS que des étudiants se soient déjà inscrits)
+    const filiereShort = filiere.split(' — ')[0].trim();
+    await pool.query(
+      `INSERT INTO class_members (class_id, student_id)
+       SELECT $1, u.id FROM users u
+       WHERE u.role='etudiant' AND u.school=$2
+         AND (u.filiere=$3 OR SPLIT_PART(u.filiere, ' — ', 1) = $4)
+       ON CONFLICT DO NOTHING`,
+      [classId, school, filiere.trim(), filiereShort]
+    );
+
+    // Inscrire aussi ces étudiants aux cours déjà liés à cette classe (normalement aucun à la création,
+    // mais garde la cohérence si des cours existaient déjà pour cette filière sans classe associée)
+    await pool.query(
+      `INSERT INTO enrollments (student_id, course_id)
+       SELECT cm.student_id, c.id FROM class_members cm
+       JOIN courses c ON c.class_id=$1
+       WHERE cm.class_id=$1
+       ON CONFLICT DO NOTHING`,
+      [classId]
+    );
+
     res.status(201).json({ success: true, class: r.rows[0] });
   } catch(e) {
     console.error('[CLASS POST]', e.message);
@@ -225,15 +250,19 @@ router.post('/courses', async (req, res) => {
     if (filiere && school) {
       // Inscrire AUSSI tous les étudiants de l'école avec cette filière
       // (même ceux qui ne sont pas dans une classe explicite)
+      // Comparaison souple : correspondance exacte OU même code court avant le " — "
+      // (le champ filière du cours est saisi librement par le prof, celui de l'étudiant
+      // vient d'une liste fixe, donc les deux chaînes ne matchent pas toujours au caractère près)
+      const filiereShort = filiere.split(' — ')[0].trim();
       await pool.query(
         `INSERT INTO enrollments (student_id, course_id)
          SELECT u.id, $1 FROM users u
          WHERE u.role='etudiant'
            AND u.school=$2
-           AND u.filiere=$3
+           AND (u.filiere=$3 OR SPLIT_PART(u.filiere, ' — ', 1) = $4 OR SPLIT_PART(u.filiere, ' ', 1) = $4)
            AND NOT EXISTS (SELECT 1 FROM enrollments e WHERE e.student_id=u.id AND e.course_id=$1)
          ON CONFLICT DO NOTHING`,
-        [courseId, school, filiere]
+        [courseId, school, filiere, filiereShort]
       );
       console.log(`[COURSE] Étudiants filière ${filiere} de ${school} inscrits au cours "${title}"`);
     }
@@ -255,6 +284,22 @@ router.put('/courses/:id', async (req, res) => {
       [title, description||null, filiere||null, color||'orange', file_url||null, req.params.id, req.user.id]
     );
     if (!r.rows.length) return res.status(404).json({ success: false, message: 'Cours introuvable.' });
+
+    // Rejouer l'auto-inscription (utile pour rattraper des étudiants inscrits
+    // après la création du cours, ou si la filière a été corrigée)
+    if (filiere && r.rows[0].school) {
+      const filiereShort = filiere.split(' — ')[0].trim();
+      await pool.query(
+        `INSERT INTO enrollments (student_id, course_id)
+         SELECT u.id, $1 FROM users u
+         WHERE u.role='etudiant' AND u.school=$2
+           AND (u.filiere=$3 OR SPLIT_PART(u.filiere, ' — ', 1) = $4 OR SPLIT_PART(u.filiere, ' ', 1) = $4)
+           AND NOT EXISTS (SELECT 1 FROM enrollments e WHERE e.student_id=u.id AND e.course_id=$1)
+         ON CONFLICT DO NOTHING`,
+        [req.params.id, r.rows[0].school, filiere, filiereShort]
+      );
+    }
+
     res.json({ success: true, course: r.rows[0] });
   } catch(e) {
     console.error('[COURSE PUT]', e.message);
@@ -545,6 +590,30 @@ router.post('/notifications/broadcast', async (req, res) => {
     res.json({ success: true, sent: studentIds.length });
   } catch(e) {
     console.error('[TEACHER NOTIF BROADCAST]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// ── GET /teacher/school-students — tous les étudiants de mon établissement ──
+// (pas seulement ceux déjà inscrits à une classe ou un cours précis)
+router.get('/school-students', async (req, res) => {
+  try {
+    const u = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
+    const school = u.rows[0]?.school;
+    if (!school) return res.json({ success: true, students: [] });
+
+    const r = await pool.query(`
+      SELECT u.id, u.first_name, u.last_name, u.email, u.filiere, u.avatar_url, u.created_at,
+             (SELECT COUNT(*) FROM enrollments e WHERE e.student_id=u.id) AS course_count,
+             (SELECT COUNT(*) FROM class_members cm WHERE cm.student_id=u.id) AS class_count
+      FROM users u
+      WHERE u.role='etudiant' AND u.school=$1
+      ORDER BY u.filiere NULLS LAST, u.last_name, u.first_name
+    `, [school]);
+
+    res.json({ success: true, students: r.rows });
+  } catch(e) {
+    console.error('[SCHOOL STUDENTS]', e.message);
     res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 });

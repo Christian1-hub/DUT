@@ -457,7 +457,10 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
 <div id="sec-classes" class="sec">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
     <div><h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Mes Classes</h1><p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Groupes d'étudiants par filière et niveau</p></div>
-    <button onclick="openClassCreate()" class="btn bp"><span class="ms">add</span>Nouvelle classe</button>
+    <div style="display:flex;gap:8px">
+      <button onclick="openSchoolRoster()" class="btn bg"><span class="ms">groups</span>Élèves de mon établissement</button>
+      <button onclick="openClassCreate()" class="btn bp"><span class="ms">add</span>Nouvelle classe</button>
+    </div>
   </div>
   <div id="cl-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px"><div class="sk" style="height:140px"></div><div class="sk" style="height:140px"></div></div>
   <div id="cl-empty" class="card" style="display:none;text-align:center;padding:60px 20px"><span class="ms" style="font-size:48px;color:#d1d5db">groups</span><p style="font-weight:700;color:#6b7280;margin-top:12px">Aucune classe créée</p><button onclick="openClassCreate()" class="btn bp" style="margin-top:16px"><span class="ms">add</span>Nouvelle classe</button></div>
@@ -636,6 +639,20 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
 <!-- MODALS -->
 
 <!-- Classe -->
+<!-- Élèves de mon établissement -->
+<div id="m-roster" class="ov" onclick="if(event.target===this)hideM('m-roster')">
+  <div class="mbox" style="max-width:560px;max-height:85vh;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid #f0f0f0;flex-shrink:0">
+      <div><h3 style="font-family:Manrope;font-weight:800;font-size:1.05rem;color:#111">Élèves de mon établissement</h3><p id="roster-sub" style="font-size:.75rem;color:#9ca3af;margin-top:2px"></p></div>
+      <button onclick="hideM('m-roster')" style="border:none;background:none;cursor:pointer;color:#9ca3af;padding:4px;border-radius:6px"><span class="ms">close</span></button>
+    </div>
+    <div style="padding:14px 22px 0;flex-shrink:0">
+      <input id="roster-search" type="text" placeholder="Rechercher un nom ou une filière..." class="fld" oninput="renderRoster()"/>
+    </div>
+    <div id="roster-list" style="flex:1;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+
 <div id="m-class" class="ov" onclick="if(event.target===this)hideM('m-class')">
   <div class="mbox">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0">
@@ -1402,6 +1419,39 @@ async function submitCourse(){
 }
 
 async function deleteCourse(id){if(!confirm('Supprimer ce cours ?'))return;const d=await api(`/teacher/courses/${id}`,{method:'DELETE'});if(d?.success){loaded.courses=false;await loadCourses();}}
+
+// ══════════════════════════════════════════════
+//  ÉLÈVES DE MON ÉTABLISSEMENT
+// ══════════════════════════════════════════════
+let SCHOOL_ROSTER = [];
+
+async function openSchoolRoster(){
+  showM('m-roster');
+  document.getElementById('roster-search').value='';
+  document.getElementById('roster-sub').textContent='Chargement...';
+  document.getElementById('roster-list').innerHTML='<div class="sk" style="height:50px"></div><div class="sk" style="height:50px"></div>';
+  const d=await api('/teacher/school-students');
+  if(!d?.success) return;
+  SCHOOL_ROSTER=d.students;
+  document.getElementById('roster-sub').textContent=`${SCHOOL_ROSTER.length} étudiant${SCHOOL_ROSTER.length!=1?'s':''} · ${ME?.school||''}`;
+  renderRoster();
+}
+
+function renderRoster(){
+  const term=(document.getElementById('roster-search').value||'').toLowerCase().trim();
+  const list=SCHOOL_ROSTER.filter(s=>!term||`${s.first_name} ${s.last_name}`.toLowerCase().includes(term)||(s.filiere||'').toLowerCase().includes(term));
+  const el=document.getElementById('roster-list');
+  if(!list.length){ el.innerHTML='<p style="text-align:center;color:#9ca3af;padding:30px 0">Aucun étudiant trouvé.</p>'; return; }
+  el.innerHTML=list.map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border:1px solid #f3f4f6">
+      <img src="${s.avatar_url||('https://ui-avatars.com/api/?name='+encodeURIComponent(s.first_name+' '+s.last_name)+'&background=ea580c&color=fff')}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0"/>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:.85rem;font-weight:700;color:#111;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.first_name} ${s.last_name}</p>
+        <p style="font-size:.72rem;color:#9ca3af;margin:2px 0 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.filiere||'Filière non définie'}</p>
+      </div>
+      <span class="bdg" style="background:#f3f4f6;color:#6b7280;flex-shrink:0">${s.course_count} cours</span>
+    </div>`).join('');
+}
 
 // ══════════════════════════════════════════════
 //  NOTIFICATIONS
@@ -2174,6 +2224,29 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('#notif-drop')&&!e.target.closest('button[onclick="toggleNotif()"]'))document.getElementById('notif-drop').style.display='none';
   if(!e.target.closest('#sidebar')&&!e.target.closest('button[onclick*="sidebar"]'))document.getElementById('sidebar').classList.add('-translate-x-full');
 });
+
+// ══════════════════════════════════════════════
+//  RAFRAÎCHISSEMENT AUTOMATIQUE (effet temps réel)
+// ══════════════════════════════════════════════
+const SECTION_REFRESH = {
+  dashboard:     () => { loadDashboard(); loadUpcomingEventsTeacher(); },
+  classes:       loadClasses,
+  courses:       loadCourses,
+  assignments:   loadAssignments,
+  communities:   loadCommunities,
+  crossrequests: loadCrossRequests,
+  stats:         loadStats,
+  attendance:    () => { if (attCourseId) { loadAttendanceStats(); loadAttendanceSessions(); } },
+  projects:      loadProjects,
+};
+setInterval(() => {
+  if (document.hidden || !ME) return;
+  loadNotifications();
+  const activeId = document.querySelector('.sec.on')?.id;
+  if (!activeId) return;
+  const key = activeId.replace('sec-', '');
+  if (SECTION_REFRESH[key]) SECTION_REFRESH[key]();
+}, 20000);
 </script>
 </body>
 </html>

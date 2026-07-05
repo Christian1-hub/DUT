@@ -322,6 +322,61 @@ app.listen(PORT, async () => {
       )
     `);
     console.log('✅ role_requests : OK');
+
+    // Communautés par défaut — 7 par école, avec un post de lancement
+    // (créées une seule fois : si l'école a déjà au moins une communauté, on ne touche à rien)
+    try {
+      const DEFAULT_COMMUNITIES = [
+        { name:'Mathématiques & Logique',     icon:'calculate',       category:'Sciences',
+          desc:"Le vieux tableau noir version numérique : théorèmes, exercices corrigés et astuces de calcul entre étudiants.",
+          post:"Quelqu'un a une méthode simple pour retenir les formules de trigonométrie avant les examens ? 📐" },
+        { name:'Sciences & Découvertes',      icon:'science',         category:'Sciences',
+          desc:"Physique, chimie, biologie : le vieux labo du campus où on partage expériences et curiosités scientifiques.",
+          post:"Le prof a fait une démonstration incroyable aujourd'hui, quelqu'un a pris des notes ? 🔬" },
+        { name:'Littérature & Langues',       icon:'menu_book',       category:'Lettres',
+          desc:"Un salon de lecture à l'ancienne pour discuter des œuvres au programme et s'entraider en langues.",
+          post:"On lance un club de lecture ce semestre, des volontaires pour choisir le premier livre ? 📚" },
+        { name:'Histoire & Culture Générale', icon:'account_balance', category:'Humanités',
+          desc:"La salle des archives du campus : dates clés, débats d'idées et culture générale pour briller aux examens.",
+          post:"Qui a des fiches de révision bien faites à partager avant l'examen de ce semestre ? 🏛️" },
+        { name:'Vie Étudiante & Entraide',    icon:'groups',          category:'Communauté',
+          desc:"Le foyer des étudiants de toujours : bons plans, entraide entre promotions et petites annonces du campus.",
+          post:"Bienvenue à tous les nouveaux inscrits ! N'hésitez pas à vous présenter ici 👋" },
+        { name:'Sport & Détente',             icon:'sports_soccer',   category:'Bien-être',
+          desc:"Le stade universitaire version forum : matchs entre filières, séances de sport et bons plans détente.",
+          post:"Match inter-filières ce week-end, qui est partant pour former une équipe ? ⚽" },
+        { name:'Orientation & Débouchés',     icon:'work',            category:'Carrière',
+          desc:"Le bureau des anciens : stages, débouchés professionnels et conseils d'orientation entre étudiants et diplômés.",
+          post:"Des anciens de la filière déjà en poste qui peuvent partager leur expérience de stage ? 💼" },
+      ];
+
+      const superadminRes = await pool.query(`SELECT id FROM users WHERE email='superadmin@camunolearn.cm'`);
+      const superadminId  = superadminRes.rows[0]?.id || null;
+
+      const schoolsRes = await pool.query(`SELECT DISTINCT school FROM school_codes`);
+      for (const { school } of schoolsRes.rows) {
+        const existing = await pool.query(`SELECT COUNT(*) FROM communities WHERE school=$1`, [school]);
+        if (parseInt(existing.rows[0].count) > 0) continue;
+
+        for (const c of DEFAULT_COMMUNITIES) {
+          const comm = await pool.query(
+            `INSERT INTO communities (name, description, category, icon, teacher_id, school)
+             VALUES ($1,$2,$3,$4,NULL,$5) RETURNING id`,
+            [c.name, c.desc, c.category, c.icon, school]
+          );
+          if (superadminId) {
+            await pool.query(
+              `INSERT INTO community_posts (community_id, author_id, content) VALUES ($1,$2,$3)`,
+              [comm.rows[0].id, superadminId, c.post]
+            );
+          }
+        }
+      }
+      console.log('✅ communautés par défaut : OK');
+    } catch(e) {
+      console.warn('⚠️  communautés par défaut non initialisées:', e.message);
+    }
+
     console.log('\n✅ Serveur prêt !\n');
   } catch(e) {
     console.error('❌ PostgreSQL non connecté:', e.message);

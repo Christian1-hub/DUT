@@ -1573,6 +1573,28 @@ async function loadAdminProjects(){
   }).join('');
 }
 function doLogout(){ localStorage.clear(); location.href='indexconnexion.html'; }
+
+// ═══════════════════════════════════════════════
+//  RAFRAÎCHISSEMENT AUTOMATIQUE (effet temps réel)
+// ═══════════════════════════════════════════════
+const SECTION_REFRESH = {
+  overview:      () => { loadOverview(); loadUpcomingEventsAdmin(); },
+  users:         loadUsers,
+  schools:       loadSchools,
+  activity:      loadActivity,
+  courses:       loadAdminCourses,
+  communities:   loadAdminCommunities,
+  attendance:    loadAdminAttendance,
+  projects:      loadAdminProjects,
+};
+setInterval(() => {
+  if (document.hidden || !TK()) return;
+  loadNotifications();
+  const activeId = document.querySelector('.sec.on')?.id;
+  if (!activeId) return;
+  const key = activeId.replace('sec-', '');
+  if (SECTION_REFRESH[key]) SECTION_REFRESH[key]();
+}, 20000);
 </script>
 </body>
 </html>

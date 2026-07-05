@@ -152,7 +152,7 @@ router.get('/assignments', async (req, res) => {
   }
 });
 
-// POST /api/student/assignments/:id/submit — rendre un devoir (texte ou URL fichier)
+// POST /api/student/assignments/:id/submit — rendre un devoir ou un quiz (texte ou URL fichier)
 router.post('/assignments/:id/submit', async (req, res) => {
   try {
     const { content, file_url } = req.body;
@@ -161,7 +161,7 @@ router.post('/assignments/:id/submit', async (req, res) => {
     }
     // Vérifier que l'étudiant est inscrit au cours de ce devoir
     const check = await pool.query(
-      `SELECT a.id FROM assignments a
+      `SELECT a.id, a.is_quiz FROM assignments a
        JOIN courses c ON a.course_id=c.id
        JOIN enrollments e ON e.course_id=c.id AND e.student_id=$1
        WHERE a.id=$2`,
@@ -170,14 +170,42 @@ router.post('/assignments/:id/submit', async (req, res) => {
     if (!check.rows.length) {
       return res.status(403).json({ success: false, message: 'Vous n\'êtes pas inscrit à ce cours.' });
     }
-    const r = await pool.query(
-      `INSERT INTO assignment_submissions (assignment_id, student_id, content, file_url)
-       VALUES ($1,$2,$3,$4)
-       ON CONFLICT (assignment_id, student_id) DO UPDATE
-         SET content=$3, file_url=$4, submitted_at=NOW()
-       RETURNING *`,
-      [req.params.id, req.user.id, content?.trim()||null, file_url||null]
+
+    // Pour un quiz, le score est déjà calculé côté client (content contient {answers,score,total,note})
+    // → on le récupère pour noter automatiquement la copie ("quiz auto-corrigé")
+    let autoGrade = null;
+    if (check.rows[0].is_quiz && content) {
+      try {
+        const parsed = JSON.parse(content);
+        if (typeof parsed.note === 'number' && parsed.note >= 0 && parsed.note <= 20) autoGrade = parsed.note;
+      } catch(e) { /* pas du JSON valide, on laisse la note vide */ }
+    }
+
+    // Pas de dépendance à une contrainte UNIQUE (assignment_id, student_id) qui peut ne pas
+    // exister réellement en base : on vérifie et on choisit UPDATE ou INSERT nous-mêmes.
+    const existing = await pool.query(
+      `SELECT id FROM assignment_submissions WHERE assignment_id=$1 AND student_id=$2`,
+      [req.params.id, req.user.id]
     );
+
+    let r;
+    if (existing.rows.length) {
+      r = await pool.query(
+        `UPDATE assignment_submissions
+         SET content=$1, file_url=$2, submitted_at=NOW(),
+             grade=COALESCE($3, grade),
+             graded_at=CASE WHEN $3 IS NOT NULL THEN NOW() ELSE graded_at END
+         WHERE id=$4 RETURNING *`,
+        [content?.trim()||null, file_url||null, autoGrade, existing.rows[0].id]
+      );
+    } else {
+      r = await pool.query(
+        `INSERT INTO assignment_submissions (assignment_id, student_id, content, file_url, grade, graded_at)
+         VALUES ($1,$2,$3,$4,$5, CASE WHEN $5 IS NOT NULL THEN NOW() ELSE NULL END)
+         RETURNING *`,
+        [req.params.id, req.user.id, content?.trim()||null, file_url||null, autoGrade]
+      );
+    }
     res.json({ success: true, submission: r.rows[0] });
   } catch(e) {
     console.error('[SUBMIT]', e.message);

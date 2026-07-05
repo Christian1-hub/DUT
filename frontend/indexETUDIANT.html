@@ -44,7 +44,7 @@
 // Couleurs selon le rôle
 const ROLE_COLORS = {
   etudiant:   '00602a',
-  enseignant: 'ea580c',
+  enseignant: 'ea580c', 
   admin:      '004a77',
   superadmin: 'f59e0b'
 };
@@ -2075,6 +2075,28 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#sidebar') && !e.target.closest('button[onclick*="sidebar"]'))
     document.getElementById('sidebar').classList.add('-translate-x-full');
 });
+
+// ══════════════════════════════════════════════════════
+//  RAFRAÎCHISSEMENT AUTOMATIQUE (effet temps réel)
+// ══════════════════════════════════════════════════════
+const SECTION_REFRESH = {
+  overview:     () => { loadDashboard(); loadUpcomingEvents(); },
+  courses:      loadCourses,
+  assignments:  loadAssignments,
+  classroom:    loadClassroom,
+  communities:  loadCommunities,
+  attendance:   loadAttendance,
+  projects:     loadProjects,
+  interuniv:    loadInterUniv,
+};
+setInterval(() => {
+  if (document.hidden || !ME) return;
+  loadNotifications();
+  const activeId = document.querySelector('.sec.on')?.id;
+  if (!activeId) return;
+  const key = activeId.replace('sec-', '');
+  if (SECTION_REFRESH[key]) SECTION_REFRESH[key]();
+}, 20000);
 </script>
 </body>
 </html>
