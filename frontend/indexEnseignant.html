@@ -1165,6 +1165,7 @@ function goTo(s) {
   });
   document.getElementById('pg-title').textContent = TITLES[s]||'';
   document.getElementById('sidebar').classList.add('-translate-x-full');
+  document.getElementById('sb-overlay').style.display='none';
   document.getElementById('notif-drop').style.display='none';
   if (s==='classes'&&!loaded.classes) loadClasses();
   if (s==='courses'&&!loaded.courses) loadCourses();
@@ -2625,17 +2626,14 @@ async function respondCross(requestId, status) {
   } else toast(d?.message||'Erreur.','err');
 }
 
-function toggleSidebar() {
-  var sb = document.getElementById('sidebar');
-  var ov = document.getElementById('sb-overlay');
-  var isOpen = !sb.classList.contains('-translate-x-full');
-  if (isOpen) { sb.classList.add('-translate-x-full'); if(ov) ov.style.display='none'; }
-  else { sb.classList.remove('-translate-x-full'); if(ov) ov.style.display='block'; }
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('-translate-x-full');
+  const ov = document.getElementById('sb-overlay');
+  ov.style.display = document.getElementById('sidebar').classList.contains('-translate-x-full') ? 'none' : 'block';
 }
 function doLogout(){localStorage.clear();sessionStorage.clear();location.href='indexconnexion.html';}
 document.addEventListener('click',e=>{
   if(!e.target.closest('#notif-drop')&&!e.target.closest('button[onclick="toggleNotif()"]'))document.getElementById('notif-drop').style.display='none';
-  if(!e.target.closest('#sidebar')&&!e.target.closest('#sb-toggle-btn')){document.getElementById('sidebar').classList.add('-translate-x-full');document.getElementById('sb-overlay').style.display='none';}
 });
 
 // ══════════════════════════════════════════════
