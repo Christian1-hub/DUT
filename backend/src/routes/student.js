@@ -188,28 +188,43 @@ router.post('/assignments/:id/submit', async (req, res) => {
       [req.params.id, req.user.id]
     );
 
-    let r;
-    if (existing.rows.length) {
-      r = await pool.query(
-        `UPDATE assignment_submissions
-         SET content=$1, file_url=$2, submitted_at=NOW(),
-             grade=COALESCE($3, grade),
-             graded_at=CASE WHEN $3 IS NOT NULL THEN NOW() ELSE graded_at END
-         WHERE id=$4 RETURNING *`,
-        [content?.trim()||null, file_url||null, autoGrade, existing.rows[0].id]
-      );
-    } else {
-      r = await pool.query(
+    const doSave = async (grade) => {
+      if (existing.rows.length) {
+        return pool.query(
+          `UPDATE assignment_submissions
+           SET content=$1, file_url=$2, submitted_at=NOW(),
+               grade=COALESCE($3, grade),
+               graded_at=CASE WHEN $3 IS NOT NULL THEN NOW() ELSE graded_at END
+           WHERE id=$4 RETURNING *`,
+          [content?.trim()||null, file_url||null, grade, existing.rows[0].id]
+        );
+      }
+      return pool.query(
         `INSERT INTO assignment_submissions (assignment_id, student_id, content, file_url, grade, graded_at)
          VALUES ($1,$2,$3,$4,$5, CASE WHEN $5 IS NOT NULL THEN NOW() ELSE NULL END)
          RETURNING *`,
-        [req.params.id, req.user.id, content?.trim()||null, file_url||null, autoGrade]
+        [req.params.id, req.user.id, content?.trim()||null, file_url||null, grade]
       );
+    };
+
+    let r;
+    try {
+      r = await doSave(autoGrade);
+    } catch(e) {
+      // Si la note auto-calculée du quiz fait échouer l'écriture (ex: colonne
+      // "grade" d'un type qui n'accepte pas de décimales sur cette base), on
+      // retente sans la note plutôt que de faire perdre la copie de l'étudiant.
+      if (autoGrade !== null) {
+        console.warn('[SUBMIT] échec avec note auto-calculée, nouvelle tentative sans note:', e.message);
+        r = await doSave(null);
+      } else {
+        throw e;
+      }
     }
     res.json({ success: true, submission: r.rows[0] });
   } catch(e) {
     console.error('[SUBMIT]', e.message);
-    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    res.status(500).json({ success: false, message: 'Erreur serveur.', detail: e.message });
   }
 });
 

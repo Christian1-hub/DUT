@@ -1265,7 +1265,7 @@ async function submitDevoir() {
     loaded.assignments = false;
     await loadAssignments();
     toast('✅ Devoir rendu ! Votre professeur le corrigera bientôt.');
-  } else toast(d?.message || 'Erreur.', 'err');
+  } else toast((d?.message || 'Erreur.') + (d?.detail ? ' — ' + d.detail : ''), 'err');
 }
 
 // ── Quiz ──────────────────────────────────────────────
@@ -1371,7 +1371,7 @@ async function submitQuiz() {
     loaded.assignments = false;
     await loadAssignments();
     toast(`✅ Quiz soumis ! Score : ${score}/${total} (${note}/20)`);
-  } else toast(d?.message || 'Erreur.', 'err');
+  } else toast((d?.message || 'Erreur.') + (d?.detail ? ' — ' + d.detail : ''), 'err');
 }
 
 // ══════════════════════════════════════════════════════
@@ -1635,38 +1635,62 @@ async function saveProfile() {
 }
 
 // ══════════════════════════════════════════════════════
-//  UPLOAD.IO — correction de la fonction
+//  UPLOAD.IO — avec repli base64 si le cloud échoue
+//  (évite qu'un devoir/quiz avec fichier ne parte jamais si
+//   Upload.io est temporairement injoignable ou mal configuré
+//   côté dashboard — ex: origine non autorisée)
 // ══════════════════════════════════════════════════════
 async function uploadIO(file) {
   document.getElementById('sub-prog-wrap').style.display = 'block';
   document.getElementById('sub-prog').style.width = '10%';
+  const hasRealKey = UPLOADIO_KEY && UPLOADIO_KEY.startsWith('public_') && UPLOADIO_ACCOUNT_ID;
   try {
-    const r = await fetch(
-      `https://api.upload.io/v2/accounts/${UPLOADIO_ACCOUNT_ID}/uploads/binary`,
-      {
-        method:  'POST',
-        headers: {
-          'Authorization': `Bearer ${UPLOADIO_KEY}`,
-          'Content-Type':  file.type || 'application/octet-stream',
-        },
-        body: file,
+    if (hasRealKey) {
+      document.getElementById('sub-prog-txt').textContent = 'Upload vers le cloud...';
+      const r = await fetch(
+        `https://api.upload.io/v2/accounts/${UPLOADIO_ACCOUNT_ID}/uploads/binary`,
+        {
+          method:  'POST',
+          headers: {
+            'Authorization': `Bearer ${UPLOADIO_KEY}`,
+            'Content-Type':  file.type || 'application/octet-stream',
+          },
+          body: file,
+        }
+      );
+      if (r.ok) {
+        const data = await r.json();
+        document.getElementById('sub-prog').style.width = '100%';
+        document.getElementById('sub-prog-txt').textContent = 'Upload terminé !';
+        setTimeout(() => { document.getElementById('sub-prog-wrap').style.display = 'none'; }, 800);
+        return data.fileUrl;
       }
-    );
-    document.getElementById('sub-prog').style.width = '100%';
-    document.getElementById('sub-prog-txt').textContent = 'Upload terminé !';
-    setTimeout(() => {
-      document.getElementById('sub-prog-wrap').style.display = 'none';
-    }, 800);
-    if (r.ok) {
-      const data = await r.json();
-      return data.fileUrl;
-    } else {
-      toast('Erreur Upload.io. Vérifiez UPLOADIO_KEY et UPLOADIO_ACCOUNT_ID.', 'err');
+      // Upload.io a échoué (souvent : origine non autorisée dans le dashboard
+      // Bytescale/Upload.io) → on log le détail pour diagnostic, puis repli base64
+      const errBody = await r.text().catch(() => '');
+      console.warn('[UPLOAD.IO] échec HTTP', r.status, errBody, '— repli base64');
+    }
+
+    // ── Repli : convertir en base64 (fonctionne toujours, sans dépendance externe) ──
+    if (file.size > 5 * 1024 * 1024) {
+      toast('⚠️ Fichier trop grand (max 5MB sans cloud fonctionnel). Réessayez avec un fichier plus léger.', 'err');
       document.getElementById('sub-prog-wrap').style.display = 'none';
       return null;
     }
+    document.getElementById('sub-prog-txt').textContent = 'Conversion locale...';
+    document.getElementById('sub-prog').style.width = '60%';
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('Lecture fichier échouée'));
+      reader.readAsDataURL(file);
+    });
+    document.getElementById('sub-prog').style.width = '100%';
+    document.getElementById('sub-prog-txt').textContent = 'Fichier prêt !';
+    setTimeout(() => { document.getElementById('sub-prog-wrap').style.display = 'none'; }, 800);
+    return base64;
   } catch(e) {
-    toast('Upload.io non accessible — copie soumise sans fichier.', 'err');
+    toast('Impossible de joindre le fichier — copie soumise sans fichier.', 'err');
     document.getElementById('sub-prog-wrap').style.display = 'none';
     return null;
   }

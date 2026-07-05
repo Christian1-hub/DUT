@@ -2052,7 +2052,8 @@ async function uploadCloudinary(file, progId, txtId, wrapId) {
         return d.fileUrl;
       }
       // Upload.io a échoué → fallback base64
-      console.warn('Upload.io a retourné', r.status, '— fallback base64');
+      const errBody = await r.text().catch(() => '');
+      console.warn('[UPLOAD.IO] échec HTTP', r.status, errBody, '— fallback base64. Vérifiez la liste blanche des origines dans le dashboard Bytescale/Upload.io si ça persiste.');
     }
 
     // ── Fallback : convertir en base64 ───────────────
