@@ -153,6 +153,12 @@ app.listen(PORT, async () => {
       console.warn('⚠️  Tables manquantes:', missing.join(', '));
     }
 
+    // Colonne anti-triche : nombre de changements d'onglet pendant un quiz
+    if (tableNames.includes('assignment_submissions')) {
+      await pool.query(`ALTER TABLE assignment_submissions ADD COLUMN IF NOT EXISTS tab_switches INTEGER DEFAULT 0`);
+      console.log('✅ assignment_submissions.tab_switches : OK');
+    }
+
     // Vérifier cross_access_requests
     if (tableNames.includes('cross_access_requests')) {
       console.log('✅ cross_access_requests : OK');

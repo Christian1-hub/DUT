@@ -387,10 +387,22 @@ router.delete('/assignments/:id', async (req, res) => {
   }
 });
 
+// Similarité de deux textes par recouvrement de mots (Jaccard) — un simple
+// signal à faire vérifier par l'enseignant, pas une preuve de triche.
+function textSimilarity(a, b) {
+  const words = (s) => new Set((s||'').toLowerCase().match(/[a-zàâäéèêëïîôöùûüç0-9]{3,}/g) || []);
+  const wa = words(a), wb = words(b);
+  if (!wa.size || !wb.size) return 0;
+  let inter = 0;
+  for (const w of wa) if (wb.has(w)) inter++;
+  const union = wa.size + wb.size - inter;
+  return union ? inter / union : 0;
+}
+
 router.get('/assignments/:id/submissions', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT sub.id, sub.submitted_at, sub.grade, sub.feedback, sub.content, sub.file_url,
+      `SELECT sub.id, sub.submitted_at, sub.grade, sub.feedback, sub.content, sub.file_url, sub.tab_switches,
               u.first_name||' '||u.last_name AS student_name, u.email AS student_email,
               a.title AS assignment_title, a.is_quiz, a.quiz_data
        FROM assignment_submissions sub
@@ -401,7 +413,22 @@ router.get('/assignments/:id/submissions', async (req, res) => {
        ORDER BY sub.submitted_at ASC`,
       [req.params.id, req.user.id]
     );
-    res.json({ success: true, submissions: r.rows });
+
+    // Anti-triche léger : signaler les paires de rendus dont le texte se
+    // ressemble fortement (seuil 65%), pour que l'enseignant vérifie lui-même.
+    const SIMILARITY_THRESHOLD = 0.65;
+    const submissions = r.rows.map(s => ({ ...s, similar_to: [] }));
+    for (let i = 0; i < submissions.length; i++) {
+      for (let j = i + 1; j < submissions.length; j++) {
+        const score = textSimilarity(submissions[i].content, submissions[j].content);
+        if (score >= SIMILARITY_THRESHOLD) {
+          submissions[i].similar_to.push({ student_name: submissions[j].student_name, score: Math.round(score*100) });
+          submissions[j].similar_to.push({ student_name: submissions[i].student_name, score: Math.round(score*100) });
+        }
+      }
+    }
+
+    res.json({ success: true, submissions });
   } catch(e) {
     console.error('[SUBMISSIONS GET]', e.message);
     res.status(500).json({ success: false, message: 'Erreur serveur.' });

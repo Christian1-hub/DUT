@@ -148,6 +148,10 @@ tr:hover td{background:#1e293b55}
   #stats-grid { grid-template-columns: 1fr 1fr !important; }
 }
 
+.help-fab{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;z-index:60;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4);transition:transform .15s;background:#f59e0b;color:#0d1117}
+.help-fab:hover{transform:scale(1.06)}
+.help-panel{position:fixed;bottom:78px;right:20px;width:300px;max-width:calc(100vw - 32px);max-height:60vh;overflow-y:auto;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);z-index:60;display:none;flex-direction:column;background:#0d1117;border:1px solid #1e293b}
+.help-panel.open{display:flex}
 </style>
 </head>
 <body>
@@ -227,6 +231,44 @@ function goTo(s) {
   if (s==='calendriers')                        loadCalendriers();
   if (s==='registrations')                      loadRegistrations();
   if (s==='overview') loadUpcomingEventsSA();
+  if (document.getElementById('help-panel')?.classList.contains('open')) showHelpFor(s);
+}
+
+// ════════════════════════════════════════════════
+//  AIDE CONTEXTUELLE
+// ════════════════════════════════════════════════
+const HELP_TEXTS = {
+  overview: "Vue globale de toute la plateforme, toutes écoles confondues.",
+  univs: "Liste des universités inscrites sur la plateforme — suspension possible en cas de besoin.",
+  users: "Tous les utilisateurs, toutes écoles confondues.",
+  communities: "Toutes les communautés créées, toutes écoles confondues.",
+  resources: "Toutes les ressources publiées, toutes écoles confondues.",
+  messages: "Contactez n'importe quel enseignant, étudiant ou administrateur, quelle que soit son école — un privilège réservé au superadmin.",
+  certificates: "Toutes les attestations émises, toutes écoles confondues.",
+  schedule: "Tous les créneaux hebdomadaires, groupés par école.",
+  logs: "Historique de toute l'activité notable sur la plateforme.",
+  subs: "Gestion des abonnements et de la facturation par établissement.",
+  validation: "Demandes de rôle en attente de validation manuelle.",
+  codes: "Codes d'activation professeur/admin, par école.",
+  schoolcodes: "Codes d'accès générés pour chaque établissement.",
+  calendriers: "Calendrier académique de chaque école.",
+  registrations: "Suivi des inscriptions récentes sur la plateforme.",
+  createadmin: "Créer un compte administrateur pour une école.",
+  createteacher: "Créer un compte enseignant pour une école.",
+  createuniv: "Ajouter une nouvelle université à la plateforme.",
+};
+function showHelpFor(s) {
+  document.getElementById('help-title').textContent = TITLES[s] || 'Aide';
+  document.getElementById('help-body').textContent  = HELP_TEXTS[s] || "Pas d'aide spécifique pour cette section pour l'instant.";
+}
+function toggleHelp() {
+  const panel = document.getElementById('help-panel');
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if (opening) {
+    const activeId = document.querySelector('.sec.on')?.id?.replace('sec-', '') || 'overview';
+    showHelpFor(activeId);
+  }
 }
 async function loadUpcomingEventsSA() {
   var el = document.getElementById('upcoming-sa');
@@ -1463,6 +1505,7 @@ async function saLogin() {
 function startApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('help-fab-btn').style.display = 'flex';
   const init = ME.first_name[0] + (ME.last_name[0] || '');
   document.getElementById('sa-av').textContent   = init;
   document.getElementById('sa-name').textContent = ME.first_name + ' ' + ME.last_name;
@@ -2345,6 +2388,18 @@ function toast(msg, type) {
 </div>
 
 <div id="toast"></div>
+
+<!-- AIDE CONTEXTUELLE (visible seulement après connexion, voir startApp()) -->
+<button class="help-fab" id="help-fab-btn" onclick="toggleHelp()" title="Aide" style="display:none">
+  <span class="ms" style="font-size:22px">help</span>
+</button>
+<div class="help-panel" id="help-panel">
+  <div style="padding:14px 18px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;border-radius:14px 14px 0 0">
+    <h3 id="help-title" style="font-family:Manrope;font-weight:800;font-size:.9rem;color:#f8fafc">Aide</h3>
+    <button onclick="toggleHelp()" style="border:none;background:none;cursor:pointer;color:#64748b"><span class="ms">close</span></button>
+  </div>
+  <div id="help-body" style="padding:14px 18px;font-size:.83rem;color:#94a3b8;line-height:1.55"></div>
+</div>
 
 
 

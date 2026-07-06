@@ -302,6 +302,11 @@ document.head.appendChild(spinStyle);
   #stats-grid{grid-template-columns:1fr 1fr!important}
 }
 
+.help-fab{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;z-index:60;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.18);transition:transform .15s}
+.help-fab:hover{transform:scale(1.06)}
+.help-panel{position:fixed;bottom:78px;right:20px;width:300px;max-width:calc(100vw - 32px);max-height:60vh;overflow-y:auto;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.18);z-index:60;display:none;flex-direction:column;background:#fff}
+.help-panel.open{display:flex}
+@media (max-width:480px){.help-fab{bottom:76px}.help-panel{bottom:134px}}
 </style>
 </head>
 <body style="background:#f8f9fb;min-height:100vh">
@@ -663,6 +668,18 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
   <button onclick="goTo('stats')" data-s="stats" class="mob flex flex-col items-center gap-0.5 border-none bg-transparent cursor-pointer" style="color:#9ca3af;padding:4px 8px"><span class="ms" style="font-size:22px">analytics</span><span style="font-size:9px;font-weight:700">Stats</span></button>
 </nav>
 <div id="toast"></div>
+
+<!-- AIDE CONTEXTUELLE -->
+<button class="help-fab" onclick="toggleHelp()" title="Aide" style="background:#ea580c;color:#fff">
+  <span class="ms" style="font-size:22px">help</span>
+</button>
+<div class="help-panel" id="help-panel">
+  <div style="padding:14px 18px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;border-radius:14px 14px 0 0">
+    <h3 id="help-title" style="font-family:Manrope;font-weight:800;font-size:.9rem;color:#111">Aide</h3>
+    <button onclick="toggleHelp()" style="border:none;background:none;cursor:pointer;color:#9ca3af"><span class="ms">close</span></button>
+  </div>
+  <div id="help-body" style="padding:14px 18px;font-size:.83rem;color:#4b5563;line-height:1.55"></div>
+</div>
 
 <!-- MODALS -->
 
@@ -1182,6 +1199,41 @@ function goTo(s) {
   if (s==='schedule'&&!loaded.schedule) loadSchedule();
   if (s==='notifications') loadNotifications();
   if (s === 'dashboard') loadUpcomingEventsTeacher();
+  if (document.getElementById('help-panel')?.classList.contains('open')) showHelpFor(s);
+}
+
+// ══════════════════════════════════════════════
+//  AIDE CONTEXTUELLE
+// ══════════════════════════════════════════════
+const HELP_TEXTS = {
+  dashboard: "Vue d'ensemble de vos classes, cours et devoirs à corriger.",
+  classes: "Créez vos classes et consultez la liste des étudiants de votre établissement, même ceux pas encore rattachés à un cours.",
+  courses: "Créez vos cours, déposez vos supports, et basculez en vue \"flyer\" pour les parcourir un par un.",
+  assignments: "Créez devoirs et quiz, corrigez les copies rendues. Les indicateurs rouges signalent un rendu à vérifier (changements d'onglet ou forte ressemblance avec une autre copie).",
+  crossrequests: "Étudiants d'autres universités qui demandent l'accès à vos cours publics.",
+  communities: "Espaces d'échange visibles par vos étudiants — créez-en de nouveaux ou modérez les existants.",
+  attendance: "Créez des séances et marquez présent/absent/en retard/excusé pour chaque étudiant.",
+  projects: "Projets académiques (individuels ou de groupe), distincts des devoirs classiques — suivez les rendus et notez-les.",
+  resources: "Publiez des documents ou liens pour un cours précis ou toute une filière.",
+  messages: "Contactez directement vos étudiants ou l'administration.",
+  certificates: "Émettez des attestations numériques à vos étudiants, avec note optionnelle. Une attestation émise par erreur peut être révoquée.",
+  schedule: "Gérez vos créneaux hebdomadaires récurrents : jour, heure, salle.",
+  notifications: "Vos alertes, et la diffusion de notifications vers une classe ou un cours entier.",
+  stats: "Statistiques globales de performance sur vos classes.",
+  profile: "Vos informations personnelles et académiques.",
+};
+function showHelpFor(s) {
+  document.getElementById('help-title').textContent = TITLES[s] || 'Aide';
+  document.getElementById('help-body').textContent  = HELP_TEXTS[s] || "Pas d'aide spécifique pour cette section pour l'instant.";
+}
+function toggleHelp() {
+  const panel = document.getElementById('help-panel');
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if (opening) {
+    const activeId = document.querySelector('.sec.on')?.id?.replace('sec-', '') || 'dashboard';
+    showHelpFor(activeId);
+  }
 }
 async function loadUpcomingEventsTeacher() {
   const el = document.getElementById('upcoming-events-t');
@@ -2317,6 +2369,10 @@ async function viewSubs(assignId,title,total){
   if(!list.length){document.getElementById('subs-list').innerHTML='<div style="text-align:center;padding:30px 0"><span class="ms" style="font-size:40px;color:#d1d5db">inbox</span><p style="color:#9ca3af;font-size:.875rem;margin-top:8px">Aucune copie rendue.</p></div>';return;}
   document.getElementById('subs-list').innerHTML=list.map(s=>`<div style="background:#f9fafb;border-radius:12px;padding:14px" id="sub-${s.id}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><p style="font-size:.875rem;font-weight:600;color:#111">${s.student_name}</p><p style="font-size:.72rem;color:#9ca3af">${s.student_email} · ${ago(s.submitted_at)}</p>${s.file_url?`<a href="${s.file_url}" target="_blank" style="font-size:.72rem;font-weight:700;color:#ea580c;text-decoration:none">📎 Voir la copie</a>`:''}</div><span class="bdg" style="${s.grade!==null?'background:#f0fdf4;color:#166534;font-size:.8rem;font-weight:900':'background:#fff7ed;color:#ea580c'}">${s.grade!==null?s.grade+'/20':'À corriger'}</span></div>
+    ${(s.tab_switches>2 || s.similar_to?.length) ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+      ${s.tab_switches>2 ? `<span class="bdg" style="background:#fef2f2;color:#dc2626"><span class="ms" style="font-size:12px;vertical-align:middle">visibility_off</span> ${s.tab_switches} changements d'onglet</span>` : ''}
+      ${(s.similar_to||[]).map(sim => `<span class="bdg" style="background:#fef2f2;color:#dc2626"><span class="ms" style="font-size:12px;vertical-align:middle">warning</span> ${sim.score}% similaire à ${sim.student_name}</span>`).join('')}
+    </div>` : ''}
     <div style="display:flex;gap:8px;align-items:center">
       <input type="number" min="0" max="20" step="0.5" placeholder="/20" value="${s.grade??''}" id="g-${s.id}" class="fld" style="width:72px;text-align:center;padding:8px"/>
       <input type="text" placeholder="Commentaire..." value="${s.feedback||''}" id="f-${s.id}" class="fld" style="flex:1;padding:8px"/>

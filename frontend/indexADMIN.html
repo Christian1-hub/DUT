@@ -295,6 +295,10 @@ document.head.appendChild(spinStyle);
   #stats-grid { grid-template-columns: 1fr 1fr !important; }
 }
 
+.help-fab{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;z-index:60;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.18);transition:transform .15s}
+.help-fab:hover{transform:scale(1.06)}
+.help-panel{position:fixed;bottom:78px;right:20px;width:300px;max-width:calc(100vw - 32px);max-height:60vh;overflow-y:auto;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.18);z-index:60;display:none;flex-direction:column;background:#fff}
+.help-panel.open{display:flex}
 </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
@@ -835,6 +839,18 @@ if (!tk) location.href = 'indexconnexion.html';
 
 <div id="toast"></div>
 
+<!-- AIDE CONTEXTUELLE -->
+<button class="help-fab" onclick="toggleHelp()" title="Aide" style="background:#004a77;color:#fff">
+  <span class="ms" style="font-size:22px">help</span>
+</button>
+<div class="help-panel" id="help-panel">
+  <div style="padding:14px 18px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;border-radius:14px 14px 0 0">
+    <h3 id="help-title" style="font-family:Manrope;font-weight:800;font-size:.9rem;color:#0f172a">Aide</h3>
+    <button onclick="toggleHelp()" style="border:none;background:none;cursor:pointer;color:#94a3b8"><span class="ms">close</span></button>
+  </div>
+  <div id="help-body" style="padding:14px 18px;font-size:.83rem;color:#475569;line-height:1.55"></div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════
 //  STATE
@@ -920,6 +936,39 @@ function goTo(s) {
   if (s==='schedule'    && !loaded.schedule)    loadAdminSchedule();
   if (s==='notifications') loadNotifications();
   if (s==='overview') loadUpcomingEventsAdmin();
+  if (document.getElementById('help-panel')?.classList.contains('open')) showHelpFor(s);
+}
+
+// ═══════════════════════════════════════════════
+//  AIDE CONTEXTUELLE
+// ═══════════════════════════════════════════════
+const HELP_TEXTS = {
+  overview: "Vue d'ensemble de votre université : utilisateurs, cours, communautés, présences, projets.",
+  users: "Créez, modifiez et gérez les comptes de votre établissement.",
+  schools: "Informations sur votre université dans la plateforme.",
+  activity: "Historique des actions récentes dans votre établissement.",
+  courses: "Tous les cours publiés par les enseignants de votre école.",
+  communities: "Toutes les communautés créées dans votre établissement.",
+  attendance: "Vue d'ensemble en lecture des présences enregistrées par les enseignants.",
+  projects: "Tous les projets académiques créés par les enseignants de l'université.",
+  resources: "Toutes les ressources publiées par les enseignants de l'école.",
+  messages: "Contactez n'importe quel enseignant ou étudiant de votre établissement.",
+  certificates: "Toutes les attestations émises dans votre université.",
+  schedule: "Tous les créneaux hebdomadaires de votre université.",
+  notifications: "Vos alertes, et la diffusion de notifications à toute l'université.",
+};
+function showHelpFor(s) {
+  document.getElementById('help-title').textContent = TITLES[s] || 'Aide';
+  document.getElementById('help-body').textContent  = HELP_TEXTS[s] || "Pas d'aide spécifique pour cette section pour l'instant.";
+}
+function toggleHelp() {
+  const panel = document.getElementById('help-panel');
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if (opening) {
+    const activeId = document.querySelector('.sec.on')?.id?.replace('sec-', '') || 'overview';
+    showHelpFor(activeId);
+  }
 }
 async function loadUpcomingEventsAdmin() {
   const el = document.getElementById('upcoming-events-admin');

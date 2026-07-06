@@ -299,6 +299,11 @@ document.head.appendChild(spinStyle);
   #stats-grid{grid-template-columns:1fr 1fr!important}
 }
 
+.help-fab{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;z-index:60;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.18);transition:transform .15s}
+.help-fab:hover{transform:scale(1.06)}
+.help-panel{position:fixed;bottom:78px;right:20px;width:300px;max-width:calc(100vw - 32px);max-height:60vh;overflow-y:auto;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.18);z-index:60;display:none;flex-direction:column;background:#fff}
+.help-panel.open{display:flex}
+@media (max-width:480px){.help-fab{bottom:76px}.help-panel{bottom:134px}}
 </style>
 </head>
 <body style="background:#f8f9fb;min-height:100vh">
@@ -953,6 +958,18 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
 
 <div id="toast"></div>
 
+<!-- AIDE CONTEXTUELLE -->
+<button class="help-fab" onclick="toggleHelp()" title="Aide" style="background:#00602a;color:#fff">
+  <span class="ms" style="font-size:22px">help</span>
+</button>
+<div class="help-panel" id="help-panel">
+  <div style="padding:14px 18px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;border-radius:14px 14px 0 0">
+    <h3 id="help-title" style="font-family:Manrope;font-weight:800;font-size:.9rem;color:#111">Aide</h3>
+    <button onclick="toggleHelp()" style="border:none;background:none;cursor:pointer;color:#9ca3af"><span class="ms">close</span></button>
+  </div>
+  <div id="help-body" style="padding:14px 18px;font-size:.83rem;color:#4b5563;line-height:1.55"></div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════════════
 //  STATE
@@ -1105,6 +1122,40 @@ function goTo(s) {
   if (s === 'schedule'    && !loaded.schedule)     loadSchedule();
   if (s === 'notifications') loadNotifications();
   if (s === 'overview') loadUpcomingEvents();
+  if (document.getElementById('help-panel')?.classList.contains('open')) showHelpFor(s);
+}
+
+// ══════════════════════════════════════════════════════
+//  AIDE CONTEXTUELLE
+// ══════════════════════════════════════════════════════
+const HELP_TEXTS = {
+  overview: "Votre tableau de bord : un coup d'œil sur vos cours, vos devoirs à rendre et vos notes récentes. Utilisez le menu pour explorer chaque section.",
+  courses: "La liste des cours proposés dans votre filière. Ouvrez un cours pour consulter ses supports, devoirs et discussions.",
+  assignments: "Tous vos devoirs et quiz. Un badge orange signale ce qui reste à rendre, un badge vert ce qui est déjà noté. Les quiz sont corrigés automatiquement dès l'envoi.",
+  classroom: "Vos camarades de classe, dans la même filière et le même niveau que vous.",
+  communities: "Espaces d'échange par thème entre étudiants de votre école — posez vos questions, partagez vos bons plans.",
+  attendance: "L'historique de vos présences, séance par séance, tel que renseigné par vos enseignants.",
+  projects: "Projets académiques individuels ou de groupe, distincts des devoirs classiques. Rendez votre travail ici avant l'échéance.",
+  resources: "Documents et liens partagés par vos enseignants : cours, TD, corrections, livres.",
+  messages: "Écrivez directement à un enseignant ou à l'administration de votre école.",
+  certificates: "Vos attestations et certificats numériques, chacun avec un numéro unique vérifiable.",
+  schedule: "Votre emploi du temps hebdomadaire, groupé par jour.",
+  notifications: "Toutes les alertes envoyées par vos enseignants et l'administration.",
+  interuniv: "Demandez l'accès à des cours publiés par d'autres universités.",
+  profile: "Vos informations personnelles — modifiez votre téléphone ou votre photo de profil ici.",
+};
+function showHelpFor(s) {
+  document.getElementById('help-title').textContent = TITLES[s] || 'Aide';
+  document.getElementById('help-body').textContent  = HELP_TEXTS[s] || "Pas d'aide spécifique pour cette section pour l'instant.";
+}
+function toggleHelp() {
+  const panel = document.getElementById('help-panel');
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if (opening) {
+    const activeId = document.querySelector('.sec.on')?.id?.replace('sec-', '') || 'overview';
+    showHelpFor(activeId);
+  }
 }
 
 async function loadUpcomingEvents() {
@@ -1376,8 +1427,28 @@ function openQuizById(assignId) {
   openQuiz(assign.id, assign.title, assign.course_title, assign.quiz_data || '[]');
 }
 
+// Anti-triche : mélange (nouveau à chaque tentative) l'ordre des questions
+// et des options, pour qu'on ne puisse pas se fier à la position d'une
+// réponse en la comparant avec la copie d'un autre étudiant.
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let quizTabSwitches = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && document.getElementById('m-quiz')?.classList.contains('open')) {
+    quizTabSwitches++;
+  }
+});
+
 function openQuiz(id, title, course, quizDataRaw) {
   currentAssignId  = id;
+  quizTabSwitches  = 0;
   // Accepte soit une string JSON, soit déjà parsée
   try {
     currentQuizData = typeof quizDataRaw === 'string'
@@ -1387,6 +1458,12 @@ function openQuiz(id, title, course, quizDataRaw) {
   } catch(e) {
     currentQuizData = [];
   }
+  // Anti-triche : mélange questions + options (voir shuffleArray plus haut)
+  currentQuizData = shuffleArray(currentQuizData).map(q => {
+    if (!Array.isArray(q.options)) return q;
+    const order = shuffleArray(q.options.map((_, idx) => idx));
+    return { ...q, options: order.map(idx => q.options[idx]), correct: order.indexOf(q.correct) };
+  });
   document.getElementById('quiz-title').textContent  = title;
   document.getElementById('quiz-course').textContent = course;
   const body = document.getElementById('quiz-body');
@@ -1464,7 +1541,7 @@ async function submitQuiz() {
 
   const d = await api(`/student/assignments/${currentAssignId}/submit`, {
     method: 'POST',
-    body:   JSON.stringify({ content, file_url: null })
+    body:   JSON.stringify({ content, file_url: null, tab_switches: quizTabSwitches })
   });
   if (d?.success) {
     hideM('m-quiz');

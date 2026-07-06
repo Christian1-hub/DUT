@@ -155,10 +155,12 @@ router.get('/assignments', async (req, res) => {
 // POST /api/student/assignments/:id/submit — rendre un devoir ou un quiz (texte ou URL fichier)
 router.post('/assignments/:id/submit', async (req, res) => {
   try {
-    const { content, file_url } = req.body;
+    const { content, file_url, tab_switches } = req.body;
     if (!content?.trim() && !file_url) {
       return res.status(400).json({ success: false, message: 'Contenu ou fichier requis.' });
     }
+    // Anti-triche léger : nombre de fois où l'étudiant a quitté l'onglet du quiz.
+    const tabSwitches = Number.isFinite(parseInt(tab_switches)) ? Math.max(0, parseInt(tab_switches)) : 0;
     // Vérifier que l'étudiant est inscrit au cours de ce devoir
     const check = await pool.query(
       `SELECT a.id, a.is_quiz FROM assignments a
@@ -197,18 +199,18 @@ router.post('/assignments/:id/submit', async (req, res) => {
       if (existing.rows.length) {
         return pool.query(
           `UPDATE assignment_submissions
-           SET content=$1, file_url=$2, submitted_at=NOW(),
-               grade=COALESCE($3, grade),
-               graded_at=COALESCE($4, graded_at)
-           WHERE id=$5 RETURNING *`,
-          [content?.trim()||null, file_url||null, grade, gradedAt, existing.rows[0].id]
+           SET content=$1, file_url=$2, submitted_at=NOW(), tab_switches=$3,
+               grade=COALESCE($4, grade),
+               graded_at=COALESCE($5, graded_at)
+           WHERE id=$6 RETURNING *`,
+          [content?.trim()||null, file_url||null, tabSwitches, grade, gradedAt, existing.rows[0].id]
         );
       }
       return pool.query(
-        `INSERT INTO assignment_submissions (assignment_id, student_id, content, file_url, grade, graded_at)
-         VALUES ($1,$2,$3,$4,$5,$6)
+        `INSERT INTO assignment_submissions (assignment_id, student_id, content, file_url, grade, graded_at, tab_switches)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)
          RETURNING *`,
-        [req.params.id, req.user.id, content?.trim()||null, file_url||null, grade, gradedAt]
+        [req.params.id, req.user.id, content?.trim()||null, file_url||null, grade, gradedAt, tabSwitches]
       );
     };
 
