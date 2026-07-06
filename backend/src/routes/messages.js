@@ -12,6 +12,17 @@ router.use(auth);
 // ═══════════════════════════════════════════
 router.get('/contacts', async (req, res) => {
   try {
+    // Le superadmin n'appartient à aucune école : il peut contacter tout le monde.
+    if (req.user.role === 'superadmin') {
+      const r = await pool.query(`
+        SELECT id, first_name, last_name, email, role, school, avatar_url
+        FROM users
+        WHERE id<>$1 AND role IN ('etudiant','enseignant','admin')
+        ORDER BY school, role, first_name
+      `, [req.user.id]);
+      return res.json({ success: true, contacts: r.rows });
+    }
+
     const me = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
     const school = me.rows[0]?.school || null;
     if (!school) return res.json({ success: true, contacts: [] });
@@ -66,9 +77,15 @@ router.post('/conversations', async (req, res) => {
     if (user_id === req.user.id) return res.status(400).json({ success: false, message: 'Impossible de se contacter soi-même.' });
 
     const target = await pool.query('SELECT school FROM users WHERE id=$1', [user_id]);
-    const me     = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
-    if (!target.rows.length || target.rows[0].school !== me.rows[0]?.school) {
-      return res.status(403).json({ success: false, message: 'Utilisateur introuvable dans votre établissement.' });
+    if (!target.rows.length) {
+      return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
+    }
+    // Le superadmin peut contacter n'importe qui, quelle que soit l'école.
+    if (req.user.role !== 'superadmin') {
+      const me = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
+      if (target.rows[0].school !== me.rows[0]?.school) {
+        return res.status(403).json({ success: false, message: 'Utilisateur introuvable dans votre établissement.' });
+      }
     }
 
     const existing = await pool.query(

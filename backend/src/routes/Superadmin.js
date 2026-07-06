@@ -338,6 +338,77 @@ router.delete('/community/:id', async (req, res) => {
   }
 });
 
+// ── GET /api/superadmin/resources ─────────────────────────────
+router.get('/resources', async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT res.id, res.title, res.category, res.school, res.downloads_count, res.created_at,
+             c.title AS course_title,
+             u.first_name||' '||u.last_name AS teacher_name
+      FROM resources res
+      LEFT JOIN courses c ON res.course_id=c.id
+      LEFT JOIN users u ON res.teacher_id=u.id
+      ORDER BY res.created_at DESC`);
+    res.json({ success:true, resources:r.rows });
+  } catch(e) {
+    res.status(500).json({ success:false, message:'Erreur serveur.' });
+  }
+});
+
+// ── DELETE /api/superadmin/resources/:id ──────────────────────
+router.delete('/resources/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM resources WHERE id=$1::uuid', [req.params.id]);
+    res.json({ success:true });
+  } catch(e) {
+    res.status(500).json({ success:false, message:'Erreur serveur.' });
+  }
+});
+
+// ── GET /api/superadmin/certificates ───────────────────────────
+router.get('/certificates', async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT cert.id, cert.certificate_number, cert.title, cert.school, cert.status, cert.issued_at,
+             u.first_name||' '||u.last_name AS student_name,
+             t.first_name||' '||t.last_name AS teacher_name
+      FROM certificates cert
+      JOIN users u ON cert.student_id=u.id
+      LEFT JOIN users t ON cert.teacher_id=t.id
+      ORDER BY cert.issued_at DESC`);
+    res.json({ success:true, certificates:r.rows });
+  } catch(e) {
+    res.status(500).json({ success:false, message:'Erreur serveur.' });
+  }
+});
+
+// ── PUT /api/superadmin/certificates/:id/revoke ────────────────
+router.put('/certificates/:id/revoke', async (req, res) => {
+  try {
+    await pool.query(`UPDATE certificates SET status='revoked' WHERE id=$1::uuid`, [req.params.id]);
+    res.json({ success:true });
+  } catch(e) {
+    res.status(500).json({ success:false, message:'Erreur serveur.' });
+  }
+});
+
+// ── GET /api/superadmin/schedule ───────────────────────────────
+router.get('/schedule', async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT s.id, s.day_of_week, s.start_time, s.end_time, s.room, s.school,
+             c.title AS course_title,
+             t.first_name||' '||t.last_name AS teacher_name
+      FROM schedule_slots s
+      JOIN courses c ON s.course_id=c.id
+      LEFT JOIN users t ON s.teacher_id=t.id
+      ORDER BY s.school, s.day_of_week, s.start_time`);
+    res.json({ success:true, slots:r.rows });
+  } catch(e) {
+    res.status(500).json({ success:false, message:'Erreur serveur.' });
+  }
+});
+
 // ── GET /api/superadmin/search ────────────────────────────────
 router.get('/search', async (req, res) => {
   try {
