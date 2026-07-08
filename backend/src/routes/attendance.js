@@ -307,44 +307,53 @@ router.post('/mark-present', async (req, res) => {
       );
     };
 
-    // Précision GPS insuffisante → on enregistre quand même la tentative, mais on rejette.
-    if (acc > 100) {
-      await upsertCheckin('rejected_low_accuracy', null, 'absent');
-      return res.status(400).json({
-        success: false,
-        reason: 'low_accuracy',
-        accuracy: Math.round(acc),
-        message: `Précision GPS insuffisante (${Math.round(acc)}m, il faut 100m ou moins). Sortez à l'extérieur, loin des bâtiments, et réessayez.`,
-      });
-    }
-
     // Geofencing — ignoré si l'école n'a pas encore configuré ses coordonnées GPS.
+    // On calcule la distance tout de suite (même si la précision est mauvaise) car
+    // c'est une information utile à afficher à l'étudiant dans les deux cas.
     const schoolRow = await pool.query(
       'SELECT latitude, longitude, geofence_radius_meters FROM schools WHERE school=$1',
       [session.school]
     );
     const school = schoolRow.rows[0];
-    let distance = null;
+    const geofenceConfigured = !!(school && school.latitude != null && school.longitude != null);
+    const radius = geofenceConfigured ? school.geofence_radius_meters : null;
+    const distance = geofenceConfigured ? calculateDistance(lat, lng, school.latitude, school.longitude) : null;
 
-    if (school && school.latitude != null && school.longitude != null) {
-      distance = calculateDistance(lat, lng, school.latitude, school.longitude);
-      if (distance > school.geofence_radius_meters) {
-        await upsertCheckin('rejected_out_of_zone', distance, 'absent');
-        return res.status(403).json({
-          success: false,
-          reason: 'out_of_zone',
-          distance: Math.round(distance),
-          radius: school.geofence_radius_meters,
-          message: `Vous êtes à ${Math.round(distance)}m de votre établissement (rayon autorisé : ${school.geofence_radius_meters}m). Rapprochez-vous et réessayez.`,
-        });
-      }
+    const commonInfo = {
+      accuracy: Math.round(acc),
+      distance: distance != null ? Math.round(distance) : null,
+      radius,
+      geofenceConfigured,
+      checkedAt: new Date().toISOString(),
+      yourPosition: { latitude: lat, longitude: lng },
+    };
+
+    // Précision GPS insuffisante → on enregistre quand même la tentative, mais on rejette.
+    if (acc > 100) {
+      await upsertCheckin('rejected_low_accuracy', distance, 'absent');
+      return res.status(400).json({
+        success: false,
+        reason: 'low_accuracy',
+        ...commonInfo,
+        message: `Précision GPS insuffisante (${Math.round(acc)}m, il faut 100m ou moins). Sortez à l'extérieur, loin des bâtiments, et réessayez.`,
+      });
+    }
+
+    if (geofenceConfigured && distance > radius) {
+      await upsertCheckin('rejected_out_of_zone', distance, 'absent');
+      return res.status(403).json({
+        success: false,
+        reason: 'out_of_zone',
+        ...commonInfo,
+        message: `Vous êtes à ${Math.round(distance)}m de votre établissement (rayon autorisé : ${radius}m). Rapprochez-vous et réessayez.`,
+      });
     }
 
     const r = await upsertCheckin('validated', distance, 'present');
     res.json({
       success: true,
       status: 'present',
-      distance: distance != null ? Math.round(distance) : null,
+      ...commonInfo,
       record: r.rows[0],
     });
   } catch(e) {

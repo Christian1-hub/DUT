@@ -894,6 +894,61 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
   </div>
 </div>
 
+<!-- MODAL RÉSULTAT DE SIGNALEMENT DE PRÉSENCE -->
+<div id="m-checkin" class="ov" onclick="if(event.target===this)hideM('m-checkin')">
+  <div class="mbox" style="max-width:420px;max-height:90vh;overflow-y:auto">
+    <div style="padding:22px 22px 0;text-align:center">
+      <div id="ci-icon-wrap" style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+        <span class="ms" id="ci-icon" style="font-size:28px">check_circle</span>
+      </div>
+      <h3 id="ci-title" style="font-family:Manrope;font-weight:800;font-size:1.1rem;color:#111">—</h3>
+      <p id="ci-subtitle" style="font-size:.8rem;color:#9ca3af;margin-top:3px">—</p>
+    </div>
+
+    <div style="padding:18px 22px">
+      <!-- Jauge de distance -->
+      <div id="ci-distance-block">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+          <span style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af">Distance de l'école</span>
+          <span id="ci-distance-val" style="font-family:Manrope;font-weight:900;font-size:1.3rem;color:#111">—</span>
+        </div>
+        <div style="height:10px;background:#f3f4f6;border-radius:999px;overflow:hidden">
+          <div id="ci-distance-bar" style="height:100%;border-radius:999px;transition:width .4s ease;width:0%"></div>
+        </div>
+        <p id="ci-distance-note" style="font-size:.75rem;color:#9ca3af;margin-top:6px">—</p>
+      </div>
+
+      <!-- Détails -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0">
+        <div style="background:#f9fafb;border-radius:10px;padding:10px 12px">
+          <p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em">Précision GPS</p>
+          <p id="ci-accuracy" style="font-weight:800;font-size:.9rem;color:#111;margin-top:2px">—</p>
+        </div>
+        <div style="background:#f9fafb;border-radius:10px;padding:10px 12px">
+          <p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em">Heure du contrôle</p>
+          <p id="ci-time" style="font-weight:800;font-size:.9rem;color:#111;margin-top:2px">—</p>
+        </div>
+        <div style="background:#f9fafb;border-radius:10px;padding:10px 12px;grid-column:1/-1">
+          <p style="font-size:.65rem;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em">Votre position</p>
+          <p id="ci-coords" style="font-weight:700;font-size:.8rem;color:#111;margin-top:2px;font-family:ui-monospace,monospace">—</p>
+        </div>
+      </div>
+
+      <!-- Infos pédagogiques -->
+      <div style="background:#eff6ff;border-radius:10px;padding:12px 14px;margin-bottom:6px">
+        <p style="font-size:.78rem;font-weight:700;color:#1d4ed8;margin-bottom:4px">💡 Comment ça marche ?</p>
+        <p id="ci-edu-distance" style="font-size:.75rem;color:#1e40af;line-height:1.5;margin-bottom:6px">La distance est calculée avec la formule de Haversine, qui prend en compte la courbure de la Terre pour un calcul précis entre deux positions GPS.</p>
+        <p id="ci-edu-accuracy" style="font-size:.75rem;color:#1e40af;line-height:1.5">📶 La précision GPS indique le rayon d'incertitude autour de votre position réelle. Elle est meilleure en extérieur à ciel ouvert (souvent &lt;15m), et se dégrade en intérieur ou près de grands bâtiments (parfois &gt;100m). Attendez quelques secondes après avoir activé le GPS pour une meilleure précision.</p>
+      </div>
+    </div>
+
+    <div style="padding:0 22px 22px;display:flex;gap:10px">
+      <button onclick="hideM('m-checkin')" class="btn bg" style="flex:1">Fermer</button>
+      <button onclick="retryCheckin()" id="ci-retry-btn" class="btn bp" style="flex:1;display:none"><span class="ms">refresh</span>Réessayer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL LOGOUT -->
 <div id="m-logout" class="ov" onclick="if(event.target===this)hideM('m-logout')">
   <div class="mbox" style="max-width:340px">
@@ -2039,7 +2094,63 @@ async function loadTodaySessions(){
   }).join('');
 }
 
+let lastCheckinSessionId = null;
+
+function retryCheckin(){
+  if (lastCheckinSessionId) { hideM('m-checkin'); checkInGeoloc(lastCheckinSessionId); }
+}
+
+// Remplit et affiche le popup détaillé après une tentative de signalement de présence.
+function showCheckinResultModal(reason, d){
+  const THEMES = {
+    validated:      { icon: 'check_circle', color: '#16a34a', bg: '#f0fdf4', title: 'Présence confirmée', barColor: '#16a34a' },
+    out_of_zone:    { icon: 'location_off', color: '#dc2626', bg: '#fef2f2', title: 'Hors de la zone autorisée', barColor: '#dc2626' },
+    low_accuracy:   { icon: 'gps_not_fixed', color: '#d97706', bg: '#fffbeb', title: 'Précision GPS insuffisante', barColor: '#d97706' },
+    error:          { icon: 'error', color: '#dc2626', bg: '#fef2f2', title: 'Signalement impossible', barColor: '#dc2626' },
+  };
+  const t = THEMES[reason] || THEMES.error;
+
+  document.getElementById('ci-icon-wrap').style.background = t.bg;
+  document.getElementById('ci-icon').style.color = t.color;
+  document.getElementById('ci-icon').textContent = t.icon;
+  document.getElementById('ci-title').textContent = t.title;
+  document.getElementById('ci-subtitle').textContent = d?.message || '';
+  document.getElementById('ci-retry-btn').style.display = reason === 'validated' ? 'none' : 'flex';
+
+  const distBlock = document.getElementById('ci-distance-block');
+  if (d && d.geofenceConfigured && d.distance != null) {
+    distBlock.style.display = 'block';
+    const pct = Math.min(100, Math.round((d.distance / d.radius) * 100));
+    document.getElementById('ci-distance-val').textContent = `${d.distance}m`;
+    document.getElementById('ci-distance-val').style.color = t.color;
+    document.getElementById('ci-distance-bar').style.width = pct + '%';
+    document.getElementById('ci-distance-bar').style.background = t.barColor;
+    document.getElementById('ci-distance-note').textContent =
+      d.distance <= d.radius
+        ? `Vous êtes dans le périmètre autorisé (rayon : ${d.radius}m).`
+        : `Il vous manque ${d.distance - d.radius}m pour être dans le périmètre autorisé (${d.radius}m).`;
+  } else {
+    distBlock.style.display = d ? 'block' : 'none';
+    if (d) {
+      document.getElementById('ci-distance-val').textContent = '—';
+      document.getElementById('ci-distance-bar').style.width = '0%';
+      document.getElementById('ci-distance-note').textContent = "Votre école n'a pas encore configuré de périmètre géographique — la position n'est donc pas vérifiée, seule votre présence est enregistrée.";
+    }
+  }
+
+  if (d) {
+    const accColor = d.accuracy <= 20 ? '#16a34a' : d.accuracy <= 100 ? '#d97706' : '#dc2626';
+    document.getElementById('ci-accuracy').textContent = `±${d.accuracy}m`;
+    document.getElementById('ci-accuracy').style.color = accColor;
+    document.getElementById('ci-time').textContent = new Date(d.checkedAt).toLocaleTimeString('fr-FR');
+    document.getElementById('ci-coords').textContent = `${d.yourPosition.latitude.toFixed(6)}, ${d.yourPosition.longitude.toFixed(6)}`;
+  }
+
+  showM('m-checkin');
+}
+
 function checkInGeoloc(sessionId){
+  lastCheckinSessionId = sessionId;
   const btn = document.getElementById(`checkin-btn-${sessionId}`);
   if (!btn) return;
   if (!('geolocation' in navigator)) {
@@ -2058,15 +2169,17 @@ function checkInGeoloc(sessionId){
         method: 'POST',
         body: JSON.stringify({ session_id: sessionId, latitude, longitude, accuracy }),
       });
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
       if (d?.success) {
-        toast(`✅ Présence confirmée${d.distance != null ? ' (' + d.distance + 'm de l\'école)' : ''} !`);
+        showCheckinResultModal('validated', d);
         loaded.attendance = false;
         await loadTodaySessions();
         await loadAttendance();
+      } else if (d?.reason) {
+        showCheckinResultModal(d.reason, d);
       } else {
         toast(d?.message || 'Erreur lors du signalement.', 'err');
-        btn.disabled = false;
-        btn.innerHTML = originalHTML;
       }
     },
     (err) => {
