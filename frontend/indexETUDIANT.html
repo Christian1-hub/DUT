@@ -2074,6 +2074,13 @@ const CHECKIN_LABELS = {
   rejected_low_accuracy: { text: '⚠️ GPS imprécis', color: '#d97706', bg: '#fffbeb' },
 };
 
+const CHECKIN_RETRY_DELAY_MS = 30000; // durée d'affichage du badge de rejet avant de remontrer le bouton
+const REJECTED_CHECKIN_STATUSES = ['rejected_low_accuracy', 'rejected_out_of_zone'];
+
+function checkinButtonHTML(sessionId){
+  return `<button onclick="checkInGeoloc('${sessionId}')" id="checkin-btn-${sessionId}" class="btn bp bsm"><span class="ms">location_on</span>Je suis présent</button>`;
+}
+
 async function loadTodaySessions(){
   const wrap = document.getElementById('today-sessions-wrap');
   const list = document.getElementById('today-sessions-list');
@@ -2087,11 +2094,30 @@ async function loadTodaySessions(){
         <p style="font-weight:700;font-size:.9rem;color:#111">${s.course_title}</p>
         <p style="font-size:.75rem;color:#9ca3af;margin-top:2px">${s.title || 'Séance du jour'}</p>
       </div>
-      ${badge
-        ? `<span class="bdg" style="background:${badge.bg};color:${badge.color}">${badge.text}</span>`
-        : `<button onclick="checkInGeoloc('${s.id}')" id="checkin-btn-${s.id}" class="btn bp bsm"><span class="ms">location_on</span>Je suis présent</button>`}
+      <span id="today-sess-status-${s.id}">
+        ${badge
+          ? `<span class="bdg" style="background:${badge.bg};color:${badge.color}">${badge.text}</span>`
+          : checkinButtonHTML(s.id)}
+      </span>
     </div>`;
   }).join('');
+
+  // Un rejet (GPS imprécis / hors zone) n'est jamais définitif : le bouton "Je suis
+  // présent" doit réapparaître 30s après le rejet, même si la page a entre-temps
+  // été rechargée ou rafraîchie — on calcule donc le temps restant à partir de
+  // l'heure réelle du rejet (checkin_at), pas depuis le moment de l'affichage.
+  d.sessions.forEach(s => {
+    if (!REJECTED_CHECKIN_STATUSES.includes(s.checkin_status) || !s.checkin_at) return;
+    const elapsed = Date.now() - new Date(s.checkin_at).getTime();
+    const remaining = CHECKIN_RETRY_DELAY_MS - elapsed;
+    const holder = document.getElementById(`today-sess-status-${s.id}`);
+    if (!holder) return;
+    if (remaining <= 0) {
+      holder.innerHTML = checkinButtonHTML(s.id);
+    } else {
+      setTimeout(() => { holder.innerHTML = checkinButtonHTML(s.id); }, remaining);
+    }
+  });
 }
 
 let lastCheckinSessionId = null;

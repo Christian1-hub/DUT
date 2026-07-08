@@ -239,7 +239,7 @@ router.get('/today-sessions', async (req, res) => {
   try {
     const r = await pool.query(`
       SELECT s.id, s.title, s.session_date, c.title AS course_title,
-             ar.checkin_status, ar.checkin_distance_m, ar.status
+             ar.checkin_status, ar.checkin_distance_m, ar.status, ar.checkin_at
       FROM attendance_sessions s
       JOIN courses c ON s.course_id = c.id
       JOIN enrollments e ON e.course_id = c.id AND e.student_id = $1
