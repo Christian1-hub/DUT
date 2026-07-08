@@ -152,6 +152,24 @@ router.delete('/sessions/:id', teacherOnly, async (req, res) => {
   }
 });
 
+// DELETE /api/attendance/sessions/course/:courseId — supprime toutes les séances d'un cours
+// (utile pour nettoyer des séances créées en double par erreur)
+router.delete('/sessions/course/:courseId', teacherOnly, async (req, res) => {
+  try {
+    const check = await pool.query('SELECT id FROM courses WHERE id=$1 AND teacher_id=$2', [req.params.courseId, req.user.id]);
+    if (!check.rows.length) return res.status(403).json({ success: false, message: 'Cours introuvable.' });
+
+    const r = await pool.query(
+      `DELETE FROM attendance_sessions WHERE course_id=$1 AND teacher_id=$2 RETURNING id`,
+      [req.params.courseId, req.user.id]
+    );
+    res.json({ success: true, deleted: r.rows.length });
+  } catch(e) {
+    console.error('[ATTENDANCE DELETE ALL]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 // GET /api/attendance/course/:courseId/stats — taux de présence par étudiant
 router.get('/course/:courseId/stats', teacherOnly, async (req, res) => {
   try {
@@ -237,15 +255,23 @@ router.get('/today-sessions', async (req, res) => {
     return res.status(403).json({ success: false, message: 'Réservé aux étudiants.' });
   }
   try {
+    // Un professeur peut créer plusieurs séances pour le même cours le même jour
+    // (par erreur, ou pour plusieurs créneaux) — on n'en montre qu'une par cours à
+    // l'étudiant : celle où il a déjà interagi en priorité (pour ne pas perdre son
+    // statut de check-in), sinon la plus récemment créée.
     const r = await pool.query(`
-      SELECT s.id, s.title, s.session_date, c.title AS course_title,
-             ar.checkin_status, ar.checkin_distance_m, ar.status, ar.checkin_at
-      FROM attendance_sessions s
-      JOIN courses c ON s.course_id = c.id
-      JOIN enrollments e ON e.course_id = c.id AND e.student_id = $1
-      LEFT JOIN attendance_records ar ON ar.session_id = s.id AND ar.student_id = $1
-      WHERE e.student_id = $1 AND s.session_date = CURRENT_DATE
-      ORDER BY c.title
+      SELECT * FROM (
+        SELECT DISTINCT ON (c.id)
+               s.id, s.title, s.session_date, c.title AS course_title,
+               ar.checkin_status, ar.checkin_distance_m, ar.status, ar.checkin_at
+        FROM attendance_sessions s
+        JOIN courses c ON s.course_id = c.id
+        JOIN enrollments e ON e.course_id = c.id AND e.student_id = $1
+        LEFT JOIN attendance_records ar ON ar.session_id = s.id AND ar.student_id = $1
+        WHERE e.student_id = $1 AND s.session_date = CURRENT_DATE
+        ORDER BY c.id, (ar.id IS NOT NULL) DESC, s.created_at DESC
+      ) sub
+      ORDER BY course_title
     `, [req.user.id]);
     res.json({ success: true, sessions: r.rows });
   } catch(e) {
