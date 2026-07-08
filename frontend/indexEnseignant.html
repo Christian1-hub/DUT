@@ -1023,6 +1023,25 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
   </div>
 </div>
 
+<!-- Complétion du profil enseignant : filière + matière enseignées -->
+<div id="m-teacher-onboarding" class="ov" onclick="if(event.target===this)dismissTeacherOnboarding()">
+  <div class="mbox" style="max-width:440px">
+    <div style="padding:24px 24px 0;text-align:center">
+      <span class="ms" style="font-size:40px;color:#ea580c">school</span>
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1.1rem;color:#111;margin-top:10px">Complétez votre profil</h3>
+      <p style="font-size:.85rem;color:#9ca3af;margin-top:4px">Indiquez votre filière et la matière que vous enseignez — vos élèves et vos cours seront automatiquement mieux reliés à votre profil.</p>
+    </div>
+    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px">
+      <div><label class="lbl">Matière enseignée *</label><select id="onb-disc" class="fld"><option value="">Sélectionner ma matière...</option></select></div>
+      <div><label class="lbl">Filière principale *</label><select id="onb-filiere" class="fld"><option value="">Sélectionner ma filière...</option></select></div>
+    </div>
+    <div style="padding:0 24px 24px;display:flex;gap:10px">
+      <button onclick="dismissTeacherOnboarding()" class="btn bg" style="flex:1">Plus tard</button>
+      <button onclick="saveTeacherOnboarding()" id="onb-save-btn" class="btn bp" style="flex:1"><span class="ms">check</span>Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <!-- Diffusion de notification -->
 <div id="m-notif" class="ov" onclick="if(event.target===this)hideM('m-notif')">
   <div class="mbox">
@@ -1100,6 +1119,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   DISCIPLINES.forEach(d => pDisc.innerHTML += `<option value="${d}">${d}</option>`);
   const pFil = document.getElementById('p-filiere');
   FILIERES.forEach(f => pFil.innerHTML += `<option value="${f}">${f}</option>`);
+  const onbDisc = document.getElementById('onb-disc');
+  DISCIPLINES.forEach(d => onbDisc.innerHTML += `<option value="${d}">${d}</option>`);
+  const onbFil = document.getElementById('onb-filiere');
+  FILIERES.forEach(f => onbFil.innerHTML += `<option value="${f}">${f}</option>`);
 
   // Drag & drop PDF cours
   const drop = document.getElementById('co-drop');
@@ -1134,6 +1157,7 @@ async function bootstrap() {
       await loadDashboard();
       loadNotifications();
       loadConversations();
+      showTeacherOnboardingIfNeeded();
     } else if (r.status === 401) {
       doLogout();
     } else {
@@ -1144,6 +1168,48 @@ async function bootstrap() {
     // Serveur non accessible
     document.getElementById('greet').textContent = 'Serveur non connecté';
     document.getElementById('greet-sub').textContent = 'Lancez le backend avec: cd backend && node src/app.js';
+  }
+}
+
+// ══════════════════════════════════════════════
+//  COMPLÉTION DU PROFIL — FILIÈRE + MATIÈRE ENSEIGNÉE
+// ══════════════════════════════════════════════
+function showTeacherOnboardingIfNeeded(){
+  if (ME.discipline && ME.filiere) return;
+  if (sessionStorage.getItem('camunolearn_onboarding_dismissed')) return;
+  document.getElementById('onb-disc').value = ME.discipline || '';
+  document.getElementById('onb-filiere').value = ME.filiere || '';
+  showM('m-teacher-onboarding');
+}
+
+function dismissTeacherOnboarding(){
+  sessionStorage.setItem('camunolearn_onboarding_dismissed', '1');
+  hideM('m-teacher-onboarding');
+}
+
+async function saveTeacherOnboarding(){
+  const discipline = document.getElementById('onb-disc').value;
+  const filiere = document.getElementById('onb-filiere').value;
+  if (!discipline || !filiere) { toast('Sélectionnez votre matière et votre filière.', 'err'); return; }
+  const btn = document.getElementById('onb-save-btn');
+  btn.disabled = true; btn.textContent = 'Enregistrement...';
+  const d = await api('/teacher/profile', {
+    method: 'PUT',
+    body: JSON.stringify({
+      first_name: ME.first_name, last_name: ME.last_name,
+      discipline, filiere, bio: ME.bio || '', phone: ME.phone || '',
+    }),
+  });
+  btn.disabled = false;
+  btn.innerHTML = '<span class="ms">check</span>Enregistrer';
+  if (d?.success) {
+    ME.discipline = discipline;
+    ME.filiere = filiere;
+    updateSidebar();
+    hideM('m-teacher-onboarding');
+    toast('✅ Profil complété !');
+  } else {
+    toast(d?.message || 'Erreur.', 'err');
   }
 }
 
