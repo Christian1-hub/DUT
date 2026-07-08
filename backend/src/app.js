@@ -495,6 +495,45 @@ app.listen(PORT, async () => {
       console.warn('⚠️  communautés par défaut non initialisées:', e.message);
     }
 
+    // Rattrapage class_members / enrollments — un étudiant dont la filière était
+    // enregistrée sous un format différent de celui de la classe/du cours
+    // ("GI" vs "GI — Génie Informatique") n'était jamais lié automatiquement à
+    // son inscription (cause du "0 étudiants" vu côté prof alors qu'ils existent
+    // bien). Requête tolérante aux deux formats, sûre à rejouer à chaque
+    // démarrage (ON CONFLICT DO NOTHING).
+    try {
+      const backfillClasses = await pool.query(`
+        INSERT INTO class_members (class_id, student_id)
+        SELECT cl.id, u.id
+        FROM classes cl
+        JOIN users u ON u.role='etudiant' AND u.school=cl.school
+          AND (u.filiere=cl.filiere OR SPLIT_PART(u.filiere,' — ',1)=SPLIT_PART(cl.filiere,' — ',1))
+        ON CONFLICT DO NOTHING
+        RETURNING class_id
+      `);
+      const backfillEnrollClass = await pool.query(`
+        INSERT INTO enrollments (student_id, course_id)
+        SELECT cm.student_id, c.id
+        FROM class_members cm
+        JOIN courses c ON c.class_id = cm.class_id
+        ON CONFLICT DO NOTHING
+        RETURNING student_id
+      `);
+      const backfillEnrollStandalone = await pool.query(`
+        INSERT INTO enrollments (student_id, course_id)
+        SELECT u.id, c.id
+        FROM courses c
+        JOIN users u ON u.role='etudiant' AND u.school=c.school
+          AND (u.filiere=c.filiere OR SPLIT_PART(u.filiere,' — ',1)=SPLIT_PART(c.filiere,' — ',1) OR c.filiere IS NULL)
+        WHERE c.class_id IS NULL
+        ON CONFLICT DO NOTHING
+        RETURNING student_id
+      `);
+      console.log(`✅ rattrapage class_members/enrollments : ${backfillClasses.rowCount} membre(s) de classe, ${backfillEnrollClass.rowCount + backfillEnrollStandalone.rowCount} inscription(s) ajoutée(s)`);
+    } catch(e) {
+      console.warn('⚠️  rattrapage class_members/enrollments échoué:', e.message);
+    }
+
     console.log('\n✅ Serveur prêt !\n');
   } catch(e) {
     console.error('❌ PostgreSQL non connecté:', e.message);

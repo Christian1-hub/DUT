@@ -131,9 +131,16 @@ router.put('/school', auth, async (req, res) => {
 
 async function autoEnrollStudent(studentId, school, filiere, level) {
   try {
-    let classQuery = `SELECT id FROM classes WHERE school=$1 AND filiere=$2`;
-    const classParams = [school, filiere];
-    if (level) { classQuery += ` AND (level=$3 OR level IS NULL)`; classParams.push(level); }
+    // Recouper la filière en tolérant les deux formats utilisés dans l'appli
+    // ("GI" ou "GI — Génie Informatique") — sinon une égalité stricte échoue
+    // silencieusement dès que le prof et l'étudiant n'ont pas saisi exactement
+    // la même chaîne, et l'étudiant n'apparaît jamais dans class_members ni
+    // enrollments (symptôme observé : "0 étudiants" alors qu'ils existent bien).
+    const filiereShort = filiere.split(' — ')[0].trim();
+
+    let classQuery = `SELECT id FROM classes WHERE school=$1 AND (filiere=$2 OR SPLIT_PART(filiere, ' — ', 1) = $3)`;
+    const classParams = [school, filiere, filiereShort];
+    if (level) { classQuery += ` AND (level=$4 OR level IS NULL)`; classParams.push(level); }
     const classes = await pool.query(classQuery, classParams);
     for (const cls of classes.rows) {
       await pool.query(`INSERT INTO class_members (class_id, student_id) VALUES ($1,$2) ON CONFLICT DO NOTHING`, [cls.id, studentId]);
@@ -145,9 +152,9 @@ async function autoEnrollStudent(studentId, school, filiere, level) {
     await pool.query(`
       INSERT INTO enrollments (student_id, course_id)
       SELECT $1, c.id FROM courses c
-      WHERE c.school=$2 AND (c.filiere=$3 OR c.filiere IS NULL) AND c.class_id IS NULL
+      WHERE c.school=$2 AND (c.filiere=$3 OR SPLIT_PART(c.filiere, ' — ', 1) = $4 OR c.filiere IS NULL) AND c.class_id IS NULL
         AND NOT EXISTS (SELECT 1 FROM enrollments e WHERE e.student_id=$1 AND e.course_id=c.id)
-      ON CONFLICT DO NOTHING`, [studentId, school, filiere]);
+      ON CONFLICT DO NOTHING`, [studentId, school, filiere, filiereShort]);
   } catch(e) {
     console.error('[AUTO-ENROLL]', e.message);
   }
