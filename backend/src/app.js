@@ -520,6 +520,18 @@ app.listen(PORT, async () => {
       console.warn('⚠️  rattrapage enrollments échoué:', e.message);
     }
 
+    // Niveau (L1, L2, Master...) directement sur un cours SANS classe cible —
+    // permet à un prof de restreindre la visibilité d'un cours par niveau même
+    // sans créer formellement une classe pour ça (un cours lié à une classe via
+    // class_id hérite déjà du niveau de cette classe, ce champ ne sert que pour
+    // les cours "libres").
+    try {
+      await pool.query(`ALTER TABLE courses ADD COLUMN IF NOT EXISTS level VARCHAR(50)`);
+      console.log('✅ courses.level : OK');
+    } catch(e) {
+      console.warn('⚠️  courses.level non initialisé:', e.message);
+    }
+
     // Code de classe (L1, L2, Master...) — chaque classe a un code unique que
     // l'étudiant saisit lui-même pour la rejoindre, au lieu de dépendre d'un
     // recoupement automatique fragile par filière/niveau qui peut mélanger deux

@@ -213,7 +213,7 @@ router.get('/classes/:id/students', async (req, res) => {
 router.get('/courses', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT c.id, c.title, c.description, c.filiere,
+      `SELECT c.id, c.title, c.description, c.filiere, c.level,
               COALESCE(c.color, 'orange') AS color,
               c.file_url,
               c.class_id,
@@ -240,19 +240,20 @@ router.get('/courses', async (req, res) => {
 
 router.post('/courses', async (req, res) => {
   try {
-    const { title, description, filiere, color, class_id, file_url } = req.body;
+    const { title, description, filiere, level, color, class_id, file_url } = req.body;
     if (!title?.trim()) return res.status(400).json({ success: false, message: 'Titre requis.' });
     const u = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
     const school = u.rows[0]?.school || null;
     const r = await pool.query(
-      `INSERT INTO courses (title, description, filiere, teacher_id, school, file_url, color)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [title.trim(), description||null, filiere||null, req.user.id, school, file_url||null, color||'orange']
+      `INSERT INTO courses (title, description, filiere, level, teacher_id, school, file_url, color)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [title.trim(), description||null, filiere||null, level||null, req.user.id, school, file_url||null, color||'orange']
     );
     const courseId = r.rows[0].id;
 
     if (class_id) {
-      // Inscrire les étudiants de la classe liée
+      // Inscrire les étudiants de la classe liée (le niveau est déjà garanti
+      // par la classe elle-même — pas besoin du recoupement filière ci-dessous).
       await pool.query(
         `INSERT INTO enrollments (student_id, course_id)
          SELECT student_id, $1 FROM class_members WHERE class_id=$2
@@ -260,26 +261,29 @@ router.post('/courses', async (req, res) => {
         [courseId, class_id]
       );
       console.log(`[COURSE] Étudiants de la classe ${class_id} inscrits au cours "${title}"`);
-    }
-
-    if (filiere && school) {
-      // Inscrire AUSSI tous les étudiants de l'école avec cette filière
-      // (même ceux qui ne sont pas dans une classe explicite)
-      // Comparaison souple : correspondance exacte OU même code court avant le " — "
-      // (le champ filière du cours est saisi librement par le prof, celui de l'étudiant
-      // vient d'une liste fixe, donc les deux chaînes ne matchent pas toujours au caractère près)
+    } else if (filiere && school) {
+      // Cours sans classe cible : inscrire tous les étudiants de l'école avec
+      // cette filière (comparaison souple : correspondance exacte OU même code
+      // court avant le " — ", car le champ filière du cours est saisi
+      // librement par le prof, celui de l'étudiant vient d'une liste fixe).
+      // Si un niveau est précisé, on restreint en plus aux étudiants membres
+      // d'une classe de ce niveau (L1 ne voit pas les cours "niveau L2", même
+      // dans la même filière).
       const filiereShort = filiere.split(' — ')[0].trim();
-      await pool.query(
-        `INSERT INTO enrollments (student_id, course_id)
-         SELECT u.id, $1 FROM users u
-         WHERE u.role='etudiant'
-           AND u.school=$2
-           AND (u.filiere=$3 OR SPLIT_PART(u.filiere, ' — ', 1) = $4 OR SPLIT_PART(u.filiere, ' ', 1) = $4)
-           AND NOT EXISTS (SELECT 1 FROM enrollments e WHERE e.student_id=u.id AND e.course_id=$1)
-         ON CONFLICT DO NOTHING`,
-        [courseId, school, filiere, filiereShort]
-      );
-      console.log(`[COURSE] Étudiants filière ${filiere} de ${school} inscrits au cours "${title}"`);
+      let enrollQuery = `
+        INSERT INTO enrollments (student_id, course_id)
+        SELECT u.id, $1 FROM users u
+        WHERE u.role='etudiant'
+          AND u.school=$2
+          AND (u.filiere=$3 OR SPLIT_PART(u.filiere, ' — ', 1) = $4 OR SPLIT_PART(u.filiere, ' ', 1) = $4)`;
+      const enrollParams = [courseId, school, filiere, filiereShort];
+      if (level) {
+        enrollQuery += ` AND u.id IN (SELECT cm.student_id FROM class_members cm JOIN classes cl ON cm.class_id=cl.id WHERE cl.level=$5)`;
+        enrollParams.push(level);
+      }
+      enrollQuery += ` AND NOT EXISTS (SELECT 1 FROM enrollments e WHERE e.student_id=u.id AND e.course_id=$1) ON CONFLICT DO NOTHING`;
+      await pool.query(enrollQuery, enrollParams);
+      console.log(`[COURSE] Étudiants filière ${filiere}${level?' niveau '+level:''} de ${school} inscrits au cours "${title}"`);
     }
 
     res.status(201).json({ success: true, course: r.rows[0] });
@@ -291,28 +295,33 @@ router.post('/courses', async (req, res) => {
 
 router.put('/courses/:id', async (req, res) => {
   try {
-    const { title, description, filiere, color, file_url } = req.body;
+    const { title, description, filiere, level, color, file_url } = req.body;
     console.log('[COURSE PUT] file_url recu:', file_url, 'color:', color);
     const r = await pool.query(
-      `UPDATE courses SET title=$1, description=$2, filiere=$3, color=$4, file_url=COALESCE($5, file_url)
-       WHERE id=$6 AND teacher_id=$7 RETURNING *`,
-      [title, description||null, filiere||null, color||'orange', file_url||null, req.params.id, req.user.id]
+      `UPDATE courses SET title=$1, description=$2, filiere=$3, level=$4, color=$5, file_url=COALESCE($6, file_url)
+       WHERE id=$7 AND teacher_id=$8 RETURNING *`,
+      [title, description||null, filiere||null, level||null, color||'orange', file_url||null, req.params.id, req.user.id]
     );
     if (!r.rows.length) return res.status(404).json({ success: false, message: 'Cours introuvable.' });
 
     // Rejouer l'auto-inscription (utile pour rattraper des étudiants inscrits
-    // après la création du cours, ou si la filière a été corrigée)
-    if (filiere && r.rows[0].school) {
+    // après la création du cours, ou si la filière a été corrigée) — uniquement
+    // pour les cours sans classe cible ; un cours lié à une classe reste scopé
+    // par cette classe (voir class_id ci-dessous, jamais mélangé avec la filière).
+    if (!r.rows[0].class_id && filiere && r.rows[0].school) {
       const filiereShort = filiere.split(' — ')[0].trim();
-      await pool.query(
-        `INSERT INTO enrollments (student_id, course_id)
-         SELECT u.id, $1 FROM users u
-         WHERE u.role='etudiant' AND u.school=$2
-           AND (u.filiere=$3 OR SPLIT_PART(u.filiere, ' — ', 1) = $4 OR SPLIT_PART(u.filiere, ' ', 1) = $4)
-           AND NOT EXISTS (SELECT 1 FROM enrollments e WHERE e.student_id=u.id AND e.course_id=$1)
-         ON CONFLICT DO NOTHING`,
-        [req.params.id, r.rows[0].school, filiere, filiereShort]
-      );
+      let enrollQuery = `
+        INSERT INTO enrollments (student_id, course_id)
+        SELECT u.id, $1 FROM users u
+        WHERE u.role='etudiant' AND u.school=$2
+          AND (u.filiere=$3 OR SPLIT_PART(u.filiere, ' — ', 1) = $4 OR SPLIT_PART(u.filiere, ' ', 1) = $4)`;
+      const enrollParams = [req.params.id, r.rows[0].school, filiere, filiereShort];
+      if (level) {
+        enrollQuery += ` AND u.id IN (SELECT cm.student_id FROM class_members cm JOIN classes cl ON cm.class_id=cl.id WHERE cl.level=$5)`;
+        enrollParams.push(level);
+      }
+      enrollQuery += ` AND NOT EXISTS (SELECT 1 FROM enrollments e WHERE e.student_id=u.id AND e.course_id=$1) ON CONFLICT DO NOTHING`;
+      await pool.query(enrollQuery, enrollParams);
     }
 
     res.json({ success: true, course: r.rows[0] });

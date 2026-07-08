@@ -72,7 +72,7 @@ router.get('/courses', async (req, res) => {
     const filiereShort = filiere ? filiere.split(' — ')[0].trim() : null;
 
     const r = await pool.query(
-      `SELECT DISTINCT c.id, c.title, c.description, c.filiere, COALESCE(c.color,'orange') AS color, c.file_url, c.created_at,
+      `SELECT DISTINCT c.id, c.title, c.description, c.filiere, c.level, COALESCE(c.color,'orange') AS color, c.file_url, c.created_at,
               u.first_name||' '||u.last_name AS teacher_name,
               (SELECT COUNT(*) FROM assignments a WHERE a.course_id=c.id) AS assignment_count,
               0 AS progress
@@ -83,7 +83,7 @@ router.get('/courses', async (req, res) => {
            -- Cours rattaché à une classe précise (L1, L2, Master...) : uniquement si l'étudiant a rejoint cette classe
            (c.class_id IS NOT NULL AND c.class_id IN (SELECT class_id FROM class_members WHERE student_id=$4))
            OR (
-             -- Cours SANS classe (legacy) : visible par filière, comme avant
+             -- Cours SANS classe : visible par filière, et par niveau si le prof en a précisé un
              c.class_id IS NULL
              AND (
                c.filiere IS NULL
@@ -92,6 +92,10 @@ router.get('/courses', async (req, res) => {
                OR c.filiere = $3::text
                OR SPLIT_PART(c.filiere, ' ', 1) = $3::text
                OR SPLIT_PART(c.filiere, ' — ', 1) = $3::text
+             )
+             AND (
+               c.level IS NULL
+               OR c.level IN (SELECT cl.level FROM class_members cm JOIN classes cl ON cm.class_id=cl.id WHERE cm.student_id=$4)
              )
            )
            -- Étudiant inscrit directement via inter-universités
@@ -146,6 +150,10 @@ router.get('/assignments', async (req, res) => {
                OR c.filiere = ''
                OR c.filiere = (SELECT filiere FROM users WHERE id=$1::uuid)
                OR c.filiere = SPLIT_PART((SELECT filiere FROM users WHERE id=$1::uuid), ' — ', 1)
+             )
+             AND (
+               c.level IS NULL
+               OR c.level IN (SELECT cl.level FROM class_members cm JOIN classes cl ON cm.class_id=cl.id WHERE cm.student_id=$1::uuid)
              )
            )
            OR c.id IN (SELECT course_id FROM enrollments WHERE student_id=$1::uuid)

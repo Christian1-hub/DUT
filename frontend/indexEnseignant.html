@@ -750,10 +750,12 @@ const DISCIPLINES=['Automatisme & Systèmes','Bases de données','Algorithmique 
       <div><label class="lbl">Titre *</label><input id="co-ttl" type="text" placeholder="Ex: Automatisme Industriel" class="fld"/></div>
       <div><label class="lbl">Description</label><textarea id="co-desc" rows="2" placeholder="Contenu, objectifs..." class="fld" style="resize:none"></textarea></div>
       <div><label class="lbl">Classe cible <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#9ca3af">(étudiants inscrits automatiquement)</span></label><select id="co-class" class="fld"><option value="">Aucune classe spécifique</option></select></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
         <div><label class="lbl">Filière</label><input id="co-fil" type="text" placeholder="Ex: GEII L2" class="fld"/></div>
+        <div><label class="lbl">Niveau <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#9ca3af">(si pas de classe)</span></label><select id="co-lvl" class="fld"><option value="">—</option><option>L1</option><option>L2</option><option>L3</option><option>M1</option><option>M2</option></select></div>
         <div><label class="lbl">Couleur</label><select id="co-col" class="fld"><option value="orange">🟠 Orange</option><option value="green">🟢 Vert</option><option value="blue">🔵 Bleu</option><option value="purple">🟣 Violet</option></select></div>
       </div>
+      <p style="font-size:.72rem;color:#9ca3af;margin:-6px 0 0">Si vous précisez un niveau, seuls les étudiants de ce niveau (ayant rejoint une classe correspondante) verront ce cours.</p>
       <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0">
         <input type="checkbox" id="co-public" style="accent-color:#00602a;width:16px;height:16px"/>
         <div>
@@ -1644,6 +1646,7 @@ async function openCourseCreate(){
   document.getElementById('co-btn').textContent='Créer le cours';
   ['co-ttl','co-desc','co-fil'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('co-col').value='orange';
+  document.getElementById('co-lvl').value='';
   document.getElementById('co-file').value='';document.getElementById('co-file-label').textContent='Cliquez ou glissez un PDF ici';
   document.getElementById('co-prog-wrap').style.display='none';
   // Charger les classes si pas encore fait
@@ -1655,7 +1658,7 @@ async function openCourseCreate(){
 function openEditCourse(id){
   editCourseId=id;const c=COURSES.find(x=>x.id===id);if(!c)return;
   document.getElementById('m-co-title').textContent='Modifier le cours';document.getElementById('co-btn').textContent='Enregistrer';
-  document.getElementById('co-ttl').value=c.title;document.getElementById('co-desc').value=c.description||'';document.getElementById('co-fil').value=c.filiere||'';document.getElementById('co-col').value=c.color||'orange';
+  document.getElementById('co-ttl').value=c.title;document.getElementById('co-desc').value=c.description||'';document.getElementById('co-fil').value=c.filiere||'';document.getElementById('co-col').value=c.color||'orange';document.getElementById('co-lvl').value=c.level||'';
   document.getElementById('co-file-label').textContent=c.file_url?'Fichier existant (cliquer pour remplacer)':'Cliquez ou glissez un PDF ici';
   syncSel('co-class',CLASSES,'id','name','Aucune classe spécifique');document.getElementById('co-class').value=c.class_id||'';
   showM('m-course');
@@ -1665,6 +1668,7 @@ async function submitCourse(){
   const title=document.getElementById('co-ttl').value.trim();
   const desc=document.getElementById('co-desc').value.trim();
   const fil=document.getElementById('co-fil').value.trim();
+  const level=document.getElementById('co-lvl').value||null;
   const color=document.getElementById('co-col').value;
   const classId=document.getElementById('co-class').value||null;
   const file=document.getElementById('co-file').files[0];
@@ -1673,7 +1677,7 @@ async function submitCourse(){
   let file_url=null;
   if(file)file_url=await uploadCloudinary(file,'co-prog','co-prog-txt','co-prog-wrap');
   const isPublic = document.getElementById('co-public')?.checked || false;
-  const body={title,description:desc,filiere:fil,color,class_id:classId,is_public:isPublic};
+  const body={title,description:desc,filiere:fil,level,color,class_id:classId,is_public:isPublic};
   if(file_url)body.file_url=file_url;
   const d=editCourseId?await api(`/teacher/courses/${editCourseId}`,{method:'PUT',body:JSON.stringify(body)}):await api('/teacher/courses',{method:'POST',body:JSON.stringify(body)});
   btn.disabled=false;btn.textContent=editCourseId?'Enregistrer':'Créer le cours';
