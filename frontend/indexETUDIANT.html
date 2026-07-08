@@ -2155,10 +2155,10 @@ function showCheckinResultModal(reason, d){
 
   clearTimeout(ciAutoCloseTimer);
   showM('m-checkin');
-  // Rejet (GPS imprécis / hors zone) : on referme tout seul après 5s pour que
+  // Rejet (GPS imprécis / hors zone) : on referme tout seul après 30s pour que
   // l'étudiant retrouve directement le bouton "Je suis présent" et puisse réessayer.
   if (reason !== 'validated') {
-    ciAutoCloseTimer = setTimeout(closeCheckinModal, 5000);
+    ciAutoCloseTimer = setTimeout(closeCheckinModal, 30000);
   }
 }
 
