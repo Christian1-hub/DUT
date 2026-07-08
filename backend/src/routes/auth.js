@@ -116,7 +116,7 @@ router.put('/school', auth, async (req, res) => {
     const user = r.rows[0];
     const token = mkToken(user);
     if (user.role === 'etudiant' && filiere) {
-      await autoEnrollStudent(user.id, school.trim(), filiere, level);
+      await autoEnrollStudent(user.id, school.trim(), filiere);
     }
     if (user.role === 'enseignant') {
       await pool.query(`UPDATE classes SET school=$1 WHERE teacher_id=$2 AND (school IS NULL OR school='')`, [school.trim(), req.user.id]);
@@ -129,26 +129,19 @@ router.put('/school', auth, async (req, res) => {
   }
 });
 
-async function autoEnrollStudent(studentId, school, filiere, level) {
+async function autoEnrollStudent(studentId, school, filiere) {
   try {
     // Recouper la filière en tolérant les deux formats utilisés dans l'appli
     // ("GI" ou "GI — Génie Informatique") — sinon une égalité stricte échoue
     // silencieusement dès que le prof et l'étudiant n'ont pas saisi exactement
-    // la même chaîne, et l'étudiant n'apparaît jamais dans class_members ni
-    // enrollments (symptôme observé : "0 étudiants" alors qu'ils existent bien).
+    // la même chaîne.
+    // NB : l'inscription à une classe précise (L1, L2, Master...) se fait
+    // désormais uniquement via le code de classe partagé par l'enseignant
+    // (POST /student/classroom/join) — plus aucun rattachement automatique à
+    // class_members ici, pour ne jamais mélanger deux promotions d'une même
+    // filière.
     const filiereShort = filiere.split(' — ')[0].trim();
 
-    let classQuery = `SELECT id FROM classes WHERE school=$1 AND (filiere=$2 OR SPLIT_PART(filiere, ' — ', 1) = $3)`;
-    const classParams = [school, filiere, filiereShort];
-    if (level) { classQuery += ` AND (level=$4 OR level IS NULL)`; classParams.push(level); }
-    const classes = await pool.query(classQuery, classParams);
-    for (const cls of classes.rows) {
-      await pool.query(`INSERT INTO class_members (class_id, student_id) VALUES ($1,$2) ON CONFLICT DO NOTHING`, [cls.id, studentId]);
-      const cours = await pool.query(`SELECT id FROM courses WHERE class_id=$1`, [cls.id]);
-      for (const c of cours.rows) {
-        await pool.query(`INSERT INTO enrollments (student_id, course_id) VALUES ($1,$2) ON CONFLICT DO NOTHING`, [studentId, c.id]);
-      }
-    }
     await pool.query(`
       INSERT INTO enrollments (student_id, course_id)
       SELECT $1, c.id FROM courses c

@@ -657,4 +657,106 @@ router.put('/school-codes/:id/regenerate', async (req, res) => {
   }
 });
 
+// ── GET /api/superadmin/classes ───────────────────────────────
+// Classes créées par les enseignants (L1, L2, Master...) avec leur code de
+// rejoindre, pour supervision par le superadmin.
+router.get('/classes', async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT cl.id, cl.name, cl.filiere, cl.level, cl.school, cl.academic_year,
+             cl.class_code, cl.created_at,
+             u.first_name||' '||u.last_name AS teacher_name, u.email AS teacher_email,
+             (SELECT COUNT(*) FROM class_members cm WHERE cm.class_id=cl.id) AS student_count,
+             (SELECT COUNT(*) FROM courses c WHERE c.class_id=cl.id) AS course_count
+      FROM classes cl
+      LEFT JOIN users u ON u.id=cl.teacher_id
+      ORDER BY cl.school ASC NULLS LAST, cl.level ASC NULLS LAST, cl.name ASC`);
+    res.json({ success:true, classes:r.rows });
+  } catch(e) {
+    console.error('[SA classes]', e.message);
+    res.status(500).json({ success:false, message:'Erreur serveur.' });
+  }
+});
+
+// ── GET /api/superadmin/academic-overview ─────────────────────
+// Répartition des étudiants par filière et par niveau (via la classe
+// qu'ils ont rejointe par code), toutes écoles confondues.
+router.get('/academic-overview', async (req, res) => {
+  try {
+    const [byFiliere, byLevel, unassigned] = await Promise.all([
+      pool.query(`
+        SELECT school, filiere, COUNT(*) AS total
+        FROM users
+        WHERE role='etudiant' AND filiere IS NOT NULL AND filiere != ''
+        GROUP BY school, filiere
+        ORDER BY school ASC NULLS LAST, filiere ASC`),
+      pool.query(`
+        SELECT cl.school, cl.level, cl.filiere, COUNT(DISTINCT cm.student_id) AS total
+        FROM class_members cm
+        JOIN classes cl ON cm.class_id=cl.id
+        GROUP BY cl.school, cl.level, cl.filiere
+        ORDER BY cl.school ASC NULLS LAST, cl.level ASC NULLS LAST`),
+      pool.query(`
+        SELECT school, COUNT(*) AS total
+        FROM users u
+        WHERE role='etudiant'
+          AND NOT EXISTS (SELECT 1 FROM class_members cm WHERE cm.student_id=u.id)
+        GROUP BY school
+        ORDER BY school ASC NULLS LAST`),
+    ]);
+    res.json({
+      success: true,
+      byFiliere:  byFiliere.rows,
+      byLevel:    byLevel.rows,
+      unassigned: unassigned.rows,
+    });
+  } catch(e) {
+    console.error('[SA academic-overview]', e.message);
+    res.status(500).json({ success:false, message:'Erreur serveur.' });
+  }
+});
+
+// ── GET /api/superadmin/features ──────────────────────────────
+// Usage réel des fonctionnalités ajoutées récemment (anti-triche,
+// géolocalisation de présence, profils enseignants, codes de classe).
+router.get('/features', async (req, res) => {
+  try {
+    const [anticheat, geoSchools, checkins, teacherProfiles, classCodes] = await Promise.all([
+      pool.query(`
+        SELECT COUNT(*) AS total_submissions,
+               COUNT(*) FILTER (WHERE tab_switches > 0) AS flagged
+        FROM assignment_submissions`),
+      pool.query(`
+        SELECT COUNT(*) AS total,
+               COUNT(*) FILTER (WHERE latitude IS NOT NULL AND longitude IS NOT NULL) AS configured
+        FROM schools`),
+      pool.query(`
+        SELECT COUNT(*) AS total,
+               COUNT(*) FILTER (WHERE checkin_status='validated') AS validated,
+               COUNT(*) FILTER (WHERE checkin_status='rejected_low_accuracy') AS rejected_accuracy,
+               COUNT(*) FILTER (WHERE checkin_status='rejected_out_of_zone') AS rejected_zone
+        FROM attendance_records WHERE checkin_status IS NOT NULL`),
+      pool.query(`
+        SELECT COUNT(*) AS total,
+               COUNT(*) FILTER (WHERE discipline IS NOT NULL AND filiere IS NOT NULL) AS completed
+        FROM users WHERE role='enseignant'`),
+      pool.query(`
+        SELECT COUNT(*) AS total_classes,
+               COUNT(*) FILTER (WHERE class_code IS NOT NULL) AS with_code,
+               (SELECT COUNT(*) FROM class_members) AS total_joins
+        FROM classes`),
+    ]);
+    res.json({
+      success: true,
+      anticheat:       anticheat.rows[0],
+      geolocation:      { ...geoSchools.rows[0], ...checkins.rows[0] },
+      teacherProfiles: teacherProfiles.rows[0],
+      classCodes:      classCodes.rows[0],
+    });
+  } catch(e) {
+    console.error('[SA features]', e.message);
+    res.status(500).json({ success:false, message:'Erreur serveur.' });
+  }
+});
+
 module.exports = router;
