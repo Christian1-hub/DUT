@@ -457,11 +457,36 @@ router.get('/classroom', async (req, res) => {
   }
 });
 
+// GET /api/student/classroom/available — liste des classes (L1, L2, Master...)
+// de l'école de l'étudiant, pour choisir laquelle rejoindre avant de saisir le
+// code. Le code lui-même n'est jamais exposé ici (secret partagé par le prof).
+router.get('/classroom/available', async (req, res) => {
+  try {
+    const me = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
+    const school = me.rows[0]?.school;
+    const r = await pool.query(
+      `SELECT cl.id, cl.name, cl.filiere, cl.level, cl.academic_year,
+              u.first_name||' '||u.last_name AS teacher_name,
+              (SELECT COUNT(*) FROM class_members cm WHERE cm.class_id=cl.id) AS student_count
+       FROM classes cl
+       LEFT JOIN users u ON u.id=cl.teacher_id
+       WHERE cl.school=$1
+       ORDER BY cl.level NULLS LAST, cl.name`,
+      [school || null]
+    );
+    res.json({ success: true, classes: r.rows });
+  } catch(e) {
+    console.error('[CLASSROOM AVAILABLE]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 // POST /api/student/classroom/join — rejoindre une classe (L1, L2, Master...) via
 // le code partagé par l'enseignant, plutôt que de deviner par filière/niveau.
 router.post('/classroom/join', async (req, res) => {
   try {
     const code = (req.body.code || '').trim().toUpperCase();
+    const classIdHint = req.body.class_id || null;
     if (!code) return res.status(400).json({ success: false, message: 'Code de classe requis.' });
 
     const me = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
@@ -472,6 +497,9 @@ router.post('/classroom/join', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Code de classe introuvable. Vérifiez auprès de votre enseignant.' });
     }
     const classe = cls.rows[0];
+    if (classIdHint && classe.id !== classIdHint) {
+      return res.status(400).json({ success: false, message: 'Ce code ne correspond pas à la classe sélectionnée.' });
+    }
     if (school && classe.school && classe.school !== school) {
       return res.status(403).json({ success: false, message: 'Cette classe appartient à une autre université.' });
     }

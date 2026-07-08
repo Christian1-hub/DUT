@@ -495,30 +495,16 @@ app.listen(PORT, async () => {
       console.warn('⚠️  communautés par défaut non initialisées:', e.message);
     }
 
-    // Rattrapage class_members / enrollments — un étudiant dont la filière était
-    // enregistrée sous un format différent de celui de la classe/du cours
-    // ("GI" vs "GI — Génie Informatique") n'était jamais lié automatiquement à
-    // son inscription (cause du "0 étudiants" vu côté prof alors qu'ils existent
-    // bien). Requête tolérante aux deux formats, sûre à rejouer à chaque
-    // démarrage (ON CONFLICT DO NOTHING).
+    // Rattrapage enrollments pour les cours SANS classe (standalone, class_id NULL) —
+    // un étudiant dont la filière était enregistrée sous un format différent de
+    // celui du cours ("GI" vs "GI — Génie Informatique") n'était jamais lié
+    // automatiquement à son inscription. Requête tolérante aux deux formats,
+    // sûre à rejouer à chaque démarrage (ON CONFLICT DO NOTHING).
+    // NB : ne touche PAS class_members — l'appartenance à une classe (L1, L2...)
+    // se fait désormais uniquement via le code de classe (voir plus bas), jamais
+    // par recoupement automatique école/filière qui pourrait mélanger deux
+    // promotions différentes.
     try {
-      const backfillClasses = await pool.query(`
-        INSERT INTO class_members (class_id, student_id)
-        SELECT cl.id, u.id
-        FROM classes cl
-        JOIN users u ON u.role='etudiant' AND u.school=cl.school
-          AND (u.filiere=cl.filiere OR SPLIT_PART(u.filiere,' — ',1)=SPLIT_PART(cl.filiere,' — ',1))
-        ON CONFLICT DO NOTHING
-        RETURNING class_id
-      `);
-      const backfillEnrollClass = await pool.query(`
-        INSERT INTO enrollments (student_id, course_id)
-        SELECT cm.student_id, c.id
-        FROM class_members cm
-        JOIN courses c ON c.class_id = cm.class_id
-        ON CONFLICT DO NOTHING
-        RETURNING student_id
-      `);
       const backfillEnrollStandalone = await pool.query(`
         INSERT INTO enrollments (student_id, course_id)
         SELECT u.id, c.id
@@ -529,9 +515,9 @@ app.listen(PORT, async () => {
         ON CONFLICT DO NOTHING
         RETURNING student_id
       `);
-      console.log(`✅ rattrapage class_members/enrollments : ${backfillClasses.rowCount} membre(s) de classe, ${backfillEnrollClass.rowCount + backfillEnrollStandalone.rowCount} inscription(s) ajoutée(s)`);
+      console.log(`✅ rattrapage enrollments (cours sans classe) : ${backfillEnrollStandalone.rowCount} inscription(s) ajoutée(s)`);
     } catch(e) {
-      console.warn('⚠️  rattrapage class_members/enrollments échoué:', e.message);
+      console.warn('⚠️  rattrapage enrollments échoué:', e.message);
     }
 
     // Code de classe (L1, L2, Master...) — chaque classe a un code unique que
@@ -548,6 +534,26 @@ app.listen(PORT, async () => {
       console.log('✅ classes.class_code : OK');
     } catch(e) {
       console.warn('⚠️  classes.class_code non initialisé:', e.message);
+    }
+
+    // Réinitialisation ponctuelle (une seule fois) de class_members : les anciennes
+    // versions ajoutaient automatiquement les étudiants aux classes par simple
+    // correspondance école/filière (sans code, sans distinction de niveau), ce qui
+    // faisait atterrir un étudiant directement "dans" une classe sans jamais passer
+    // par l'écran "Rejoindre ma classe". On supprime ces appartenances automatiques
+    // une bonne fois pour toutes pour forcer le passage par le code désormais —
+    // protégé par schema_migrations pour ne s'exécuter qu'une seule fois (ne
+    // supprimera jamais les adhésions faites volontairement par code par la suite).
+    try {
+      await pool.query(`CREATE TABLE IF NOT EXISTS schema_migrations (name VARCHAR(100) PRIMARY KEY, applied_at TIMESTAMP DEFAULT NOW())`);
+      const already = await pool.query(`SELECT 1 FROM schema_migrations WHERE name=$1`, ['class_members_require_code_v1']);
+      if (!already.rows.length) {
+        const wiped = await pool.query(`DELETE FROM class_members RETURNING student_id`);
+        await pool.query(`INSERT INTO schema_migrations(name) VALUES ($1)`, ['class_members_require_code_v1']);
+        console.log(`✅ class_members réinitialisé (${wiped.rowCount} appartenance(s) automatique(s) supprimée(s) — rejoindre une classe se fait maintenant uniquement par code)`);
+      }
+    } catch(e) {
+      console.warn('⚠️  réinitialisation class_members échouée:', e.message);
     }
 
     console.log('\n✅ Serveur prêt !\n');
