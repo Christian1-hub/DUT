@@ -115,6 +115,20 @@ router.get('/classes', async (req, res) => {
   }
 });
 
+// Code court que les étudiants saisissent pour rejoindre une classe précise
+// (L1, L2, Master... même au sein d'une même filière) — évite tout alphabet
+// ambigu (pas de 0/O, 1/I/L).
+async function genUniqueClassCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  for (let i = 0; i < 8; i++) {
+    let code = '';
+    for (let j = 0; j < 6; j++) code += chars[Math.floor(Math.random() * chars.length)];
+    const exists = await pool.query('SELECT 1 FROM classes WHERE class_code=$1', [code]);
+    if (!exists.rows.length) return code;
+  }
+  return null; // improbable — le rattrapage au démarrage du serveur comblera le vide
+}
+
 router.post('/classes', async (req, res) => {
   try {
     const { name, filiere, level, description, academic_year } = req.body;
@@ -123,10 +137,11 @@ router.post('/classes', async (req, res) => {
     }
     const u = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
     const school = u.rows[0]?.school || 'Non défini';
+    const classCode = await genUniqueClassCode();
     const r = await pool.query(
-      `INSERT INTO classes (name, filiere, level, description, academic_year, school, teacher_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [name.trim(), filiere||null, level||null, description||null, academic_year||null, school, req.user.id]
+      `INSERT INTO classes (name, filiere, level, description, academic_year, school, teacher_id, class_code)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [name.trim(), filiere||null, level||null, description||null, academic_year||null, school, req.user.id, classCode]
     );
     const classId = r.rows[0].id;
 

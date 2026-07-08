@@ -1424,12 +1424,34 @@ function renderClasses() {
       <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#111;margin-bottom:3px">${c.name}</h3>
       <p style="font-size:.72rem;color:#9ca3af;margin-bottom:10px">${c.filiere}${c.level?' · '+c.level:''} · ${c.academic_year}</p>
       ${c.description?`<p style="font-size:.75rem;color:#6b7280;margin-bottom:10px">${c.description}</p>`:''}
+      ${c.class_code?`<button onclick="copyClassCode('${c.class_code}',this)" title="Copier le code" style="display:flex;align-items:center;gap:6px;width:100%;border:1.5px dashed #e5e7eb;border-radius:8px;padding:6px 10px;background:#fafafa;cursor:pointer;margin-bottom:10px">
+        <span class="ms" style="font-size:14px;color:#9ca3af">key</span>
+        <span style="font-family:ui-monospace,monospace;font-size:.8rem;font-weight:800;letter-spacing:.08em;color:#111;flex:1;text-align:left">${c.class_code}</span>
+        <span class="ms" style="font-size:14px;color:#9ca3af">content_copy</span>
+      </button>`:''}
       <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f3f4f6;padding-top:10px">
         <span style="font-size:.72rem;font-weight:600;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="ms" style="font-size:14px">person</span>${c.student_count} étudiant${c.student_count!=1?'s':''}</span>
         <button onclick="openClassDetail('${c.id}','${esc(c.name)}')" style="font-size:.75rem;font-weight:700;color:#ea580c;border:none;background:none;cursor:pointer">Gérer →</button>
       </div>
     </div>`;
   }).join('');
+}
+
+function copyClassCode(code,btnEl){
+  const done=()=>{
+    if(!btnEl)return;
+    const html=btnEl.innerHTML;
+    btnEl.innerHTML='<span class="ms" style="font-size:14px;color:#16a34a">check</span><span style="font-size:.8rem;font-weight:700;color:#16a34a;flex:1;text-align:left">Copié !</span>';
+    setTimeout(()=>{btnEl.innerHTML=html;},1500);
+  };
+  if(navigator.clipboard?.writeText){
+    navigator.clipboard.writeText(code).then(done).catch(()=>toast('Impossible de copier le code.','err'));
+  } else {
+    const ta=document.createElement('textarea');
+    ta.value=code;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(e){toast('Impossible de copier le code.','err');}
+    document.body.removeChild(ta);
+  }
 }
 
 function openClassCreate() {

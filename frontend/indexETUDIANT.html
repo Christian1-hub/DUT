@@ -463,6 +463,20 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
     <h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Ma Classe</h1>
     <p id="classroom-sub" style="font-size:.875rem;color:#9ca3af;margin-top:2px">Chargement...</p>
   </div>
+
+  <!-- Rejoindre une classe (visible si l'étudiant n'a pas encore rejoint de classe) -->
+  <div id="classroom-join-wrap" style="display:none;max-width:420px;margin:40px auto">
+    <div class="card" style="padding:28px;text-align:center">
+      <div style="width:56px;height:56px;background:#f0fdf4;color:#00602a;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><span class="ms" style="font-size:28px">school</span></div>
+      <h3 style="font-family:Manrope;font-weight:900;font-size:1.1rem;color:#111;margin-bottom:6px">Rejoignez votre classe</h3>
+      <p style="font-size:.82rem;color:#6b7280;margin-bottom:18px">Demandez le code de classe à votre enseignant (ex. L1, L2, Master...) et saisissez-le ci-dessous pour accéder à votre espace classe.</p>
+      <input id="classroom-join-code" maxlength="6" placeholder="CODE À 6 CARACTÈRES" style="width:100%;text-align:center;text-transform:uppercase;letter-spacing:.15em;font-family:ui-monospace,monospace;font-weight:800;font-size:1rem;padding:12px;border:1.5px solid #e5e7eb;border-radius:10px;margin-bottom:12px" oninput="this.value=this.value.toUpperCase()">
+      <button id="classroom-join-btn" onclick="joinClassroomByCode()" class="btn bp" style="width:100%">Rejoindre la classe</button>
+      <p id="classroom-join-err" style="font-size:.78rem;color:#dc2626;margin-top:10px;display:none"></p>
+    </div>
+  </div>
+
+  <div id="classroom-content" style="display:none">
   <!-- Header vert -->
   <div class="card" style="overflow:hidden;margin-bottom:16px">
     <div style="background:linear-gradient(135deg,#00602a,#16a34a);padding:20px 22px">
@@ -540,6 +554,7 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
     <div id="classmates-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
       <div class="sk" style="height:54px"></div><div class="sk" style="height:54px"></div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -1624,10 +1639,14 @@ async function loadClassroom() {
   loaded.classroom = true;
   const d = await api('/student/classroom');
   if (!d?.success) return;
-  if (!d.classroom) {
-    document.getElementById('classroom-sub').textContent = 'Aucune classe trouvée. Vérifiez votre profil.';
+  if (!d.classroom || d.needsCode) {
+    document.getElementById('classroom-join-wrap').style.display = 'block';
+    document.getElementById('classroom-content').style.display = 'none';
+    document.getElementById('classroom-sub').textContent = 'Rejoignez votre classe pour accéder à cet espace.';
     return;
   }
+  document.getElementById('classroom-join-wrap').style.display = 'none';
+  document.getElementById('classroom-content').style.display = 'block';
   const cl = d.classroom;
   const me = d.me;
 
@@ -1750,6 +1769,27 @@ async function loadClassroom() {
           <span style="font-size:.75rem;font-weight:700;color:${c.avg_grade ? avgCol : '#9ca3af'};flex-shrink:0">${avg}</span>
         </div>`;
       }).join('');
+}
+
+async function joinClassroomByCode() {
+  const input = document.getElementById('classroom-join-code');
+  const errEl = document.getElementById('classroom-join-err');
+  const btn   = document.getElementById('classroom-join-btn');
+  const code  = input.value.trim().toUpperCase();
+  errEl.style.display = 'none';
+  if (!code) { errEl.textContent = 'Veuillez saisir un code.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Vérification...';
+  const d = await api('/student/classroom/join', { method: 'POST', body: JSON.stringify({ code }) });
+  btn.disabled = false; btn.textContent = 'Rejoindre la classe';
+  if (d?.success) {
+    toast(`✅ Vous avez rejoint la classe "${d.class.name}" !`);
+    input.value = '';
+    loaded.classroom = false;
+    await loadClassroom();
+  } else if (d) {
+    errEl.textContent = d.message || 'Code invalide.';
+    errEl.style.display = 'block';
+  }
 }
 
 // ══════════════════════════════════════════════════════

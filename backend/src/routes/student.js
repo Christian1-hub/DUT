@@ -286,9 +286,12 @@ router.get('/classroom', async (req, res) => {
       return res.json({ success: true, classroom: null, message: 'Université ou filière non définie.' });
     }
 
-    // Trouver la classe de l'étudiant
+    // Trouver la classe de l'étudiant — uniquement via class_members, JAMAIS via un
+    // simple recoupement de filière : deux classes (ex. L1 et L2) peuvent partager
+    // la même filière, et mélanger leurs étudiants dans le classement/les camarades
+    // serait une vraie fuite d'information entre niveaux.
     const classInfo = await pool.query(`
-      SELECT cl.id, cl.name, cl.filiere, cl.level, cl.academic_year, cl.description,
+      SELECT cl.id, cl.name, cl.filiere, cl.level, cl.academic_year, cl.description, cl.class_code,
              u.first_name||' '||u.last_name AS teacher_name,
              u.discipline AS teacher_discipline,
              COUNT(DISTINCT cm2.student_id) AS student_count
@@ -304,11 +307,16 @@ router.get('/classroom', async (req, res) => {
       [id, school]
     );
 
-    // Si pas de classe formelle → créer une classe virtuelle par filière
-    let classroom = classInfo.rows[0] || null;
-    let classId   = classroom?.id || null;
+    const classroom = classInfo.rows[0] || null;
 
-    // Camarades (même filière, même école)
+    // Pas encore rattaché à une classe formelle : on demande le code plutôt que
+    // d'improviser un classement par filière qui mélangerait tous les niveaux.
+    if (!classroom) {
+      return res.json({ success: true, classroom: null, needsCode: true });
+    }
+    const classId = classroom.id;
+
+    // Camarades — uniquement les membres de LA MÊME classe (même id)
     const classmates = await pool.query(`
       SELECT u.id, u.first_name, u.last_name, u.filiere,
              (SELECT ROUND(AVG(sub.grade)::numeric, 1)
@@ -323,14 +331,13 @@ router.get('/classroom', async (req, res) => {
               FROM assignment_submissions sub
               WHERE sub.student_id = u.id
              ) AS submitted_count
-      FROM users u
-      WHERE u.role = 'etudiant'
-        AND u.school = $2
-        AND u.filiere = $3
-        AND u.id != $1
+      FROM class_members cm
+      JOIN users u ON u.id = cm.student_id
+      WHERE cm.class_id = $1
+        AND u.id != $3
       ORDER BY avg_grade DESC NULLS LAST
       LIMIT 20`,
-      [id, school, filiere]
+      [classId, school, id]
     );
 
     // Ma moyenne personnelle
@@ -346,21 +353,20 @@ router.get('/classroom', async (req, res) => {
       [id, school]
     );
 
-    // Classement complet de la filière
+    // Classement — uniquement les membres de LA MÊME classe
     const ranking = await pool.query(`
       SELECT u.id, u.first_name, u.last_name,
              ROUND(AVG(sub.grade)::numeric, 1) AS avg_grade,
              COUNT(sub.id) FILTER (WHERE sub.grade IS NOT NULL) AS graded_count
-      FROM users u
+      FROM class_members cm
+      JOIN users u ON u.id = cm.student_id
       LEFT JOIN assignment_submissions sub ON sub.student_id = u.id
       LEFT JOIN assignments a ON sub.assignment_id = a.id
-      LEFT JOIN courses c ON a.course_id = c.id AND c.school = $1
-      WHERE u.role = 'etudiant'
-        AND u.school = $1
-        AND u.filiere = $2
+      LEFT JOIN courses c ON a.course_id = c.id AND c.school = $2
+      WHERE cm.class_id = $1
       GROUP BY u.id
       ORDER BY avg_grade DESC NULLS LAST`,
-      [school, filiere]
+      [classId, school]
     );
 
     // Position de l'étudiant dans le classement
@@ -421,17 +427,7 @@ router.get('/classroom', async (req, res) => {
 
     res.json({
       success: true,
-      classroom: classroom ? {
-        ...classroom,
-        school,
-        filiere,
-      } : {
-        name: `${filiere} — ${school}`,
-        filiere,
-        school,
-        academic_year: '2025/2026',
-        student_count: classmates.rows.length + 1,
-      },
+      classroom: { ...classroom, school, filiere },
       me: {
         rank:      myRank || null,
         total:     ranking.rows.length,
@@ -447,6 +443,44 @@ router.get('/classroom', async (req, res) => {
     });
   } catch(e) {
     console.error('[STUDENT CLASSROOM]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// POST /api/student/classroom/join — rejoindre une classe (L1, L2, Master...) via
+// le code partagé par l'enseignant, plutôt que de deviner par filière/niveau.
+router.post('/classroom/join', async (req, res) => {
+  try {
+    const code = (req.body.code || '').trim().toUpperCase();
+    if (!code) return res.status(400).json({ success: false, message: 'Code de classe requis.' });
+
+    const me = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
+    const school = me.rows[0]?.school;
+
+    const cls = await pool.query('SELECT * FROM classes WHERE class_code=$1', [code]);
+    if (!cls.rows.length) {
+      return res.status(404).json({ success: false, message: 'Code de classe introuvable. Vérifiez auprès de votre enseignant.' });
+    }
+    const classe = cls.rows[0];
+    if (school && classe.school && classe.school !== school) {
+      return res.status(403).json({ success: false, message: 'Cette classe appartient à une autre université.' });
+    }
+
+    await pool.query(
+      'INSERT INTO class_members (class_id, student_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+      [classe.id, req.user.id]
+    );
+    const courses = await pool.query('SELECT id FROM courses WHERE class_id=$1', [classe.id]);
+    for (const c of courses.rows) {
+      await pool.query(
+        'INSERT INTO enrollments (student_id, course_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+        [req.user.id, c.id]
+      );
+    }
+
+    res.json({ success: true, class: classe });
+  } catch(e) {
+    console.error('[CLASSROOM JOIN]', e.message);
     res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 });

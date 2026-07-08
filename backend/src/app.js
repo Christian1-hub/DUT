@@ -534,6 +534,22 @@ app.listen(PORT, async () => {
       console.warn('⚠️  rattrapage class_members/enrollments échoué:', e.message);
     }
 
+    // Code de classe (L1, L2, Master...) — chaque classe a un code unique que
+    // l'étudiant saisit lui-même pour la rejoindre, au lieu de dépendre d'un
+    // recoupement automatique fragile par filière/niveau qui peut mélanger deux
+    // promotions différentes de la même filière.
+    try {
+      await pool.query(`ALTER TABLE classes ADD COLUMN IF NOT EXISTS class_code VARCHAR(10)`);
+      await pool.query(`
+        UPDATE classes SET class_code = UPPER(SUBSTRING(MD5(id::text || random()::text) FROM 1 FOR 6))
+        WHERE class_code IS NULL
+      `);
+      await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS classes_class_code_idx ON classes(class_code)`);
+      console.log('✅ classes.class_code : OK');
+    } catch(e) {
+      console.warn('⚠️  classes.class_code non initialisé:', e.message);
+    }
+
     console.log('\n✅ Serveur prêt !\n');
   } catch(e) {
     console.error('❌ PostgreSQL non connecté:', e.message);
