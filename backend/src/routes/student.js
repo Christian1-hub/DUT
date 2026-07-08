@@ -80,16 +80,20 @@ router.get('/courses', async (req, res) => {
        LEFT JOIN users u ON c.teacher_id=u.id
        WHERE c.school = $1::text
          AND (
-           -- Cours sans filière = visible par tous de l'école
-           c.filiere IS NULL
-           OR c.filiere = ''
-           -- Filière exacte (ex: étudiant="GTE — Génie Thermique", cours="GTE — Génie Thermique")
-           OR c.filiere = $2::text
-           -- Code court du cours = code court étudiant (ex: cours="GTE", étudiant="GTE — ...")
-           OR c.filiere = $3::text
-           -- Code court du COURS matche code court étudiant (ex: cours="GTE — ...", étudiant="GTE")
-           OR SPLIT_PART(c.filiere, ' ', 1) = $3::text
-           OR SPLIT_PART(c.filiere, ' — ', 1) = $3::text
+           -- Cours rattaché à une classe précise (L1, L2, Master...) : uniquement si l'étudiant a rejoint cette classe
+           (c.class_id IS NOT NULL AND c.class_id IN (SELECT class_id FROM class_members WHERE student_id=$4))
+           OR (
+             -- Cours SANS classe (legacy) : visible par filière, comme avant
+             c.class_id IS NULL
+             AND (
+               c.filiere IS NULL
+               OR c.filiere = ''
+               OR c.filiere = $2::text
+               OR c.filiere = $3::text
+               OR SPLIT_PART(c.filiere, ' ', 1) = $3::text
+               OR SPLIT_PART(c.filiere, ' — ', 1) = $3::text
+             )
+           )
            -- Étudiant inscrit directement via inter-universités
            OR c.id IN (SELECT course_id FROM enrollments WHERE student_id=$4)
          )
@@ -134,10 +138,16 @@ router.get('/assignments', async (req, res) => {
        LEFT JOIN assignment_submissions sub ON sub.assignment_id=a.id AND sub.student_id=$1
        WHERE c.school = (SELECT school FROM users WHERE id=$1::uuid)
          AND (
-           c.filiere IS NULL
-           OR c.filiere = ''
-           OR c.filiere = (SELECT filiere FROM users WHERE id=$1::uuid)
-           OR c.filiere = SPLIT_PART((SELECT filiere FROM users WHERE id=$1::uuid), ' — ', 1)
+           (c.class_id IS NOT NULL AND c.class_id IN (SELECT class_id FROM class_members WHERE student_id=$1::uuid))
+           OR (
+             c.class_id IS NULL
+             AND (
+               c.filiere IS NULL
+               OR c.filiere = ''
+               OR c.filiere = (SELECT filiere FROM users WHERE id=$1::uuid)
+               OR c.filiere = SPLIT_PART((SELECT filiere FROM users WHERE id=$1::uuid), ' — ', 1)
+             )
+           )
            OR c.id IN (SELECT course_id FROM enrollments WHERE student_id=$1::uuid)
          )
        ORDER BY
