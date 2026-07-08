@@ -290,6 +290,36 @@ app.listen(PORT, async () => {
     `);
     console.log('✅ attendance_sessions + attendance_records : OK');
 
+    // Géolocalisation des écoles (geofencing des présences)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS schools (
+        school VARCHAR(100) PRIMARY KEY,
+        latitude DOUBLE PRECISION,
+        longitude DOUBLE PRECISION,
+        geofence_radius_meters INTEGER NOT NULL DEFAULT 150,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    // Une ligne par école déjà connue de school_codes — coordonnées à renseigner
+    // par l'admin de chaque école (voir PUT /api/admin/school-location). Tant que
+    // latitude/longitude sont NULL, le geofencing est simplement ignoré pour
+    // cette école (validation automatique) plutôt que de bloquer tout le monde.
+    await pool.query(`
+      INSERT INTO schools (school)
+      SELECT school FROM school_codes
+      ON CONFLICT (school) DO NOTHING
+    `);
+    console.log('✅ schools (geofencing) : OK');
+
+    // Colonnes de vérification géolocalisée sur attendance_records
+    await pool.query(`ALTER TABLE attendance_records ADD COLUMN IF NOT EXISTS checkin_status VARCHAR(30)`);
+    await pool.query(`ALTER TABLE attendance_records ADD COLUMN IF NOT EXISTS checkin_lat DOUBLE PRECISION`);
+    await pool.query(`ALTER TABLE attendance_records ADD COLUMN IF NOT EXISTS checkin_lng DOUBLE PRECISION`);
+    await pool.query(`ALTER TABLE attendance_records ADD COLUMN IF NOT EXISTS checkin_accuracy_m DOUBLE PRECISION`);
+    await pool.query(`ALTER TABLE attendance_records ADD COLUMN IF NOT EXISTS checkin_distance_m DOUBLE PRECISION`);
+    await pool.query(`ALTER TABLE attendance_records ADD COLUMN IF NOT EXISTS checkin_at TIMESTAMP`);
+    console.log('✅ attendance_records.checkin_* (geofencing) : OK');
+
     // Tables projets académiques
     await pool.query(`
       CREATE TABLE IF NOT EXISTS projects (

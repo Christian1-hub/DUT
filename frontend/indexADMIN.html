@@ -410,6 +410,24 @@ if (!tk) location.href = 'indexconnexion.html';
     <div id="school-overview"><div class="sk" style="height:40px;margin-bottom:8px"></div><div class="sk" style="height:40px"></div></div>
   </div>
 
+  <!-- Localisation de l'école — geofencing des présences -->
+  <div class="card" style="padding:22px;margin-top:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:6px">
+      <h3 style="font-family:Manrope;font-weight:800;font-size:1rem;color:#0f172a">Localisation de l'école</h3>
+      <span id="loc-status-bdg" class="bdg" style="background:#f1f5f9;color:#64748b">Non configuré</span>
+    </div>
+    <p style="font-size:.8rem;color:#94a3b8;margin-bottom:16px">Les étudiants ne pourront signaler leur présence que s'ils se trouvent dans ce périmètre. Tant qu'aucune coordonnée n'est renseignée, le signalement de présence est autorisé sans vérification de position.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:14px">
+      <div><label class="lbl">Latitude</label><input id="loc-lat" type="number" step="any" placeholder="Ex: 4.0511" class="fld"/></div>
+      <div><label class="lbl">Longitude</label><input id="loc-lng" type="number" step="any" placeholder="Ex: 9.7085" class="fld"/></div>
+      <div><label class="lbl">Rayon toléré (m)</label><input id="loc-radius" type="number" min="10" max="5000" placeholder="150" class="fld"/></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button onclick="useMyLocationForSchool()" class="btn bg bsm"><span class="ms">my_location</span>Utiliser ma position actuelle</button>
+      <button onclick="saveSchoolLocation()" class="btn bp bsm" id="loc-save-btn"><span class="ms">save</span>Enregistrer</button>
+    </div>
+  </div>
+
     <!-- Carte Calendrier -->
     <div style="background:#fff;border:1px solid #f3f4f6;border-radius:16px;overflow:hidden;margin-top:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f3f4f6">
@@ -868,6 +886,7 @@ let NOTIFS = [];
 document.addEventListener('DOMContentLoaded', async () => {
   await loadMe();
   await loadOverview();
+  loadSchoolLocation();
   loadNotifications();
   loadConversations();
 });
@@ -1068,6 +1087,59 @@ async function loadOverview() {
         <span class="bdg" style="background:#e8f1f8;color:#004a77">${sc.students} étud.</span>
       </div>
     </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  LOCALISATION DE L'ÉCOLE (geofencing des présences)
+// ═══════════════════════════════════════════════
+async function loadSchoolLocation() {
+  const d = await api('/admin/school-location');
+  if (!d?.success || !d.location) return;
+  const loc = d.location;
+  document.getElementById('loc-lat').value    = loc.latitude ?? '';
+  document.getElementById('loc-lng').value    = loc.longitude ?? '';
+  document.getElementById('loc-radius').value = loc.geofence_radius_meters ?? 150;
+  const bdg = document.getElementById('loc-status-bdg');
+  if (loc.latitude != null && loc.longitude != null) {
+    bdg.textContent = 'Configuré';
+    bdg.style.background = '#f0fdf4'; bdg.style.color = '#16a34a';
+  } else {
+    bdg.textContent = 'Non configuré';
+    bdg.style.background = '#f1f5f9'; bdg.style.color = '#64748b';
+  }
+}
+
+function useMyLocationForSchool() {
+  if (!('geolocation' in navigator)) { toast("Géolocalisation non prise en charge par ce navigateur.", 'err'); return; }
+  toast('Localisation en cours...');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      document.getElementById('loc-lat').value = pos.coords.latitude.toFixed(6);
+      document.getElementById('loc-lng').value = pos.coords.longitude.toFixed(6);
+      toast(`✅ Position capturée (précision ${Math.round(pos.coords.accuracy)}m). Vérifiez puis enregistrez.`);
+    },
+    () => toast("Impossible d'obtenir votre position. Vérifiez les autorisations du navigateur.", 'err'),
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+async function saveSchoolLocation() {
+  const btn = document.getElementById('loc-save-btn');
+  const latitude  = document.getElementById('loc-lat').value.trim();
+  const longitude = document.getElementById('loc-lng').value.trim();
+  const geofence_radius_meters = document.getElementById('loc-radius').value.trim() || 150;
+  btn.disabled = true;
+  const d = await api('/admin/school-location', {
+    method: 'PUT',
+    body: JSON.stringify({
+      latitude: latitude === '' ? null : latitude,
+      longitude: longitude === '' ? null : longitude,
+      geofence_radius_meters,
+    }),
+  });
+  btn.disabled = false;
+  if (d?.success) { toast('✅ Localisation enregistrée.'); loadSchoolLocation(); }
+  else toast(d?.message || 'Erreur.', 'err');
 }
 
 // ═══════════════════════════════════════════════
@@ -1883,7 +1955,7 @@ function doLogout(){ localStorage.clear(); sessionStorage.clear(); location.href
 //  RAFRAÎCHISSEMENT AUTOMATIQUE (effet temps réel)
 // ═══════════════════════════════════════════════
 const SECTION_REFRESH = {
-  overview:      () => { loadOverview(); loadUpcomingEventsAdmin(); },
+  overview:      () => { loadOverview(); loadUpcomingEventsAdmin(); loadSchoolLocation(); },
   users:         loadUsers,
   schools:       loadSchools,
   activity:      loadActivity,

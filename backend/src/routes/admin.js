@@ -266,6 +266,61 @@ router.get('/schools', async (req, res) => {
   }
 });
 
+// ── GET /api/admin/school-location ───────────────────────────
+// Coordonnées GPS et rayon de tolérance (geofencing) de l'école de l'admin
+router.get('/school-location', async (req, res) => {
+  try {
+    const adminInfo = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
+    const school = adminInfo.rows[0]?.school;
+    if (!school) return res.json({ success: true, location: null });
+
+    const r = await pool.query(
+      'SELECT school, latitude, longitude, geofence_radius_meters FROM schools WHERE school=$1',
+      [school]
+    );
+    res.json({ success: true, location: r.rows[0] || { school, latitude: null, longitude: null, geofence_radius_meters: 150 } });
+  } catch(e) {
+    console.error('[ADMIN SCHOOL LOCATION GET]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// ── PUT /api/admin/school-location ───────────────────────────
+// Configure les coordonnées GPS et le rayon de tolérance pour le signalement
+// de présence géolocalisé des étudiants.
+router.put('/school-location', async (req, res) => {
+  try {
+    const adminInfo = await pool.query('SELECT school FROM users WHERE id=$1', [req.user.id]);
+    const school = adminInfo.rows[0]?.school;
+    if (!school) return res.status(400).json({ success: false, message: "Aucune école associée à votre compte." });
+
+    const { latitude, longitude, geofence_radius_meters } = req.body;
+    const lat = latitude === null || latitude === '' ? null : parseFloat(latitude);
+    const lng = longitude === null || longitude === '' ? null : parseFloat(longitude);
+    const radius = parseInt(geofence_radius_meters) || 150;
+
+    if ((lat !== null && (isNaN(lat) || lat < -90 || lat > 90)) ||
+        (lng !== null && (isNaN(lng) || lng < -180 || lng > 180))) {
+      return res.status(400).json({ success: false, message: 'Coordonnées GPS invalides.' });
+    }
+    if (radius < 10 || radius > 5000) {
+      return res.status(400).json({ success: false, message: 'Le rayon doit être entre 10 et 5000 mètres.' });
+    }
+
+    const r = await pool.query(
+      `INSERT INTO schools (school, latitude, longitude, geofence_radius_meters)
+       VALUES ($1,$2,$3,$4)
+       ON CONFLICT (school) DO UPDATE SET latitude=$2, longitude=$3, geofence_radius_meters=$4
+       RETURNING *`,
+      [school, lat, lng, radius]
+    );
+    res.json({ success: true, location: r.rows[0] });
+  } catch(e) {
+    console.error('[ADMIN SCHOOL LOCATION PUT]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 // ── GET /api/admin/activity ──────────────────────────────────
 // Activité récente (dernières inscriptions, soumissions)
 router.get('/activity', async (req, res) => {

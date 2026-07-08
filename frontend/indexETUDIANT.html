@@ -571,6 +571,13 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
     <h1 style="font-family:Manrope;font-weight:900;font-size:1.9rem;color:#111">Mes Présences</h1>
     <p style="font-size:.875rem;color:#9ca3af;margin-top:2px">Votre taux de présence par cours</p>
   </div>
+
+  <!-- Séances du jour — signalement de présence géolocalisé -->
+  <div id="today-sessions-wrap" style="margin-bottom:22px;display:none">
+    <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#111;margin-bottom:10px">Séances d'aujourd'hui</h3>
+    <div id="today-sessions-list" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+
   <div id="att-list" style="display:flex;flex-direction:column;gap:12px"><div class="sk" style="height:80px"></div></div>
   <div id="att-empty" class="card" style="display:none;text-align:center;padding:60px 20px">
     <span class="ms" style="font-size:48px;color:#d1d5db">fact_check</span>
@@ -1115,6 +1122,7 @@ function goTo(s) {
   if (s === 'interuniv'   && !loaded.interuniv)    loadInterUniv();
   if (s === 'profile'     && !loaded.profile)      loadProfile();
   if (s === 'attendance'  && !loaded.attendance)   loadAttendance();
+  if (s === 'attendance') loadTodaySessions();
   if (s === 'projects'    && !loaded.projects)     loadProjects();
   if (s === 'resources'   && !loaded.resources)    loadResources();
   if (s === 'messages')                            loadConversations();
@@ -2002,6 +2010,82 @@ async function loadAttendance(){
   }).join('');
 }
 
+// ══════════════════════════════════════════════════════
+//  SIGNALEMENT DE PRÉSENCE GÉOLOCALISÉ ("Je suis présent")
+// ══════════════════════════════════════════════════════
+const CHECKIN_LABELS = {
+  validated: { text: '✅ Présence confirmée', color: '#16a34a', bg: '#f0fdf4' },
+  rejected_out_of_zone: { text: '📍 Hors zone', color: '#dc2626', bg: '#fef2f2' },
+  rejected_low_accuracy: { text: '⚠️ GPS imprécis', color: '#d97706', bg: '#fffbeb' },
+};
+
+async function loadTodaySessions(){
+  const wrap = document.getElementById('today-sessions-wrap');
+  const list = document.getElementById('today-sessions-list');
+  const d = await api('/attendance/today-sessions');
+  if (!d?.success || !d.sessions.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  list.innerHTML = d.sessions.map(s => {
+    const badge = CHECKIN_LABELS[s.checkin_status];
+    return `<div class="card" style="padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap" id="today-sess-${s.id}">
+      <div>
+        <p style="font-weight:700;font-size:.9rem;color:#111">${s.course_title}</p>
+        <p style="font-size:.75rem;color:#9ca3af;margin-top:2px">${s.title || 'Séance du jour'}</p>
+      </div>
+      ${badge
+        ? `<span class="bdg" style="background:${badge.bg};color:${badge.color}">${badge.text}</span>`
+        : `<button onclick="checkInGeoloc('${s.id}')" id="checkin-btn-${s.id}" class="btn bp bsm"><span class="ms">location_on</span>Je suis présent</button>`}
+    </div>`;
+  }).join('');
+}
+
+function checkInGeoloc(sessionId){
+  const btn = document.getElementById(`checkin-btn-${sessionId}`);
+  if (!btn) return;
+  if (!('geolocation' in navigator)) {
+    toast("Votre navigateur ne prend pas en charge la géolocalisation.", 'err');
+    return;
+  }
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite">autorenew</span>Localisation...';
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      btn.innerHTML = '<span class="ms" style="animation:spin 1s linear infinite">autorenew</span>Vérification...';
+      const d = await api('/attendance/mark-present', {
+        method: 'POST',
+        body: JSON.stringify({ session_id: sessionId, latitude, longitude, accuracy }),
+      });
+      if (d?.success) {
+        toast(`✅ Présence confirmée${d.distance != null ? ' (' + d.distance + 'm de l\'école)' : ''} !`);
+        loaded.attendance = false;
+        await loadTodaySessions();
+        await loadAttendance();
+      } else {
+        toast(d?.message || 'Erreur lors du signalement.', 'err');
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    },
+    (err) => {
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+      let msg = "Impossible d'obtenir votre position.";
+      if (err.code === err.PERMISSION_DENIED) {
+        msg = "Autorisation de localisation refusée. Activez la géolocalisation dans les réglages de votre navigateur pour signaler votre présence.";
+      } else if (err.code === err.POSITION_UNAVAILABLE) {
+        msg = "Position indisponible. Vérifiez que le GPS est activé et réessayez.";
+      } else if (err.code === err.TIMEOUT) {
+        msg = "La localisation a pris trop de temps. Réessayez, si possible à l'extérieur.";
+      }
+      toast(msg, 'err');
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
 async function openAttendanceDetail(courseId, courseTitle){
   document.getElementById('att-detail-title').textContent = courseTitle || 'Historique';
   const d=await api(`/attendance/me/course/${courseId}`);
@@ -2456,7 +2540,7 @@ const SECTION_REFRESH = {
   assignments:  loadAssignments,
   classroom:    loadClassroom,
   communities:  loadCommunities,
-  attendance:   loadAttendance,
+  attendance:   () => { loadAttendance(); loadTodaySessions(); },
   projects:     loadProjects,
   interuniv:    loadInterUniv,
   resources:    loadResources,

@@ -2,6 +2,7 @@
 const express = require('express');
 const pool    = require('../db/pool');
 const auth    = require('../middleware/auth');
+const { calculateDistance } = require('../utils/geo');
 const router  = express.Router();
 
 router.use(auth);
@@ -222,6 +223,132 @@ router.get('/me/course/:courseId', async (req, res) => {
     res.json({ success: true, history: r.rows });
   } catch(e) {
     console.error('[STUDENT ATTENDANCE COURSE]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// ═══════════════════════════════════════════
+//  ÉTUDIANT — Auto-signalement de présence (geofencing)
+// ═══════════════════════════════════════════
+
+// GET /api/attendance/today-sessions — séances du jour pour mes cours inscrits
+router.get('/today-sessions', async (req, res) => {
+  if (req.user.role !== 'etudiant') {
+    return res.status(403).json({ success: false, message: 'Réservé aux étudiants.' });
+  }
+  try {
+    const r = await pool.query(`
+      SELECT s.id, s.title, s.session_date, c.title AS course_title,
+             ar.checkin_status, ar.checkin_distance_m, ar.status
+      FROM attendance_sessions s
+      JOIN courses c ON s.course_id = c.id
+      JOIN enrollments e ON e.course_id = c.id AND e.student_id = $1
+      LEFT JOIN attendance_records ar ON ar.session_id = s.id AND ar.student_id = $1
+      WHERE e.student_id = $1 AND s.session_date = CURRENT_DATE
+      ORDER BY c.title
+    `, [req.user.id]);
+    res.json({ success: true, sessions: r.rows });
+  } catch(e) {
+    console.error('[TODAY SESSIONS]', e.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+// POST /api/attendance/mark-present — signaler sa présence, vérifiée par géolocalisation.
+// Le calcul de distance est toujours refait ici (jamais fait confiance au frontend).
+router.post('/mark-present', async (req, res) => {
+  if (req.user.role !== 'etudiant') {
+    return res.status(403).json({ success: false, message: 'Réservé aux étudiants.' });
+  }
+  try {
+    const { session_id, latitude, longitude, accuracy } = req.body;
+    const lat = parseFloat(latitude), lng = parseFloat(longitude), acc = parseFloat(accuracy);
+    if (!session_id || !Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(acc)) {
+      return res.status(400).json({ success: false, message: 'Coordonnées GPS manquantes ou invalides.' });
+    }
+
+    // La séance doit exister, être celle du jour, et l'étudiant doit être inscrit au cours.
+    const sessionCheck = await pool.query(`
+      SELECT s.id, s.course_id, c.school
+      FROM attendance_sessions s
+      JOIN courses c ON s.course_id = c.id
+      JOIN enrollments e ON e.course_id = c.id AND e.student_id = $1
+      WHERE s.id = $2 AND s.session_date = CURRENT_DATE
+    `, [req.user.id, session_id]);
+    if (!sessionCheck.rows.length) {
+      return res.status(403).json({ success: false, message: "Séance introuvable, terminée, ou vous n'êtes pas inscrit à ce cours." });
+    }
+    const session = sessionCheck.rows[0];
+
+    // Écrit (ou met à jour) la ligne de présence. Ne rétrograde jamais un statut déjà
+    // validé (par le prof ou un check-in précédent réussi) à cause d'un essai raté,
+    // mais garde toujours la trace géo la plus récente — utile pour le mémoire.
+    const upsertCheckin = async (checkinStatus, distance, freshStatus) => {
+      const existing = await pool.query(
+        'SELECT id FROM attendance_records WHERE session_id=$1 AND student_id=$2',
+        [session_id, req.user.id]
+      );
+      if (existing.rows.length) {
+        return pool.query(
+          `UPDATE attendance_records
+           SET status = CASE WHEN $1='validated' THEN 'present' ELSE status END,
+               checkin_status=$1, checkin_lat=$2, checkin_lng=$3,
+               checkin_accuracy_m=$4, checkin_distance_m=$5, checkin_at=NOW()
+           WHERE id=$6 RETURNING *`,
+          [checkinStatus, lat, lng, acc, distance, existing.rows[0].id]
+        );
+      }
+      return pool.query(
+        `INSERT INTO attendance_records
+           (session_id, student_id, status, checkin_status, checkin_lat, checkin_lng, checkin_accuracy_m, checkin_distance_m, checkin_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW())
+         RETURNING *`,
+        [session_id, req.user.id, freshStatus, checkinStatus, lat, lng, acc, distance]
+      );
+    };
+
+    // Précision GPS insuffisante → on enregistre quand même la tentative, mais on rejette.
+    if (acc > 100) {
+      await upsertCheckin('rejected_low_accuracy', null, 'absent');
+      return res.status(400).json({
+        success: false,
+        reason: 'low_accuracy',
+        accuracy: Math.round(acc),
+        message: `Précision GPS insuffisante (${Math.round(acc)}m, il faut 100m ou moins). Sortez à l'extérieur, loin des bâtiments, et réessayez.`,
+      });
+    }
+
+    // Geofencing — ignoré si l'école n'a pas encore configuré ses coordonnées GPS.
+    const schoolRow = await pool.query(
+      'SELECT latitude, longitude, geofence_radius_meters FROM schools WHERE school=$1',
+      [session.school]
+    );
+    const school = schoolRow.rows[0];
+    let distance = null;
+
+    if (school && school.latitude != null && school.longitude != null) {
+      distance = calculateDistance(lat, lng, school.latitude, school.longitude);
+      if (distance > school.geofence_radius_meters) {
+        await upsertCheckin('rejected_out_of_zone', distance, 'absent');
+        return res.status(403).json({
+          success: false,
+          reason: 'out_of_zone',
+          distance: Math.round(distance),
+          radius: school.geofence_radius_meters,
+          message: `Vous êtes à ${Math.round(distance)}m de votre établissement (rayon autorisé : ${school.geofence_radius_meters}m). Rapprochez-vous et réessayez.`,
+        });
+      }
+    }
+
+    const r = await upsertCheckin('validated', distance, 'present');
+    res.json({
+      success: true,
+      status: 'present',
+      distance: distance != null ? Math.round(distance) : null,
+      record: r.rows[0],
+    });
+  } catch(e) {
+    console.error('[MARK PRESENT]', e.message);
     res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 });
