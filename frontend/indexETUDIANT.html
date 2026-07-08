@@ -895,7 +895,7 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
 </div>
 
 <!-- MODAL RÉSULTAT DE SIGNALEMENT DE PRÉSENCE -->
-<div id="m-checkin" class="ov" onclick="if(event.target===this)hideM('m-checkin')">
+<div id="m-checkin" class="ov" onclick="if(event.target===this)closeCheckinModal()">
   <div class="mbox" style="max-width:420px;max-height:90vh;overflow-y:auto">
     <div style="padding:22px 22px 0;text-align:center">
       <div id="ci-icon-wrap" style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
@@ -943,7 +943,7 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
     </div>
 
     <div style="padding:0 22px 22px;display:flex;gap:10px">
-      <button onclick="hideM('m-checkin')" class="btn bg" style="flex:1">Fermer</button>
+      <button onclick="closeCheckinModal()" class="btn bg" style="flex:1">Fermer</button>
       <button onclick="retryCheckin()" id="ci-retry-btn" class="btn bp" style="flex:1;display:none"><span class="ms">refresh</span>Réessayer</button>
     </div>
   </div>
@@ -2095,8 +2095,15 @@ async function loadTodaySessions(){
 }
 
 let lastCheckinSessionId = null;
+let ciAutoCloseTimer = null;
+
+function closeCheckinModal(){
+  clearTimeout(ciAutoCloseTimer);
+  hideM('m-checkin');
+}
 
 function retryCheckin(){
+  clearTimeout(ciAutoCloseTimer);
   if (lastCheckinSessionId) { hideM('m-checkin'); checkInGeoloc(lastCheckinSessionId); }
 }
 
@@ -2146,7 +2153,13 @@ function showCheckinResultModal(reason, d){
     document.getElementById('ci-coords').textContent = `${d.yourPosition.latitude.toFixed(6)}, ${d.yourPosition.longitude.toFixed(6)}`;
   }
 
+  clearTimeout(ciAutoCloseTimer);
   showM('m-checkin');
+  // Rejet (GPS imprécis / hors zone) : on referme tout seul après 5s pour que
+  // l'étudiant retrouve directement le bouton "Je suis présent" et puisse réessayer.
+  if (reason !== 'validated') {
+    ciAutoCloseTimer = setTimeout(closeCheckinModal, 5000);
+  }
 }
 
 function checkInGeoloc(sessionId){
