@@ -511,18 +511,18 @@ const UPLOADIO_ACCOUNT_ID = 'W23MTdC';                               // votre Ac
     <div id="urgent-list" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
   <!-- Grille classement + notes -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-    <div class="card" style="padding:18px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:14px">
+    <div class="card" style="padding:18px;min-width:0">
       <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#111;margin-bottom:14px;display:flex;align-items:center;gap:7px">
         <span class="ms" style="font-size:18px;color:#d97706">emoji_events</span>Classement filière
       </h3>
       <div id="ranking-list"><div class="sk" style="height:36px;margin-bottom:6px"></div><div class="sk" style="height:36px;margin-bottom:6px"></div><div class="sk" style="height:36px"></div></div>
     </div>
-    <div class="card" style="padding:18px">
+    <div class="card" style="padding:18px;min-width:0">
       <h3 style="font-family:Manrope;font-weight:800;font-size:.95rem;color:#111;margin-bottom:14px;display:flex;align-items:center;gap:7px">
         <span class="ms" style="font-size:18px;color:#00602a">bar_chart</span>Mes notes
       </h3>
-      <div id="grades-chart"><div class="sk" style="height:28px;margin-bottom:8px"></div><div class="sk" style="height:28px"></div></div>
+      <div id="grades-chart" style="display:flex;flex-direction:column;gap:12px"><div class="sk" style="height:28px"></div><div class="sk" style="height:28px"></div></div>
     </div>
   </div>
   <!-- Mes cours -->
